@@ -74,4 +74,4 @@ document describes Dynamic, not those services. Dynamic's settings page is
 bundled in the PBW and does not need an external configuration website.
 
 Questions or reports can be sent through
-[the repository's issue tracker](https://github.com/xefensor/dynamic-watchface/issues).
+[the repository's issue tracker](https://github.com/xefensor/pebble-watchface-dynamic/issues).

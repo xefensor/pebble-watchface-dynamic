@@ -1,5 +1,5 @@
 {
-  "repository": "xefensor/dynamic-watchface",
+  "repository": "xefensor/pebble-watchface-dynamic",
   "kind": "watchface",
   "display_name": "Dynamic",
   "tag_prefix": "v",

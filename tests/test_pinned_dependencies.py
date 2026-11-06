@@ -65,8 +65,12 @@ class PinnedDependenciesTests(unittest.TestCase):
         artifact = name + "-" + version + ".tgz"
         (self.root / "vendor" / artifact).write_bytes(raw)
         integrity = "sha512-" + base64.b64encode(hashlib.sha512(raw).digest()).decode()
+        repositories = {
+            "pebble-watchface-core": "https://github.com/xefensor/pebble-lib-core",
+            "pebble-activities": "https://github.com/xefensor/pebble-lib-activities",
+        }
         pin = {"package": name, "version": version, "artifact": artifact,
-               "repository": "https://github.com/xefensor/" + name,
+               "repository": repositories[name],
                "source_commit": "a" * 40, "sha256": hashlib.sha256(raw).hexdigest(),
                "integrity": integrity, "sdk": "4.33.1", "platforms": ["emery"]}
         self.write_json("vendor/" + metadata_file, pin)
@@ -106,6 +110,13 @@ class PinnedDependenciesTests(unittest.TestCase):
         path.write_bytes(path.read_bytes() + b"changed")
         with self.assertRaisesRegex(ValueError, "checksum"):
             verify_dependency(self.root, DEPENDENCIES[0])
+
+    def test_unreviewed_repository_is_rejected_without_changing_package_identity(self):
+        pin = self.fixture(DEPENDENCIES[1])
+        pin["repository"] = "https://github.com/example/pebble-activities"
+        self.write_json("vendor/ACTIVITIES.json", pin)
+        with self.assertRaisesRegex(ValueError, "provenance"):
+            verify_dependency(self.root, DEPENDENCIES[1])
 
     def test_changed_lock_resolution_is_rejected_for_activities(self):
         self.fixture(DEPENDENCIES[1])

@@ -2,7 +2,7 @@
 """Capture all 24 Clay presets from an explicitly selected Emery emulator.
 
 Example (run with the Python environment used by the Pebble CLI):
-  python3 scripts/capture-native-previews.py --emulator emery --pbw build/dynamic-watchface.pbw
+  python3 scripts/capture-native-previews.py --emulator emery --pbw build/pebble-watchface-dynamic.pbw
 
 A native-only copy of the candidate is installed through the phone bridge so
 its PKJS cannot replace injected fixture states. Native payload bytes remain
@@ -191,7 +191,7 @@ def capture_activities(pebble,session,output,appmessage=None):
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
     exported=(ROOT/'src/pkjs/settings-preview.js').read_text().split('module.exports = ',1)[1].strip().removesuffix(';')
     preview=json.loads(exported)
-    with zipfile.ZipFile(output.parent/'native-previews/native-candidate.pbw') if (output.parent/'native-previews/native-candidate.pbw').is_file() else zipfile.ZipFile(ROOT/'build/dynamic-watchface.pbw') as archive:
+    with zipfile.ZipFile(output.parent/'native-previews/native-candidate.pbw') if (output.parent/'native-previews/native-candidate.pbw').is_file() else zipfile.ZipFile(ROOT/'build'/(ROOT.name+'.pbw')) as archive:
         appinfo=json.loads(archive.read('appinfo.json'))
     target=uuid.UUID(appinfo['uuid']);keys=appinfo['messageKeys']
     if preview['version']!=json.loads((ROOT/'package.json').read_text())['version']:
@@ -294,7 +294,7 @@ def capture_activities(pebble,session,output,appmessage=None):
 def main():
     parser=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--emulator',choices=['emery'],help='Explicit emulator selection; never inferred')
-    parser.add_argument('--pbw',type=Path,default=ROOT/'build/dynamic-watchface.pbw')
+    parser.add_argument('--pbw',type=Path,default=ROOT/'build'/(ROOT.name+'.pbw'))
     parser.add_argument('--output',type=Path)
     parser.add_argument('--preview',type=Path,default=ROOT/'src/pkjs/settings-preview.js')
     parser.add_argument('--plan',action='store_true',help='Print fixture plan only; no connection, installation or images')

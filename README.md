@@ -7,40 +7,44 @@ optimizations. It places one compact activity row above the main activity and
 groups the primary content against its bottom context. Music uses title, artwork and artist. Text stays
 still and truncates at its end. Dynamic is an independent watchface by Xef.
 
+Canonical repository: **`xefensor/pebble-watchface-dynamic`**. The
+[XOCE repository migration](docs/REPOSITORY-MIGRATION.md) preserves Dynamic's
+identity, package names and published release files.
+
 ## Download
 
 Version 0.16.2 fixes missing paused-media state and provider recovery, pins
 Activities 0.4.4, and preserves Core 0.5.1 and the existing layouts. See
 [the activity display fixes](docs/ACTIVITY-DISPLAY-FIXES.md).
 
-The current release is [**v0.16.2 — GitHub development prerelease**](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.16.2).
+The current release is [**v0.16.2 — GitHub development prerelease**](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2).
 It is ready for sideload testing. Pebble appstore submission remains held.
 
 | File | Use |
 | --- | --- |
-| [Dynamic-0.16.2.pbw](https://github.com/xefensor/dynamic-watchface/releases/download/v0.16.2/Dynamic-0.16.2.pbw) | Install on Pebble Time 2 through your Pebble developer/sideload connection |
-| [Dynamic-0.16.2-source.zip](https://github.com/xefensor/dynamic-watchface/releases/download/v0.16.2/Dynamic-0.16.2-source.zip) | Checked source snapshot and pinned dependencies |
-| [Dynamic-0.16.2-debug.zip](https://github.com/xefensor/dynamic-watchface/releases/download/v0.16.2/Dynamic-0.16.2-debug.zip) | Original scripts and chained maps for debugging |
-| [SHA256SUMS.txt](https://github.com/xefensor/dynamic-watchface/releases/download/v0.16.2/SHA256SUMS.txt) | Verify downloads with `sha256sum --ignore-missing -c SHA256SUMS.txt` |
+| [Dynamic-0.16.2.pbw](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2.pbw) | Install on Pebble Time 2 through your Pebble developer/sideload connection |
+| [Dynamic-0.16.2-source.zip](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2-source.zip) | Checked source snapshot and pinned dependencies |
+| [Dynamic-0.16.2-debug.zip](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2-debug.zip) | Original scripts and chained maps for debugging |
+| [SHA256SUMS.txt](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/SHA256SUMS.txt) | Verify downloads with `sha256sum --ignore-missing -c SHA256SUMS.txt` |
 
 The [optimization review](docs/OPTIMIZATION-REVIEW.md) records measured sizes and
 validation. The release tag freezes artifact commit
-[`48a5aae`](https://github.com/xefensor/dynamic-watchface/commit/48a5aaec1aac4e2805bad2bb7e793b5da58b5165).
+[`48a5aae`](https://github.com/xefensor/pebble-watchface-dynamic/commit/48a5aaec1aac4e2805bad2bb7e793b5da58b5165).
 Later documentation updates preserve the published archives and tag.
 
-The [previous 0.16.0 release](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.16.0)
+The [previous 0.16.0 release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.0)
 and its artifacts remain available unchanged.
 
-The [previous 0.15.0 release](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.15.0)
+The [previous 0.15.0 release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.15.0)
 and its artifacts remain available unchanged.
 
-The [previous 0.14.0 release](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.14.0)
+The [previous 0.14.0 release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.14.0)
 and its artifacts remain available unchanged.
 
-The [earlier 0.8.0 release](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.8.0)
+The [earlier 0.8.0 release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.8.0)
 and its artifacts remain available unchanged.
 
-[All releases](https://github.com/xefensor/dynamic-watchface/releases) ·
+[All releases](https://github.com/xefensor/pebble-watchface-dynamic/releases) ·
 [Changes](CHANGELOG.md) · [Release automation](docs/GITHUB-RELEASES.md)
 
 These are sideloaded builds for the Pebble plugin preview. Pebble appstore
@@ -50,8 +54,8 @@ has portable, SDK, package and native-emulator checks recorded in
 [validation](docs/VALIDATION.md). Physical-watch behavior and live phone/provider
 delivery remain separate device checks.
 
-Dynamic uses [Pebble Watchface Core](https://github.com/xefensor/pebble-watchface-core)
-0.5.1 for readings and [Pebble Activities](https://github.com/xefensor/pebble-activities)
+Dynamic uses [Pebble Watchface Core](https://github.com/xefensor/pebble-lib-core)
+0.5.1 for readings and [Pebble Activities](https://github.com/xefensor/pebble-lib-activities)
 0.4.4 for generic activities and the optional music/notification adapter. Its own UUID, `cc1281f1-3b4d-45b5-b235-6881b1fd8fbd`, allows installation
 alongside [Halftone](https://github.com/xefensor/halftone-watchface).
 

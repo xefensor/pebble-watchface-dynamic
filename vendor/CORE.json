@@ -1,7 +1,7 @@
 {
   "package": "pebble-watchface-core",
   "version": "0.5.1",
-  "repository": "https://github.com/xefensor/pebble-watchface-core",
+  "repository": "https://github.com/xefensor/pebble-lib-core",
   "artifact": "pebble-watchface-core-0.5.1.tgz",
   "sha256": "16801ad73359896e192fc8a0adb63c2f053f5aae4892e50cf63a133f54cd836e",
   "integrity": "sha512-QzN/lxh8IWql0t3O63nSW54O7cDvC74AVB/YG6GPDe1qYjMBDxQiu2dlpxVZXAGwjXlFFeDJNO9TeLCtr6HwTw==",

@@ -13,6 +13,12 @@ DEPENDENCIES = (
     ("ACTIVITIES.json", "pebble-activities", "0.4.4"),
 )
 
+# Repository locations are independent of the stable npm/SDK package names.
+REPOSITORIES = {
+    "pebble-watchface-core": "https://github.com/xefensor/pebble-lib-core",
+    "pebble-activities": "https://github.com/xefensor/pebble-lib-activities",
+}
+
 
 def require(condition, message):
     if not condition:
@@ -37,7 +43,7 @@ def verify_dependency(root, specification):
     artifact = name + "-" + version + ".tgz"
     require(pin["package"] == name and pin["version"] == version and
             pin["artifact"] == artifact, "Unexpected dependency release: " + label)
-    require(pin["repository"] == "https://github.com/xefensor/" + name and
+    require(pin["repository"] == REPOSITORIES[name] and
             re.fullmatch(r"[0-9a-f]{40}", pin["source_commit"]) and
             pin["source_commit"] != "0" * 40 and
             re.fullmatch(r"[0-9a-f]{64}", pin["sha256"]),

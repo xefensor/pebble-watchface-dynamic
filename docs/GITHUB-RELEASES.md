@@ -1,8 +1,8 @@
 # GitHub releases
 
-The current [v0.7.0 prerelease](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.7.0)
-is live with the checked PBW, source ZIP and flat `SHA256SUMS.txt`.
-[All versions](https://github.com/xefensor/dynamic-watchface/releases) remain
+The current [v0.16.2 prerelease](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2)
+has the checked PBW, source ZIP, debugging ZIP and flat `SHA256SUMS.txt`.
+[All versions](https://github.com/xefensor/pebble-watchface-dynamic/releases) remain
 available on the repository's Releases page.
 
 GitHub distribution is separate from Pebble appstore submission. Dynamic is
@@ -16,15 +16,17 @@ checks are recorded in [validation](VALIDATION.md) and the
 | --- | --- |
 | `Dynamic-VERSION.pbw` | The already-built, checked watchface |
 | `Dynamic-VERSION-source.zip` | Its prepared source snapshot and pinned dependency archives |
+| `Dynamic-VERSION-debug.zip` | SDK originals and chained JavaScript source maps |
 | `SHA256SUMS.txt` | SHA-256 checksums using download basenames |
 
 The `.github/release.json` configuration selects exact current filenames.
 The workflow never uploads a broad `dist/*` glob or rebuilds a PBW with another
 SDK. Release notes come from the matching version section in `CHANGELOG.md`.
 
-The initial v0.6.1 tag points to the tested artifact commit
-`cae7b28ca29bb1ae8e6e65fbc5e38ec8d6bd2018`. The bootstrap entry preserves that
-identity. Automation and later documentation live on `main`; they do not change
+The current v0.16.2 bootstrap points to the tested artifact commit
+`48a5aaec1aac4e2805bad2bb7e793b5da58b5165`. Earlier published tags retain
+their original identities. Automation and later documentation live on `main`;
+they do not change
 the already-published source ZIP, PBW, checksums or tag. Future source snapshots
 include the automation files when the next version is prepared.
 
@@ -58,10 +60,14 @@ include the automation files when the next version is prepared.
    matching package/artifact/config or automation changes. Ordinary
    README/docs-only changes do not create a new release.
 
-Keep the bootstrap entry for the initial version unchanged. A later version
+Keep the bootstrap entry for the published version unchanged. A later version
 uses its own artifact commit. Keep `prerelease: true` while Dynamic is distributed
 as a preview; changing store eligibility is an explicit product/platform review.
 RC/beta identifiers are also required to stay prereleases.
+
+The [XOCE repository migration](REPOSITORY-MIGRATION.md) changes the configured
+GitHub destination while retaining tested source commits, tags and exact
+published assets. It does not prepare another build of an existing version.
 
 ## Checks and permissions
 

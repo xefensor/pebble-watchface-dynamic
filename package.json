@@ -166,7 +166,7 @@
   "description": "A Pebble Time 2 watchface with two readings, plugin activities, music and notification layouts.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xefensor/dynamic-watchface.git"
+    "url": "https://github.com/xefensor/pebble-watchface-dynamic.git"
   },
   "devDependencies": {
     "terser": "5.46.0"

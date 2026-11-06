@@ -57,6 +57,11 @@ existing AppMessage key numbers. Append new keys; never reuse retired ones.
 
 ## Source boundaries
 
+- The canonical GitHub repository is `xefensor/pebble-watchface-dynamic`.
+  Keep the npm name `dynamic-watchface` and dependency package/import names
+  unchanged. SDK development PBWs use the checkout directory's name; release
+  packaging and preview tools must work in the renamed checkout. See
+  `docs/REPOSITORY-MIGRATION.md` for the repository/package mapping.
 - `src/c/`: Dynamic's renderer, SDK lifecycle and host presentation.
 - `src/pkjs/`: offline Clay settings, translations and phone host integration.
 - `vendor/CORE.json` and `vendor/ACTIVITIES.json`: exact pinned

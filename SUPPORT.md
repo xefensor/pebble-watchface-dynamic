@@ -1,6 +1,6 @@
 # Dynamic support
 
-[Report a problem or request a change](https://github.com/xefensor/dynamic-watchface/issues).
+[Report a problem or request a change](https://github.com/xefensor/pebble-watchface-dynamic/issues).
 Include the Dynamic version, Pebble model/OS version, phone app version, what
 you expected and the steps that reproduce the problem. For a missing reading,
 include the selected plugin and the state shown in **Connection & help**.
@@ -8,7 +8,7 @@ Keep private notification text out of reports and screenshots.
 
 ## Downloads and verification
 
-Browse the [published GitHub releases](https://github.com/xefensor/dynamic-watchface/releases).
+Browse the [published GitHub releases](https://github.com/xefensor/pebble-watchface-dynamic/releases).
 The local 0.14.0 settings candidate has its own validation record.
 Download the PBW and `SHA256SUMS.txt`; the source ZIP is for building or inspecting
 the checked snapshot. Verify the files you downloaded with

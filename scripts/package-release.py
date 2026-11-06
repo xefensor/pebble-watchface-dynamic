@@ -6,7 +6,8 @@ from release_licenses import license_payloads
 from release_js import prepare_js, zip_payloads
 root = Path(__file__).resolve().parents[1]
 pkg = json.loads((root / 'package.json').read_text())
-source = root / 'build' / (pkg['name'] + '.pbw')
+# The stock SDK names its development bundle after the checkout directory.
+source = root / 'build' / (root.name + '.pbw')
 target = root / 'dist' / ('Dynamic-' + pkg['version'] + '.pbw')
 target.parent.mkdir(exist_ok=True)
 subprocess.run(['python3',str(root/'scripts/bundle-js.py'),str(root/'src/plugin/index.js'),str(root/'build/plugin.js')],check=True,cwd=root)

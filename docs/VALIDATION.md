@@ -2,7 +2,7 @@
 
 ## 0.16.2 publication — 5 November 2026
 
-[Dynamic 0.16.2](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.16.2)
+[Dynamic 0.16.2](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2)
 is published as a GitHub development prerelease from the tested artifact commit
 `48a5aaec1aac4e2805bad2bb7e793b5da58b5165`. The release workflow passed and
 published the committed PBW, source ZIP, debug ZIP and checksums without an SDK
@@ -149,7 +149,7 @@ claimed. Earlier archives, assets, tags and historical evidence are preserved.
 
 ## GitHub publication — 3 November 2026
 
-[Dynamic 0.14.0](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.14.0)
+[Dynamic 0.14.0](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.14.0)
 is published as a development prerelease from the tested artifact commit
 `0afe14f1c54802bd687ee32a7d69036802290f99`. Ordinary Git fast-forwarded `main`
 and pushed the settings branch. GitHub's portable checks and
@@ -508,7 +508,7 @@ Evidence: [native previews](qa/0.11.0/native/native-previews/previews.json),
 [final package audit](qa/0.11.0/native/bundle-audit.json),
 [distribution identity](qa/0.11.0/native/final-distribution.json) and
 [actual settings-page checks](qa/0.11.0/settings/README.md).
-The [simple plugin API specification](https://github.com/xefensor/pebble-activities/blob/main/docs/ACTIVITY-SPECIFICATION.md)
+The [simple plugin API specification](https://github.com/xefensor/pebble-lib-activities/blob/main/docs/ACTIVITY-SPECIFICATION.md)
 defines the developer contract; older advanced schemas are compatibility paths.
 
 Final PBW SHA-256:
@@ -850,7 +850,7 @@ Dynamic pins Core 0.5.0 and independent Pebble Activities 0.1.0. The UUID and al
 
 Evidence: [native presets](qa/0.7.0/native-previews/previews.json),
 [generic layouts](qa/0.7.0/activities/activities.json) and
-[reference timer handoff](https://github.com/xefensor/pebble-activities/blob/main/docs/qa/0.1.0/handoff.json).
+[reference timer handoff](https://github.com/xefensor/pebble-lib-activities/blob/main/docs/qa/0.1.0/handoff.json).
 Native preview binary/resource identity is checked again against the final PBW.
 
 The reference timer owns its native alarm. A clean emulator run confirms offline Wakeup
@@ -862,7 +862,7 @@ certified. No firmware fork, built-in Workout access or dashboard app is shipped
 
 ## GitHub distribution after 0.6.1
 
-[GitHub v0.6.1](https://github.com/xefensor/dynamic-watchface/releases/tag/v0.6.1)
+[GitHub v0.6.1](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.6.1)
 is published as a prerelease from the original tested artifact commit. Its PBW
 and source ZIP bytes/hashes remain those recorded below. Later main-branch
 documentation and release-automation updates are separate from that snapshot.

@@ -778,7 +778,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None):
     require(all(activities[key] == value for key, value in ACTIVITY_RELEASE.items()),
             "Reviewed ACT3 dependency provenance differs")
     licenses = license_payloads(root)
-    sdk_pbw = root / "build" / (package["name"] + ".pbw")
+    sdk_pbw = root / "build" / (root.name + ".pbw")
     debug_pbw = pbw.with_name('Dynamic-' + package['version'] + '-debug.zip')
     with zipfile.ZipFile(pbw) as release, zipfile.ZipFile(sdk_pbw) as sdk, zipfile.ZipFile(debug_pbw) as debug_archive:
         require(release.testzip() is None and sdk.testzip() is None, "Corrupt PBW archive")
