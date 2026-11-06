@@ -224,3 +224,13 @@ expired or absent artist cannot hide Paused or reintroduce stale context.
 The footer uses existing ActivityPlan scratch; no new retained source data or
 timer is needed. Keep standard activities with a media icon in their declared
 standard presentation, including independent clocks in either role.
+
+## Approved UI/UX alignment (implementation pending)
+
+Read [the UI/UX alignment handoff](docs/UX-ALIGNMENT.md) before the next
+interface implementation. It links the canonical local XOCE design standard
+and records this app's remaining work, including applicable stay-open phone
+settings with confirmed inline Save feedback. This is an approved future target,
+not a claim that the released app already implements it. Current lifecycle,
+storage, privacy, native ownership and release rules above still apply. The
+documentation update does not change runtime code or frozen release artifacts.
