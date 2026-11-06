@@ -111,7 +111,7 @@ annotation are omitted instead of showing them as current without one.
 
 ## Open Activity shortcut
 
-Install the separate [**Open Activity 0.1.5** helper](https://github.com/xefensor/pebble-app-open-activity/releases/tag/v0.1.5) and assign that same app to
+Install the separate [**Open Activity 0.1.6** helper](https://github.com/xefensor/pebble-app-open-activity/releases/tag/v0.1.6) and assign that same app to
 the desired Quick Launch shortcuts. Its two settings choose one shortcut for
 Primary and one for Secondary, from supported taps, holds and combinations.
 Dynamic supplies a recent destination pair only after
@@ -124,9 +124,10 @@ plugin support and a connection. Current SDK does not expose a strict previous-
 watchface guard or cancellation after an app-launch command is sent. Initial
 support assumes one connected watch and opens whole apps; it does not select a
 particular timer or notification inside them. No firmware or phone-app fork is
-required. Dashboard implementation is deferred.
+required. [Dashboard](https://github.com/xefensor/pebble-app-dashboard) provides
+the separate activity overview. Timer Pause/Resume from Dashboard remains deferred.
 
-[Timer 0.10.0](https://github.com/xefensor/pebble-app-timer/releases/tag/v0.10.0)
+[Timer 0.12.0](https://github.com/xefensor/pebble-app-timer/releases/tag/v0.12.0)
 publishes timer activities and their Timer destination. Install each companion
 app separately; Dynamic bundles the Activities library, not the watchapps.
 
