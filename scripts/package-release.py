@@ -11,6 +11,7 @@ source = root / 'build' / (root.name + '.pbw')
 target = root / 'dist' / ('Dynamic-' + pkg['version'] + '.pbw')
 target.parent.mkdir(exist_ok=True)
 subprocess.run(['python3',str(root/'scripts/bundle-js.py'),str(root/'src/plugin/index.js'),str(root/'build/plugin.js')],check=True,cwd=root)
+subprocess.run(['node',str(root/'scripts/generate-config.cjs')],check=True,cwd=root)
 licenses = license_payloads(root)
 with zipfile.ZipFile(source) as sdk:
     assert sdk.testzip() is None
@@ -23,10 +24,12 @@ with zipfile.ZipFile(source) as sdk:
     info['manifestVersion'] = 2
     info['usesPermissions'] = pkg['pebble']['usesPermissions']
     info['plugin'] = pkg['pebble']['plugin']
+    info['configPage'] = 'config.html'
     payloads = {name: sdk.read(name) for name in sdk.namelist() if not name.endswith('.map')}
     payloads['appinfo.json'] = (json.dumps(info, sort_keys=True, separators=(',', ':')) + '\n').encode()
     assert not set(payloads).intersection(licenses)
     payloads.update(licenses)
+    payloads['config.html'] = (root/'config.html').read_bytes()
     runtime, debug_payloads = prepare_js(root, pkg['version'], sdk.read('pebble-js-app.js'),
                                         sdk.read('pebble-js-app.js.map'), (root/'build/plugin.js').read_bytes())
     payloads.update(runtime)
@@ -35,7 +38,7 @@ with zipfile.ZipFile(source) as sdk:
     debug.write_bytes(zip_payloads(debug_payloads))
     with zipfile.ZipFile(target) as result:
         assert result.testzip() is None
-        assert set(result.namelist()) == (set(sdk.namelist()) - {'pebble-js-app.js.map'}) | set(licenses) | {'plugin.js'}
+        assert set(result.namelist()) == (set(sdk.namelist()) - {'pebble-js-app.js.map'}) | set(licenses) | {'plugin.js','config.html'}
         for name in sdk.namelist():
             if name not in ('appinfo.json', 'pebble-js-app.js', 'pebble-js-app.js.map'): assert sdk.read(name) == result.read(name)
         for name, data in licenses.items(): assert result.read(name) == data

@@ -3110,9 +3110,36 @@ function translateConfig(config, language) {
   }
   return clone(config, '');
 }
+// Shared Save-and-stay wording. Existing page translations remain intact.
+var PHONE_SAVE = {
+  en:['✓ Saved','No changes to save.','Couldn’t save. Try again.','Save not confirmed. Reload saved settings or try again.','Could not load saved settings. Retry before editing.','Retry','Reload saved','Discard','Loading settings…','Save'],
+  cs:['✓ Uloženo','Žádné změny k uložení.','Nepodařilo se uložit. Zkuste to znovu.','Uložení není potvrzeno. Načtěte uložené nastavení nebo to zkuste znovu.','Uložené nastavení nelze načíst. Před úpravami to zkuste znovu.','Zkusit znovu','Načíst uložené','Zahodit změny','Načítání nastavení…','Uložit'],
+  sk:['✓ Uložené','Žiadne zmeny na uloženie.','Nepodarilo sa uložiť. Skúste to znova.','Uloženie nie je potvrdené. Načítajte uložené nastavenia alebo skúste znova.','Uložené nastavenia sa nepodarilo načítať. Skúste znova.','Skúsiť znova','Načítať uložené','Zahodiť zmeny','Načítavajú sa nastavenia…','Uložiť'],
+  de:['✓ Gespeichert','Keine Änderungen zu speichern.','Speichern fehlgeschlagen. Erneut versuchen.','Speichern nicht bestätigt. Gespeicherte Einstellungen laden oder erneut versuchen.','Gespeicherte Einstellungen konnten nicht geladen werden. Erneut versuchen.','Erneut versuchen','Gespeicherte laden','Verwerfen','Einstellungen werden geladen…','Speichern'],
+  fr:['✓ Enregistré','Aucune modification à enregistrer.','Échec de l’enregistrement. Réessayez.','Enregistrement non confirmé. Rechargez les réglages ou réessayez.','Impossible de charger les réglages enregistrés. Réessayez.','Réessayer','Recharger','Annuler les modifications','Chargement des réglages…','Enregistrer'],
+  es:['✓ Guardado','No hay cambios para guardar.','No se pudo guardar. Inténtalo de nuevo.','Guardado sin confirmar. Recarga los ajustes o inténtalo de nuevo.','No se pudieron cargar los ajustes guardados. Reinténtalo.','Reintentar','Recargar guardados','Descartar','Cargando ajustes…','Guardar'],
+  it:['✓ Salvato','Nessuna modifica da salvare.','Salvataggio non riuscito. Riprova.','Salvataggio non confermato. Ricarica le impostazioni o riprova.','Impossibile caricare le impostazioni salvate. Riprova.','Riprova','Ricarica salvate','Scarta','Caricamento impostazioni…','Salva'],
+  pt:['✓ Guardado','Não há alterações para guardar.','Não foi possível guardar. Tente novamente.','Gravação não confirmada. Recarregue as definições ou tente novamente.','Não foi possível carregar as definições guardadas. Tente novamente.','Tentar novamente','Recarregar guardadas','Descartar','A carregar definições…','Guardar'],
+  nl:['✓ Opgeslagen','Geen wijzigingen om op te slaan.','Opslaan mislukt. Probeer opnieuw.','Opslaan niet bevestigd. Laad opgeslagen instellingen of probeer opnieuw.','Opgeslagen instellingen konden niet worden geladen. Probeer opnieuw.','Opnieuw proberen','Opgeslagen laden','Verwerpen','Instellingen laden…','Opslaan'],
+  pl:['✓ Zapisano','Brak zmian do zapisania.','Nie udało się zapisać. Spróbuj ponownie.','Zapis niepotwierdzony. Wczytaj zapisane ustawienia lub spróbuj ponownie.','Nie można wczytać zapisanych ustawień. Spróbuj ponownie.','Spróbuj ponownie','Wczytaj zapisane','Odrzuć','Wczytywanie ustawień…','Zapisz'],
+  da:['✓ Gemt','Ingen ændringer at gemme.','Kunne ikke gemme. Prøv igen.','Lagring ikke bekræftet. Indlæs gemte indstillinger eller prøv igen.','Kunne ikke indlæse gemte indstillinger. Prøv igen.','Prøv igen','Indlæs gemte','Kassér','Indlæser indstillinger…','Gem'],
+  sv:['✓ Sparat','Inga ändringar att spara.','Kunde inte spara. Försök igen.','Sparandet är inte bekräftat. Läs in sparade inställningar eller försök igen.','Kunde inte läsa in sparade inställningar. Försök igen.','Försök igen','Läs in sparade','Kasta ändringar','Läser in inställningar…','Spara'],
+  no:['✓ Lagret','Ingen endringer å lagre.','Kunne ikke lagre. Prøv igjen.','Lagring er ikke bekreftet. Last lagrede innstillinger eller prøv igjen.','Kunne ikke laste lagrede innstillinger. Prøv igjen.','Prøv igjen','Last lagrede','Forkast','Laster innstillinger…','Lagre'],
+  fi:['✓ Tallennettu','Ei tallennettavia muutoksia.','Tallennus epäonnistui. Yritä uudelleen.','Tallennusta ei vahvistettu. Lataa tallennetut asetukset tai yritä uudelleen.','Tallennettuja asetuksia ei voitu ladata. Yritä uudelleen.','Yritä uudelleen','Lataa tallennetut','Hylkää','Ladataan asetuksia…','Tallenna'],
+  hu:['✓ Mentve','Nincs mentendő módosítás.','Nem sikerült menteni. Próbálja újra.','A mentés nincs megerősítve. Töltse be a mentett beállításokat vagy próbálja újra.','A mentett beállítások nem tölthetők be. Próbálja újra.','Újra','Mentettek betöltése','Elvetés','Beállítások betöltése…','Mentés'],
+  ro:['✓ Salvat','Nu sunt modificări de salvat.','Salvarea a eșuat. Încercați din nou.','Salvare neconfirmată. Reîncărcați setările sau încercați din nou.','Setările salvate nu pot fi încărcate. Încercați din nou.','Reîncercați','Reîncărcați salvate','Renunțați','Se încarcă setările…','Salvați'],
+  tr:['✓ Kaydedildi','Kaydedilecek değişiklik yok.','Kaydedilemedi. Tekrar deneyin.','Kayıt onaylanmadı. Kayıtlı ayarları yükleyin veya tekrar deneyin.','Kayıtlı ayarlar yüklenemedi. Tekrar deneyin.','Tekrar dene','Kayıtlı ayarları yükle','Vazgeç','Ayarlar yükleniyor…','Kaydet']
+};
+var PHONE_SAVE_KEYS = ['phoneSaved','phoneNoChanges','phoneSaveFailed','phoneSaveUncertain','phoneLoadFailed','phoneRetry','phoneReload','phoneDiscard','phoneLoading','save'];
+Object.keys(PHONE_SAVE).forEach(function(language){PHONE_SAVE_KEYS.forEach(function(key,index){MESSAGES[language][key]=PHONE_SAVE[language][index];});});
+LITERALS.Save = 'save';
 function settingsStrings(language) {
+  language = resolveLanguage(language);
   var strings = {};
   Object.keys(MESSAGES.en).forEach(function(key) { strings[key] = t(key, language); });
+  var keys = ['phoneSaved','phoneNoChanges','phoneSaveFailed','phoneSaveUncertain','phoneLoadFailed','phoneRetry','phoneReload','phoneDiscard','phoneLoading','save'];
+  var values = PHONE_SAVE[language] || PHONE_SAVE.en;
+  keys.forEach(function(key,index){strings[key]=values[index];});
   return strings;
 }
 

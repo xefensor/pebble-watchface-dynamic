@@ -37,6 +37,8 @@ function fixture(settings = {}, locales = {}) {
       imports.push(name);
       if (name === 'message_keys') return keys;
       if (name === '../common/activity-navigation') return require('../src/common/activity-navigation');
+      if (name === '../common/settings-state') return require('../src/common/settings-state');
+      if (name === '../common/settings-config') return require('../src/common/settings-config');
       if (name === './config') return require('../src/pkjs/config');
       if (name === './settings-page') return require('../src/pkjs/settings-page');
       if (name === './settings-preview') return require('../src/pkjs/settings-preview');
@@ -761,7 +763,7 @@ test('Dynamic provider preferences reorder Timer and built-in Music in either ro
   assert.equal(f.contextOptions.musicAsActivity,true);
   assert.ok(f.deliveries.every(payload=>payload.NaN===undefined&&payload.__dynamicActivityPreferences===undefined));
   assert.doesNotMatch(JSON.stringify(f.storage),/Never store this|temporary/);
-  assert.equal(f.settings().__dynamicActivityPreferences,undefined);
+  assert.deepEqual(f.settings().__dynamicActivityPreferences,{order:['builtin:music',TIMER],hidden:['builtin:music']});
   const previous=f.activityReprojects();f.contextOptions.onChanged();assert.equal(f.activityReprojects(),previous+1);
 });
 
@@ -782,7 +784,7 @@ test('malformed activity preferences are bounded and cannot become native settin
   const f=fixture();
   f.handlers.webviewclosed({response:JSON.stringify({TEXT_COLOR:{value:123},__dynamicActivityPreferences:{value:JSON.stringify({
     order:['temporary-run',TIMER,TIMER,'builtin:music',{},null],hidden:[TIMER,'song title'],title:'Private song'})}})});
-  assert.deepEqual(JSON.parse(f.storage['dynamic-activity-preferences-v1']),{order:[TIMER,'builtin:music'],hidden:[TIMER]});
+  assert.deepEqual(f.settings().__dynamicActivityPreferences,{order:[TIMER,'builtin:music'],hidden:[TIMER]});
   assert.deepEqual(f.deliveries.at(-1),{[keys.TEXT_COLOR]:123});
   assert.doesNotMatch(JSON.stringify(f.storage),/Private song|song title|temporary-run/);
 });

@@ -7,6 +7,7 @@ var createComplications = core.createComplications;
 var createContext = activityLibrary.createContext;
 var createMessageQueue = core.createMessageQueue;
 var localization = require('./localization');
+var settingsState = require('../common/settings-state');
 var clay,clayConfig;
 function settingsPage() {
   if(!clay) {
@@ -111,7 +112,10 @@ var ACTIVITY_PREFERENCES_RESPONSE = '__dynamicActivityPreferences';
 function activityPreferences() {
   if(cachedPreferences)return cachedPreferences;
   var value;
-  try { value = JSON.parse(localStorage.getItem(ACTIVITY_PREFERENCES_KEY)); } catch (ignored) {}
+  try {
+    value = savedSettings()[ACTIVITY_PREFERENCES_RESPONSE];
+    if (value === undefined) value = JSON.parse(localStorage.getItem(ACTIVITY_PREFERENCES_KEY));
+  } catch (ignored) {}
   var result = activityLibrary.selection.normalizePreferences(value);
   // Existing source/privacy switches remain authoritative for both built-ins.
   result.hidden = result.hidden.filter(function(id) { return id !== 'builtin:music' && id !== 'builtin:notifications'; });
@@ -434,26 +438,14 @@ function resyncPresentation() {
   var record = {id:String(Date.now()) + '-' + (++deliverySequence), state:'pending', payload:payload};
   storeDelivery(record); deliverSettings(record, 1);
 }
-Pebble.addEventListener('webviewclosed', function(event) {
-  if (!event || !event.response) { return; }
-  var payload;
-  try {
-    var response = JSON.parse(/^\{/.test(event.response) ? event.response : decodeURIComponent(event.response));
-    var preferences = response[ACTIVITY_PREFERENCES_RESPONSE];
-    delete response[ACTIVITY_PREFERENCES_RESPONSE];
-    if (preferences && typeof preferences === 'object' && typeof preferences.value === 'string') {
-      preferences = JSON.parse(preferences.value);
-    }
-    payload = watchSettings(settingsPage().getSettings(JSON.stringify(response)));
-    if (preferences && typeof preferences === 'object' && !Array.isArray(preferences)) {
-      // Only stable provider keys and visibility flags survive. Generic titles,
-      // private music content and temporary run IDs never enter phone storage.
-      localStorage.setItem(ACTIVITY_PREFERENCES_KEY,
-        JSON.stringify(activityLibrary.selection.normalizePreferences(preferences)));
-    }
-  }
-  catch (error) { log('Invalid settings response'); return; }
-  finally { invalidateSettings(); }
+function applyPhoneSettings(candidate) {
+  var confirmed = settingsState.save(localStorage,candidate);
+  invalidateSettings();
+  if (!confirmed.ok) return confirmed;
+  applySavedSettings(watchSettings(confirmed.settings));
+  return confirmed;
+}
+function applySavedSettings(payload) {
   // Apply phone-only source controls immediately, including privacy switches.
   // Theme delivery can retry independently without postponing a context clear.
   context.configure(); activities.reproject(); activities.configure();
@@ -461,4 +453,35 @@ Pebble.addEventListener('webviewclosed', function(event) {
   if (settingsRetry !== null) { clearTimeout(settingsRetry); settingsRetry = null; }
   var record = {id:String(Date.now()) + '-' + (++deliverySequence), state:'pending', payload:payload};
   storeDelivery(record); deliverSettings(record, 1);
+}
+Pebble.addEventListener('webviewclosed', function(event) {
+  if (!event || !event.response) return;
+  var payload;
+  try {
+    var response = JSON.parse(/^\{/.test(event.response) ? event.response : decodeURIComponent(event.response));
+    var preferences = response[ACTIVITY_PREFERENCES_RESPONSE];
+    delete response[ACTIVITY_PREFERENCES_RESPONSE];
+    if (preferences && typeof preferences.value === 'string') preferences = JSON.parse(preferences.value);
+    if (preferences && typeof preferences === 'object' && !Array.isArray(preferences))
+      response[ACTIVITY_PREFERENCES_RESPONSE] = {value:activityLibrary.selection.normalizePreferences(preferences)};
+    payload = watchSettings(settingsPage().getSettings(JSON.stringify(response)));
+  } catch (ignored) { log('Invalid settings response'); return; }
+  finally { invalidateSettings(); }
+  applySavedSettings(payload);
+});
+Pebble.addEventListener('configmessage',function(event){
+  if (!event || typeof event.respond !== 'function') return;
+  try {
+    var message = event.message || event.data || event.payload || {};
+    if (typeof message === 'string') message = JSON.parse(message);
+    if (message.type === 'save_settings') { event.respond(applyPhoneSettings(message.settings)); return; }
+    if (message.type === 'load_settings') {
+      invalidateSettings();
+      var current = settingsState.read(localStorage);
+      if (!current) { event.respond({ok:false}); return; }
+      event.respond(require('../common/settings-config')(current,settingsLanguage(),settingsMetadata(complications.status(),context.status()),systemClockFormat()));
+      return;
+    }
+    event.respond({ok:false,notSaved:true});
+  } catch (ignored) { event.respond({ok:false}); }
 });

@@ -40,7 +40,7 @@ LEGACY_KEYS = (
     "SHOW_NOTIFICATIONS", "NOTIFICATION_PREVIEW", "NOTIFICATION_APPS",
     "SHOW_STATUS", "PANEL_TRANSITIONS", "ACCENT_COLOR",
 )
-APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "activity-presentation.js", "activity-navigation.js"}
+APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js"}
 CORE_MODULES = {
     "readings.js", "message-queue.js", "complications.js", "complication-data.js",
 }
@@ -60,7 +60,7 @@ SDK_PBW_FILES = {
     "appinfo.json", "pebble-js-app.js", "pebble-js-app.js.map",
     "emery/pebble-app.bin", "emery/app_resources.pbpack", "emery/manifest.json",
 }
-PBW_FILES = (SDK_PBW_FILES - {"pebble-js-app.js.map"}) | set(LICENSE_FILES) | {"plugin.js"}
+PBW_FILES = (SDK_PBW_FILES - {"pebble-js-app.js.map"}) | set(LICENSE_FILES) | {"plugin.js", "config.html"}
 LEGACY_ENDPOINTS = (
     "api.open-meteo.com", "api.openweathermap.org", "forecast.weather.gov",
 )
@@ -753,7 +753,7 @@ def audit_preview_identity(root, version, binary, resources):
 def audit(pbw, root=ROOT, sdk_font_header=None):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
-    require(package["version"] == "0.16.2", "Review this auditor for a different release version")
+    require(package["version"] == "0.17.0", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
     require(settings["targetPlatforms"] == ["emery"] and
@@ -787,12 +787,14 @@ def audit(pbw, root=ROOT, sdk_font_header=None):
                 len(sdk.namelist()) == len(set(sdk.namelist())) == len(SDK_PBW_FILES) and
                 set(sdk.namelist()) == SDK_PBW_FILES,
                 "Unexpected PBW entry inventory")
+        require(release.read("config.html") == (root / "config.html").read_bytes(), "Bundled config page differs from generated source")
         info = json.loads(release.read("appinfo.json"))
         original = json.loads(sdk.read("appinfo.json"))
         expected = dict(original)
         expected["manifestVersion"] = 2
         expected["usesPermissions"] = settings["usesPermissions"]
         expected["plugin"] = settings["plugin"]
+        expected["configPage"] = "config.html"
         require(info == expected, "Permission packaging changed unexpected app metadata")
         require(info["uuid"] == APP_UUID and info["versionLabel"] == package["version"] and
                 info["targetPlatforms"] == ["emery"] and
@@ -818,6 +820,11 @@ def audit(pbw, root=ROOT, sdk_font_header=None):
                               debug, sdk_code=sdk.read('pebble-js-app.js'), sdk_map=sdk.read('pebble-js-app.js.map'), plugin=plugin_source)
         for name in sorted(PBW_FILES):
             content = release.read(name)
+            if name == 'config.html':
+                subprocess.run(['node',str(root/'scripts/generate-config.cjs'),'--check'],cwd=root,check=True,capture_output=True)
+                require(content == (root/'config.html').read_bytes(), 'Bundled configuration differs from current generated page')
+                inventory.append({'file':name,'bytes':len(content),'sha256':sha256(content),'generatedSourceByteIdentical':True})
+                continue
             if name in licenses:
                 require(content == licenses[name], "Packaged license differs from source: " + name)
                 inventory.append({"file": name, "bytes": len(content),

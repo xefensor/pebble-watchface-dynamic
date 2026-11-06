@@ -1,0 +1,137 @@
+{
+  "version": "0.17.0",
+  "result": "PASS",
+  "pbw": {
+    "file": "Dynamic-0.17.0.pbw",
+    "sha256": "1559f81ea3dafeac52c8e04a38dbb51e59b215212170d872c87cb6c44b6fc026"
+  },
+  "executedPackagedFiles": {
+    "config.html": "86f863593d69e8320f85ed6f900ccf1f9065f910ca51b14e8214bacb48484702",
+    "plugin.js": "8c54485062288e81c93f24014ad02f518109d39df21c21ca93f41a8ca2a77ef1",
+    "pebble-js-app.js": "3a9055e496df2912cd97398b9fdd0d7fedf4acc8c0ad77c90367fd5f8f28f6d4"
+  },
+  "checks": [
+    "real packaged Clay boots only after load, retains custom watch colours and hidden notification privacy; EN/CS at 320/360 light/dark; no load writes or autofocus",
+    "all 17 existing language dictionaries retain new save and load text in the actual offline configuration",
+    "confirmed Save stays open, persists inline without scroll/focus jump, becomes dirty on edit, and survives repeated Save, cold reopening, active Android teardown and full reload",
+    "a deliberate colour pick saves normally; changing/reverting during an in-flight save retains a dirty draft and a later explicit Save commits it",
+    "Discard restores palette, privacy mode, filter chips, invalid draft, activity order/visibility and the latest confirmed fields locally without SDK calls or keyboard focus; visible anchoring survives control reflow",
+    "known rejection differs from unknown/mismatched/lost/timed-out ACK or failed target; retained drafts support explicit retry without false success",
+    "plugin fallback requires confirmed PKJS exit; a PKJS appearing after plugin Save receives the exact write before stale DOM teardown",
+    "failed/corrupt load leaves no editable replacement defaults; explicit Retry boots the real page",
+    "numeric legacy colours and retired fields survive; saved stable activity order/privacy migrate into the single existing settings record only on explicit Save",
+    "short/narrow enlarged-text layout remains bounded; Czech Save feedback uses actual packaged translations"
+  ],
+  "captures": [
+    {
+      "file": "initial-en-320-light.png",
+      "sha256": "e912fa43a0b0f767cb019d6bb0527caf3ea94a67091af529b97316be3928e47a"
+    },
+    {
+      "file": "initial-en-320-dark.png",
+      "sha256": "24268c2fac19ff0419bfb637ac564d92629e08e334ea4606674b2c459f2d49b0"
+    },
+    {
+      "file": "initial-en-360-light.png",
+      "sha256": "68737e4b6ee3599a8311df37aab30b8288eddc8c073511a3ef19d60639f58485"
+    },
+    {
+      "file": "initial-en-360-dark.png",
+      "sha256": "75776e2ff0c27d4249bbb09c209a318a36ed483cec7eddb8aebd12a377f9865c"
+    },
+    {
+      "file": "initial-cs-320-light.png",
+      "sha256": "807d0f57c3d08a52c551feb8bf6d46b4fd778cabc1f821d399c569bef6d68a5f"
+    },
+    {
+      "file": "initial-cs-320-dark.png",
+      "sha256": "019a625649c5f1da2e82583d7caf91378fad1de8047779e248e533dbee2ec011"
+    },
+    {
+      "file": "initial-cs-360-light.png",
+      "sha256": "608025d04f545df2000f7ba275ecd344ebe0ac6ed1d5ce913a0b4dc1200ac52e"
+    },
+    {
+      "file": "initial-cs-360-dark.png",
+      "sha256": "5004c451b4e5f173bdec9cab803e2ce2868054802e986f04214b31e4cf269739"
+    },
+    {
+      "file": "saved-en-360.png",
+      "sha256": "398eb2b90c48254ef7a84de93c80358fcb6a68b204a2bca4768e67bd0b7e6ed4"
+    },
+    {
+      "file": "short-large-text-320.png",
+      "sha256": "4cf2f8987fd7f410eba4581215a41cabb3ff102056e60d643e844b0fd3616fc0"
+    },
+    {
+      "file": "saved-cs-360.png",
+      "sha256": "5dc84e8339a7cdd9aa509995f5bcf7ce209aad0f28bbc660b5176c966d4f3f12"
+    }
+  ],
+  "layouts": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "language": "en",
+      "background": "rgb(244, 245, 247)"
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "language": "en",
+      "background": "rgb(17, 21, 27)"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "language": "en",
+      "background": "rgb(244, 245, 247)"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "language": "en",
+      "background": "rgb(17, 21, 27)"
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "language": "cs",
+      "background": "rgb(244, 245, 247)"
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "language": "cs",
+      "background": "rgb(17, 21, 27)"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "language": "cs",
+      "background": "rgb(244, 245, 247)"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "language": "cs",
+      "background": "rgb(17, 21, 27)"
+    }
+  ],
+  "discardViewport": {
+    "before": {
+      "scrollY": 500,
+      "scrollHeight": 4188,
+      "innerHeight": 800,
+      "previewTop": 73.171875
+    },
+    "after": {
+      "scrollY": 363,
+      "scrollHeight": 3830,
+      "innerHeight": 800,
+      "previewTop": 73.1875
+    }
+  },
+  "errors": [],
+  "scope": "Actual packaged config.html, plugin.js and PKJS in installed Chromium with a simulated SDK bridge and separate Android native/DOM preference snapshots. The stock Clay instance is exposed just before its unchanged customFn call. No live phone WebView or physical-watch verification."
+}

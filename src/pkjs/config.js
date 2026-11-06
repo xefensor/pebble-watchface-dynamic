@@ -52,7 +52,7 @@ module.exports = [
     {type:'text',id:'context-status',defaultValue:'Dynamic content: waiting for Pebble'},
     {type:'text',defaultValue:'Timeline Peek keeps the clock and complications 1 and 2. Its event panel takes priority over music and notifications.'}
   ]},
-  {type:'submit',defaultValue:'Save settings'},
+  {type:'submit',defaultValue:'Save'},
   // Transport components have no preference keys and are never submitted.
   {type:'text',id:'dynamic-settings-data',defaultValue:'{}'},
   {type:'text',id:'dynamic-settings-strings',defaultValue:'{}'},

@@ -1,0 +1,47 @@
+{
+  "version": "0.17.0",
+  "status": "validated-local-candidate",
+  "date": "2026-11-06",
+  "published": false,
+  "pbw": {
+    "file": "Dynamic-0.17.0.pbw",
+    "sha256": "1559f81ea3dafeac52c8e04a38dbb51e59b215212170d872c87cb6c44b6fc026"
+  },
+  "native_payload_sha256": {
+    "appinfo.json": "c210ec684325061c27ecab5db44491232e3c254b5d5ad285784b5f13bb20fb98",
+    "emery/pebble-app.bin": "5ea0f8d9087d119db5584cb4f0822a358435a56f514644d55d26cea641efa1b0",
+    "emery/app_resources.pbpack": "2bf4e3cbeaae59e48d65993ece095cc59364cc91528485a588c8fdd254bb8fbb",
+    "emery/manifest.json": "8d499cdb6f1dea07d15a86fef5c9c1a8c60a46792e7e8a1441b1cc8b6fa4aafd"
+  },
+  "checks": {
+    "javascript_tests": 134,
+    "portable_c_suites": 13,
+    "native_callback_lifecycle_harness": "PASS",
+    "release_python_tests": 19,
+    "sdk_build": "PASS",
+    "exact_artifact_audit": "artifact-audit.json",
+    "modern_settings": {
+      "result": "PASS",
+      "workflow_groups": 10,
+      "captures": 11,
+      "report": "settings-stay-open/report.json"
+    },
+    "legacy_settings": {
+      "result": "PASS",
+      "captures": 24,
+      "report": "settings-legacy/validation.json"
+    },
+    "native_previews": {
+      "captures": 24,
+      "final_binary_resources_match": true,
+      "report": "native-previews/previews.json",
+      "visually_reviewed": [
+        "idle-24-light",
+        "timer-24-light",
+        "music-24-dark",
+        "notification-24-light"
+      ]
+    }
+  },
+  "scope": "Actual archived scripts/config in Chromium with simulated SDK bridge and separate Android preference snapshots; native Emery emulator with synthetic fixtures. No real phone, physical watch, measured battery or real-device switching claim. Older releases immutable."
+}

@@ -23,6 +23,17 @@ Pebble controls those permissions and the selected providers.
 
 ## Storage and display choices
 
+The bundled phone configuration page reads and saves preferences through
+Pebble's configuration bridge. A verified Save keeps the page open; an offline
+watch may still be waiting for delivery. Stable provider ordering is stored
+with the existing Clay preference record so a Save uses one confirmed snapshot.
+Older separate ordering records remain readable. Neither the configuration
+handler nor its storage contains live activity instances or notification text.
+
+The navigation source and settings handler share the bundled plugin, with
+settings code deferred until a configuration request. A navigation read does
+not start an activity host, source subscription or settings page.
+
 Appearance settings, delivery state and selected app names are stored locally
 on the phone. Dynamic also saves stable activity-provider identifiers, order and
 visibility flags in its own phone settings; it never saves activity content or

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.17.0
+
+- Adopt the shared neutral/blue phone settings presentation, including readable
+  section shortcuts at enlarged text sizes and consistent Save/status controls.
+- Bundle a configuration page that starts Clay only after a confirmed settings
+  read. Save stays open with persistent confirmation; failed or uncertain saves
+  keep the draft and offer explicit recovery. All 17 page languages remain.
+- Confirm the exact phone snapshot through the current PKJS writer or config
+  plugin, including Android runtime handoffs. Store stable activity preferences
+  atomically with appearance/privacy choices in the existing Clay settings key;
+  read older separate preference records without rewriting them on open.
+- Restore the latest confirmed draft locally on Discard, without a write or
+  forced input focus. Retain native browser scroll anchoring when controls change
+  height, and preserve arbitrary stored RGB colours on unrelated saves.
+- Keep the legacy return-URL Save-and-close route as a compatibility fallback.
+  Preserve native layouts, source identities, expiry, app destinations and the
+  pinned Activities/Core versions. Refresh 24 exact native settings previews.
+- Local candidate only; no published release or existing artifact is replaced.
+
 ## 0.16.2
 
 - Show localized Paused in primary media's existing artwork/artist footer,

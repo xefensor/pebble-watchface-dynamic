@@ -52,6 +52,8 @@ function replayHost(initialStorage={}) {
       if(name==='message_keys')return keys;
       if(name==='@rebble/clay')return claySandbox.module.exports;
       if(name==='../common/activity-navigation')return require(root+'/src/common/activity-navigation');
+      if(name==='../common/settings-state')return require(root+'/src/common/settings-state');
+      if(name==='../common/settings-config')return require(root+'/src/common/settings-config');
       if(name==='pebble-activities/host')return {selection:library.selection,
         createContext:()=>({musicActivity:()=>musicCard,notificationActivity:()=>notificationCard,configure:()=>{},status:()=>({}),refresh:()=>{},connectionChanged:()=>{}}),
         createActivities:received=>{options=received;return {configure:()=>{},reproject:()=>{},providers:()=>[],status:()=>({}),refresh:()=>{},connectionChanged:()=>{}};}};
@@ -234,9 +236,9 @@ async function run(){
     assert.deepEqual(replayHost(host.storage).selected(),['music','timer'],'fresh host restores the actual Clay response');
     host.save(timerFirstResponse);assert.deepEqual(host.selected(),['timer','music']);
     host.save(serialized);assert.deepEqual(host.selected(),['timer']);
-    assert.equal(JSON.parse(host.storage['clay-settings']).__dynamicActivityPreferences,undefined);
+    assert.deepEqual(JSON.parse(host.storage['clay-settings']).__dynamicActivityPreferences,preferences);
     assert.ok(host.deliveries.every(payload=>payload.NaN===undefined&&payload.__dynamicActivityPreferences===undefined));
-    assert.doesNotMatch(host.storage['dynamic-activity-preferences-v1'],/Example|track|tea|onerror/);
+    assert.doesNotMatch(JSON.stringify(JSON.parse(host.storage['clay-settings']).__dynamicActivityPreferences),/Example|track|tea|onerror/);
     await evaluate('(()=>{const input='+notificationRow+'.querySelector("input");input.focus();input.click();})()');
     assert.equal(await notificationToggle(),true);
     assert.equal(await evaluate('document.activeElement.closest(".dynamic-activity-row").dataset.provider'),'builtin:notifications','checkbox focus survives the privacy block update');

@@ -1,11 +1,13 @@
 {
   "name": "dynamic-watchface",
   "author": "Xef",
-  "version": "0.16.2",
+  "version": "0.17.0",
   "scripts": {
     "test": "python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py",
     "test:js": "node --test tests/*.test.js",
-    "test:native": "python3 scripts/test-native.py"
+    "test:native": "python3 scripts/test-native.py",
+    "build": "python3 scripts/build.py",
+    "check:config": "node scripts/generate-config.cjs --check"
   },
   "license": "SEE LICENSE IN LICENSE",
   "keywords": [
@@ -145,7 +147,7 @@
       ]
     },
     "plugin": {
-      "description": "Recent destination app IDs for Dynamic\u2019s presented activities; no activity content is retained.",
+      "description": "Recent activity app destinations and Dynamic settings; no activity content is retained.",
       "script": "plugin.js",
       "sources": [
         {
@@ -161,7 +163,8 @@
           "suggestedRefreshIntervalSec": 30
         }
       ]
-    }
+    },
+    "configPage": "config.html"
   },
   "description": "A Pebble Time 2 watchface with two readings, plugin activities, music and notification layouts.",
   "repository": {

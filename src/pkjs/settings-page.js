@@ -7,8 +7,8 @@ module.exports = function() {
   var style = document.createElement('style');
   style.id = 'dynamic-settings-style';
   style.textContent = [
-    ':root{color-scheme:light;--page:#f4f5f7;--card:#fff;--ink:#101216;--muted:#5a6068;--line:#dde1e6;--accent:#145ca3;--field:#f4f5f7;--track:#cad0d6}',
-    '@media(prefers-color-scheme:dark){:root{color-scheme:dark;--page:#141618;--card:#212529;--ink:#f6f8fa;--muted:#b8c0c9;--line:#3c444d;--accent:#77bbff;--field:#2a3037;--track:#565f6a}}',
+    ':root{color-scheme:light;--page:#f4f5f7;--card:#fff;--ink:#15181c;--muted:#5d6571;--line:#d9dee6;--accent:#145ca3;--field:#f4f5f7;--track:#cad0d6}',
+    '@media(prefers-color-scheme:dark){:root{color-scheme:dark;--page:#11151b;--card:#1d232d;--ink:#f3f5f7;--muted:#b5bfcc;--line:#465165;--accent:#8abfff;--field:#262e39;--track:#565f6a}}',
     'html{font-size:16px!important;height:auto;background:var(--page)!important;color:var(--ink)!important}',
     'body{box-sizing:border-box;height:auto;max-width:512px;margin:0 auto;padding:20px 16px 140px;padding-bottom:calc(var(--dynamic-save-height,108px) + 32px + env(safe-area-inset-bottom));background:var(--page);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}',
     '*,*:before,*:after{box-sizing:border-box}',
@@ -31,7 +31,7 @@ module.exports = function() {
     '#main-form .dynamic-warning p{color:#934300}',
     '@media(prefers-color-scheme:dark){#main-form .dynamic-warning p{color:#ffbd77}}',
     '#main-form>.component-heading:first-child{padding:0 2px 20px}',
-    '.component-heading h1,.component-heading h2,.component-heading h3,.component-heading h4{margin:0;color:var(--ink);font:700 17px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
+    '.component-heading h1,.component-heading h2,.component-heading h3,.component-heading h4{margin:0;color:var(--ink);font:700 20px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
     '#main-form>.component-heading:first-child h1,#main-form>.component-heading:first-child h2,#main-form>.component-heading:first-child h4{font-size:28px;letter-spacing:-.6px}',
     '#main-form>.component-heading:first-child:after{content:"";display:block;width:48px;height:5px;margin-top:12px;background:var(--accent)}',
     '.section{margin:0 0 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:none;overflow:hidden}',
@@ -40,10 +40,10 @@ module.exports = function() {
     '.section>.component-heading:first-child h1,.section>.component-heading:first-child h2,.section>.component-heading:first-child h4{color:var(--accent)}',
     '.section>.component:after{left:16px;right:16px;background:var(--line)}',
     '.component-text p{margin:0;font-size:14px;line-height:1.5;color:var(--muted);overflow-wrap:break-word;word-wrap:break-word}',
-    'label{min-height:28px;padding:0;gap:14px;color:var(--ink);font-size:15px;line-height:1.4}',
+    'label{min-height:28px;padding:0;gap:14px;color:var(--ink);font-size:16px;line-height:1.4}',
     'label>.label{min-width:0;flex:1;overflow-wrap:break-word;word-wrap:break-word}',
     'label>.input{flex-shrink:0;margin-left:0}',
-    '.description{padding:0;margin-top:7px;color:var(--muted);font-size:13px;line-height:1.45;overflow-wrap:break-word;word-wrap:break-word}',
+    '.description{padding:0;margin-top:7px;color:var(--muted);font-size:14px;line-height:1.45;overflow-wrap:break-word;word-wrap:break-word}',
     '.component-toggle label{min-height:44px}',
     '.component-toggle input{display:block;position:absolute;opacity:0;width:44px;height:44px;right:12px;top:13px;margin:0}',
     '.component-toggle input:focus-visible+.graphic{outline:2px solid var(--accent);outline-offset:5px;border-radius:16px}',
@@ -64,8 +64,8 @@ module.exports = function() {
     '.component-select .value:after{right:12px;border-top-color:var(--accent)}',
     '.dynamic-choice select{display:block;width:100%;margin-top:9px;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-choice select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}',
-    '.dynamic-section-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 16px}',
-    '.dynamic-section-nav button{min-width:0;min-height:44px;width:100%;margin:0;padding:9px 7px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);box-shadow:none;font:600 13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0;white-space:normal;overflow-wrap:anywhere}',
+    '.dynamic-section-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}',
+    '.dynamic-section-nav button{flex:1 1 auto;min-width:0;min-height:44px;width:auto;max-width:100%;margin:0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);box-shadow:none;font:600 13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0;white-space:normal;overflow-wrap:normal;word-break:normal}',
     '.dynamic-section-target:focus{outline:2px solid var(--accent);outline-offset:3px}',
     '.dynamic-preview-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 16px}',
     '.dynamic-preview-tabs button{min-width:0;width:100%;margin:0;text-transform:none;letter-spacing:0;box-shadow:none;min-height:44px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:normal;overflow-wrap:anywhere}',
@@ -77,8 +77,8 @@ module.exports = function() {
     '.dynamic-preview-palette{display:block;margin:0 0 14px}',
     '.dynamic-preview-palette>.description{display:block;margin-top:7px}',
     '.dynamic-example-disabled{padding:7px 9px;border-radius:7px;background:var(--field);color:var(--muted)}',
-    '.dynamic-save-state{padding:0 0 7px!important;margin:0;color:var(--muted);font-size:12px;line-height:1.3}',
-    '.dynamic-save-state p{margin:0;font-size:12px;line-height:1.3}',
+    '.dynamic-save-state{padding:0 0 7px!important;margin:0;color:var(--muted);font-size:14px;line-height:1.4}',
+    '.dynamic-save-state p{margin:0;font-size:14px;line-height:1.4}',
     '.dynamic-save-state:after{display:none!important}',
     '.dynamic-palette-code label{display:block;margin-bottom:7px}',
     '.dynamic-palette-details summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--ink);font-size:15px}',
@@ -129,10 +129,13 @@ module.exports = function() {
     '.component-submit{position:fixed;left:0;right:0;bottom:0;max-width:512px;margin:0 auto;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;background:var(--page);border-top:1px solid var(--line);box-shadow:0 -6px 18px #00000008}',
     'body.dynamic-picker-open .component-submit{visibility:hidden}',
     '.component-input input,.dynamic-app-entry input,select{scroll-margin-bottom:calc(var(--dynamic-save-height,108px) + 16px)}',
-    '.component-submit button{display:block;width:100%;min-width:0;min-height:48px;margin:0;padding:12px 16px;border:0;border-radius:12px;background:#145ca3;color:#fff;font:700 16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
+    '.component-submit button{display:block;width:100%;min-width:0;min-height:48px;margin:0;padding:12px 16px;border:0;border-radius:8px;background:#145ca3;color:#fff;font:700 16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
     '.component-submit button:disabled{opacity:.65}',
     '@media(max-height:420px){.component-submit{position:static;max-width:none;margin:16px 0 0;padding:12px 0;box-shadow:none}body{padding-bottom:24px}}',
     'body.dynamic-actions-flow{padding-bottom:24px}.dynamic-actions-flow .component-submit{position:static;max-width:none;margin:16px 0 0;padding:12px 0;box-shadow:none}',
+    '.component-submit .dynamic-reload-saved{margin-top:8px;border:1px solid var(--line);background:var(--field);color:var(--ink);font-weight:600}',
+    '.dynamic-save-buttons{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}',
+    '.component-submit .dynamic-discard{border:1px solid var(--line);background:var(--field);color:var(--ink);font-weight:600}',
     '[hidden]{display:none!important}',
     'a{color:var(--accent)}',
     '@media(max-width:340px){body{padding-left:12px;padding-right:12px}.section>.component{padding-left:12px;padding-right:12px}.dynamic-reading-grid{gap:6px}.dynamic-reading{padding:9px}.component-submit{padding-left:12px;padding-right:12px}}',
@@ -229,6 +232,7 @@ module.exports = function() {
       });
     });
     var initialSnapshot = '', appEntry;
+    var bridge = window.DynamicSettingsBridge, phonePhase = 'ready', phoneConfirmed = false, reloadSaved, discard, confirmedForm, restoring = false;
     function updateDirty() {}
     var activityHost = node(item('dynamic-activity-order'));
     var activityPreferences = data.activityPreferences || {}, activityOrder = [], activityHidden = [];
@@ -532,7 +536,12 @@ module.exports = function() {
       entries.forEach(function(name,index) {
         var chip = make('li',null,'dynamic-app-chip'), text = make('span',name), remove = make('button','×');
         remove.type='button'; remove.setAttribute('aria-label',t('appRemove',{app:name}));
-        remove.addEventListener('click',function() { entries.splice(index,1); renderApps(); appEntry.focus(); updateDirty(); });
+        remove.addEventListener('click',function() {
+          entries.splice(index,1); renderApps();
+          var remaining = chips.querySelectorAll('button');
+          (remaining[Math.min(index,remaining.length-1)] || addApp).focus();
+          updateDirty();
+        });
         chip.appendChild(text);chip.appendChild(remove);chips.appendChild(chip);
       });
       apps.set(appMode.value === 'selected' ? entries.join(', ') : '');
@@ -645,17 +654,50 @@ module.exports = function() {
       saveStatus.className += ' dynamic-save-state'; saveStatus.setAttribute('role','status'); saveStatus.setAttribute('aria-live','polite');
       submitHost.insertBefore(saveStatus,submitHost.firstChild);
     }
+    if (bridge && submitHost) {
+      var saveButton = submitHost.querySelector('button');
+      saveButton.classList.add('dynamic-primary-save');
+      var actions = make('div',null,'dynamic-save-buttons');
+      discard = make('button',t('phoneDiscard'),'dynamic-discard'); discard.type = 'button';
+      discard.addEventListener('click',function() {
+        if (phonePhase === 'saving' || phonePhase === 'uncertain' || !confirmedForm) return;
+        restoring = true;
+        function previous(name) { var value = confirmedForm[name]; return value && typeof value === 'object' ? value.value : value; }
+        noticeMode.value = previous('NOTIFICATION_APP_ONLY') ? 'app' : previous('NOTIFICATION_PREVIEW') ? 'preview' : 'summary';
+        appMode.value = previous('NOTIFICATION_APPS') ? 'selected' : 'all';
+        entries = String(previous('NOTIFICATION_APPS') || '').split(',').map(function(value){return value.trim();}).filter(Boolean);
+        appEntry.value = '';
+        Object.keys(confirmedForm).forEach(function(name) { var value = field(name); if (value) value.set(previous(name)); });
+        var preferences = JSON.parse(previous('__dynamicActivityPreferences') || '{}');
+        activityOrder = (preferences.order || []).slice(); activityHidden = (preferences.hidden || []).slice();
+        syncActivityValue();
+        var background = color('BACKGROUND_COLOR'), foreground = color('TEXT_COLOR');
+        theme.value = previousTheme = background === 0xffffff && foreground === 0 ? 'light' : background === 0 && foreground === 0xffffff ? 'dark' : 'custom';
+        customPalette = {background:bg.get(),foreground:fg.get()};
+        renderApps(); updateNotifications(); updateColors(); renderActivities();
+        phonePhase = 'ready'; restoring = false; updateDirty();
+      });
+      saveButton.parentNode.insertBefore(actions,saveButton); actions.appendChild(discard); actions.appendChild(saveButton);
+      reloadSaved = make('button',t('phoneReload'),'dynamic-reload-saved');
+      reloadSaved.type = 'button'; reloadSaved.hidden = true;
+      reloadSaved.addEventListener('click',function(){bridge.reload();});
+      submitHost.appendChild(reloadSaved);
+    }
     function signature() {
       return JSON.stringify(['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR'].map(function(key) { return field(key).get(); }).concat([notification.get() && appMode.value === 'selected' ? appEntry.value.trim() : '',activityValue()]));
     }
     updateDirty = function() {
-      if (!initialSnapshot) { return; }
+      if (!initialSnapshot || restoring) { return; }
       var dirty = signature() !== initialSnapshot;
       var saved = data.save && data.save.state || 'none';
-      var key = dirty ? 'saveUnsaved' : saved === 'saved' ? 'saveLastDelivered' : saved === 'pending' || saved === 'failed' ? 'savePhoneWaiting' : 'saveNone';
+      var key = bridge ? phonePhase === 'saving' ? 'saveSending' : phonePhase === 'uncertain' ? 'phoneSaveUncertain' :
+        phonePhase === 'failed' ? 'phoneSaveFailed' : dirty ? 'saveUnsaved' : phoneConfirmed ? 'phoneSaved' : 'phoneNoChanges' :
+        dirty ? 'saveUnsaved' : saved === 'saved' ? 'saveLastDelivered' : saved === 'pending' || saved === 'failed' ? 'savePhoneWaiting' : 'saveNone';
       if (saveStatus) { clear(saveStatus); saveStatus.appendChild(make('p',t(key))); }
-      var button = submitHost && submitHost.querySelector('button');
-      if (button) { button.disabled = !dirty && saved !== 'none'; }
+      var button = submitHost && submitHost.querySelector(bridge ? '.dynamic-primary-save' : 'button');
+      if (button) { button.disabled = bridge ? phonePhase === 'saving' || !dirty && phonePhase !== 'uncertain' && phonePhase !== 'failed' : !dirty && saved !== 'none'; }
+      if (reloadSaved) { reloadSaved.hidden = phonePhase !== 'uncertain'; reloadSaved.disabled = phonePhase === 'saving'; }
+      if (discard) discard.disabled = !dirty || phonePhase === 'saving' || phonePhase === 'uncertain';
       saveSpace();
     };
     var technical = node(item('complications-status')), context = node(item('context-status'));
@@ -800,6 +842,8 @@ module.exports = function() {
     field('SHOW_MUSIC').on('change',renderPreview);
     updateNotifications(); updateColors();
     initialSnapshot = signature();
+    confirmedForm = JSON.parse(JSON.stringify(clay.serialize()));
+    if (bridge) bridge.remember(clay.serialize());
     ['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR'].forEach(function(key) { field(key).on('input change',updateDirty); });
     updateDirty();
     var form = document.getElementById('main-form');
@@ -831,8 +875,19 @@ module.exports = function() {
       form.addEventListener('submit',function(event) {
       if (notification.get() && appMode.value === 'selected' && !commitApp(true)) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       if (!form.checkValidity()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
-      var button = form.querySelector('.component-submit button');
-      if (button) { button.textContent = t('saveSending'); button.disabled = true; }
+      var button = form.querySelector(bridge ? '.dynamic-primary-save' : '.component-submit button');
+      if (bridge) {
+        event.preventDefault(); event.stopImmediatePropagation();
+        if (phonePhase === 'saving' || button && button.disabled) return;
+        var candidate, sentForm = clay.serialize(), sentSignature = signature();
+        try { candidate = bridge.snapshot(sentForm); } catch (ignored) { phonePhase = 'failed'; updateDirty(); return; }
+        phonePhase = 'saving'; updateDirty();
+        bridge.save(candidate,function(result) {
+          if (result && result.ok) { bridge.remember(sentForm,result.settings); confirmedForm = JSON.parse(JSON.stringify(sentForm)); initialSnapshot = sentSignature; phoneConfirmed = true; phonePhase = 'ready'; }
+          else phonePhase = result && result.notSaved ? 'failed' : 'uncertain';
+          updateDirty();
+        });
+      } else if (button) { button.textContent = t('saveSending'); button.disabled = true; }
     },true); }
   });
 };

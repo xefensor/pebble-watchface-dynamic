@@ -11,6 +11,23 @@ Canonical repository: **`xefensor/pebble-watchface-dynamic`**. The
 [XOCE repository migration](docs/REPOSITORY-MIGRATION.md) preserves Dynamic's
 identity, package names and published release files.
 
+## Local shared-UI candidate
+
+**0.17.0 is built locally and has not been published.** Its bundled phone page
+uses the shared neutral/blue settings style and keeps all 17 languages. Save
+stays open with a confirmed **✓ Saved** indicator; Discard restores the latest
+confirmed draft without a write. Existing custom RGB colours survive unrelated
+saves. The native watchface composition and activity contracts are unchanged.
+
+The packaged `config.html` uses Pebble's configuration bridge. The older
+`showConfiguration` return-URL fallback still saves and closes; it does not
+pretend to provide in-page confirmation. Phone storage and watch delivery are
+reported separately. See [the implementation handoff](docs/UX-ALIGNMENT.md) and
+[0.17.0 validation](docs/qa/0.17.0/VALIDATION.md).
+
+Local installable file: [Dynamic-0.17.0.pbw](dist/Dynamic-0.17.0.pbw).
+The published downloads below retain their original versions and bytes.
+
 ## Download
 
 Version 0.16.2 fixes missing paused-media state and provider recovery, pins
@@ -363,9 +380,8 @@ installed in your build environment.
 ```sh
 npm ci --ignore-scripts
 npm test
-pebble build
-python3 scripts/package-release.py
-python3 scripts/check-native-style.py --pbw dist/Dynamic-0.16.2.pbw
+npm run build
+python3 scripts/check-native-style.py --pbw dist/Dynamic-0.17.0.pbw
 python3 scripts/package-source.py
 ```
 
@@ -377,7 +393,7 @@ assets. Native captures check the appearance of the clock, text and motion.
 Validation is recorded separately for each release. For a packaged build:
 
 ```sh
-pebble install --emulator emery dist/Dynamic-0.16.2.pbw
+pebble install --emulator emery dist/Dynamic-0.17.0.pbw
 ```
 
 The clock outline and body-baseline headers are committed with their source
@@ -412,7 +428,7 @@ See [the release guide](docs/GITHUB-RELEASES.md) and [maintainer notes](AGENTS.m
 
 ## Shared core
 
-The local 0.16.2 candidate pins Core 0.5.1 and Activities 0.4.4; published
+The local 0.17.0 candidate pins Core 0.5.1 and Activities 0.4.4; published
 0.16.0 retains its original Activities 0.4.2 pin. Halftone keeps its own
 dependency pin; installing Dynamic does not change Halftone.
 

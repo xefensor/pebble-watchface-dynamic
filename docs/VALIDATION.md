@@ -1,5 +1,16 @@
 # Dynamic validation
 
+## 0.17.0 shared UI — local candidate, 6 November 2026
+
+The [implementation record](UX-ALIGNMENT.md) and
+[candidate validation](qa/0.17.0/VALIDATION.md) document the neutral/blue phone
+settings, confirmed Save-and-stay, local Discard and preserved custom colours.
+The exact packaged browser, legacy compatibility, native preview and artifact
+checks pass. Save/reopen/restart and separate Android DOM/native storage are
+covered by simulations; physical-phone/watch verification remains separate.
+The native watchface composition and published 0.16.2 assets are unchanged.
+This candidate has not been pushed or published.
+
 ## 0.16.2 publication — 5 November 2026
 
 [Dynamic 0.16.2](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2)
