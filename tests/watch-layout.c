@@ -28,18 +28,16 @@ int main(void) {
     assert(watch_context_visibility(active)==1&&watch_context_visibility(notice)==1);
     assert(watch_context_visibility(watch_pose_at_height(summary,171))==0);
     /* Readable value/label bands fit before the independent secondary row. */
-    assert(active.row_y+active.label_y+5<=101);
-    assert(active.icon_radius>=12&&peek.icon_radius>=12);
-    assert(active.number_size>=28&&idle.number_size>=34);
-    assert(idle.label_y-idle.value_y>=20);
-    assert(50+active.icon_x+active.icon_radius+3<=50+active.value_x-54/2);
-    assert(50+peek.icon_x+peek.icon_radius+3<=50+peek.value_x-54/2);
+    assert(active.row_y==66&&active.row_y+active.label_y==100);
+    assert(idle.row_y==164&&idle.row_y+idle.label_y==208);
+    assert(peek.row_y==129&&peek.row_y+peek.label_y==163);
+    assert(active.number_size==28&&idle.number_size==40);
+    assert(idle.label_y>=20);
     assert(watch_date_split(idle.context)==0 && watch_date_split(peek.context)==0);
     assert(watch_date_split(active.context)==1);
     /* Idle weekday accents fit; compact numeric date shares a clock row. */
     assert(idle.date_y-25>=4&&active.date_y-19>=10);
-    assert(active.label_y-18>=active.value_y+3);
-    assert(peek.label_y-18>=peek.value_y+3);
+    assert(active.label_y>=31&&peek.label_y>=31);
     assert(watch_date_split(0.55f)==0 && watch_date_split(0.8f)>0);
     assert(idle.clock_x==100 && idle.clock_y==110 && idle.context==0);
     assert(active.clock_x==58 && active.context==1 && active.music==1);
@@ -47,8 +45,8 @@ int main(void) {
     for (int height=160;height<=228;++height) {
       WatchPose p=watch_pose_at_height(active,height);
       assert(p.clock_size>=40 && p.clock_size<=76);
-      assert(p.row_y+p.value_y<height);
-      assert(p.row_y+p.icon_y+p.icon_radius<height);
+      assert(p.row_y<height);
+      assert(p.row_y+9<height);
       assert(p.date_y<p.clock_y && p.clock_y<p.row_y);
       if(height==171) {
         assert(p.clock_x==peek.clock_x && p.clock_y==peek.clock_y);
@@ -62,8 +60,7 @@ int main(void) {
       const WatchPose p=watch_pose_between(idle,active,amount);
       const WatchPose reverse=watch_pose_between(active,idle,1-amount);
       assert(p.clock_y<p.row_y && p.clock_size>=38 && p.clock_size<=85);
-      assert(p.icon_x<=0 && p.icon_x>=-30 && p.value_x>=0 && p.value_x<=12);
-      assert(reverse.icon_x-p.icon_x<0.0001f && reverse.icon_x-p.icon_x>-0.0001f);
+      assert(reverse.row_y-p.row_y<0.0001f && reverse.row_y-p.row_y>-0.0001f);
       assert(reverse.number_size-p.number_size<0.0001f && reverse.number_size-p.number_size>-0.0001f);
       assert(watch_smooth(p.context)>=0 && watch_smooth(p.context)<=1);
       const float split=watch_date_split(p.context);

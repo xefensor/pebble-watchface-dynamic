@@ -8,6 +8,12 @@ their original versions; a merge to main is not publication.
 Current main implementation, unpublished 0.18.2.
 [Design choices and review evidence](docs/REDESIGN.md).
 
+The local review branch combines each complication's icon, value and unit,
+removes redundant weather captions and retains meaningful qualifiers/source
+context. It uses an unpublished Core 0.5.2-dev.0 candidate for public labels.
+See [the current complication layout](docs/UI.md#complications-on-the-review-branch).
+Build this branch with `npm run build`; its candidate is under `build/candidate/`.
+
 A Pebble Time 2 watchface with rounded time, two horizontal readings and
 notification-style activities. Version 0.16.2 fixes paused-media state and
 provider recovery while retaining the earlier rendering and package
@@ -87,7 +93,7 @@ has portable, SDK, package and native-emulator checks recorded in
 delivery remain separate device checks.
 
 Dynamic uses [Pebble Watchface Core](https://github.com/xefensor/pebble-lib-core)
-0.5.1 for readings and [Pebble Activities](https://github.com/xefensor/pebble-lib-activities)
+0.5.2-dev.0 for readings on this review branch and [Pebble Activities](https://github.com/xefensor/pebble-lib-activities)
 0.4.4 for generic activities and the optional music/notification adapter. Its own UUID, `cc1281f1-3b4d-45b5-b235-6881b1fd8fbd`, allows installation
 alongside [Halftone](https://github.com/xefensor/halftone-watchface).
 
@@ -407,11 +413,11 @@ See [the release guide](docs/GITHUB-RELEASES.md) and [maintainer notes](AGENTS.m
 
 ## Shared core
 
-The local 0.18.0 candidate pins Core 0.5.1 and Activities 0.4.4; published
-0.16.0 retains its original Activities 0.4.2 pin. Halftone keeps its own
-dependency pin; installing Dynamic does not change Halftone.
+The local review candidate pins Core 0.5.2-dev.0 and Activities 0.4.4. Published
+downloads retain their original dependency pins. Other watchfaces keep their own
+pins; installing Dynamic does not change them.
 
-`vendor/pebble-watchface-core-0.5.1.tgz` and
+`vendor/pebble-watchface-core-0.5.2-dev.0.tgz` and
 `vendor/pebble-activities-0.4.4.tgz` are committed, version-pinned Pebble packages.
 `package-lock.json` records their integrity; `vendor/CORE.json` and
 `vendor/ACTIVITIES.json` record upstream/version/checksum provenance. `npm ci`

@@ -34,9 +34,10 @@ SAMPLE_TIME=int(datetime.datetime(2026,11,1,13,5,tzinfo=datetime.timezone.utc).t
 def sha256(value):
     return hashlib.sha256(value).hexdigest()
 
-def fixture_plan(session,now=SAMPLE_TIME-1,mode=None,sequence=None):
-    options={'session':session,'now':now,'mode':mode}
+def fixture_plan(session,now=SAMPLE_TIME-1,mode=None,sequence=None,names=None,language='en'):
+    options={'session':session,'now':now,'mode':mode,'language':language}
     if sequence is not None:options['sequence']=sequence
+    if names is not None:options['names']=names
     result=subprocess.run(['node',str(ROOT/'scripts/native-preview-fixtures.js')],
         input=json.dumps(options),capture_output=True,text=True,check=True,cwd=ROOT)
     return json.loads(result.stdout)
@@ -314,6 +315,107 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
         if owned:service.shutdown()
 
 
+def capture_complications(pebble,pbw,output,appmessage=None,names=None,language='en'):
+    """Capture public reading cases through the production host/label/wire path.
+
+    Installs an exact native-only copy of the supplied candidate. This focused
+    mode never updates embedded Clay previews. `language` controls phone value
+    formatting only; native captions follow the emulator's actual system locale.
+    """
+    from libpebble2.services.appmessage import AppMessageService,Uint32,ByteArray
+    from libpebble2.services.screenshot import Screenshot
+    from libpebble2.protocol.system import TimeMessage,SetUTC
+    from libpebble2.protocol.apps import AppRunState,AppRunStateStart
+    from libpebble2.communication.transports.qemu.protocol import QemuTimelinePeek,QemuTimeFormat,QemuBattery,QemuBluetoothConnection
+    from pebble_tool.commands.emucontrol import send_data_to_qemu
+    from pebble_tool.commands.install import ToolAppInstaller
+    from PIL import Image
+
+    pbw=Path(pbw).resolve();output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
+    native=output/'native-candidate.pbw'
+    if native==pbw:raise ValueError('Source PBW must differ from the native-only output')
+    info,payload=native_candidate(pbw,native)
+    target=uuid.UUID(info['uuid']);keys=info['messageKeys']
+    service=appmessage or AppMessageService(pebble);owned=appmessage is None
+    condition=threading.Condition();sessions=[];receipts={}
+    def receive(_tid,app_uuid,data):
+        token=data.get(keys['REQUEST_ACTIVITIES'],data.get(keys['REQUEST_CONTEXT'],0))
+        if app_uuid==target and isinstance(token,int) and token>=2:
+            with condition:sessions.append(token);condition.notify_all()
+    def receipt(success):
+        def callback(tid,app_uuid):
+            if app_uuid==target:
+                with condition:receipts[tid]=success;condition.notify_all()
+        return callback
+    handles=[service.register_handler('appmessage',receive),service.register_handler('ack',receipt(True)),
+        service.register_handler('nack',receipt(False))]
+    try:
+        send_data_to_qemu(pebble.transport,QemuBluetoothConnection(connected=True))
+        send_data_to_qemu(pebble.transport,QemuTimelinePeek(enabled=False))
+        ToolAppInstaller(pebble,str(native),quiet=True).install()
+        pebble.send_packet(AppRunState(data=AppRunStateStart(uuid=target)))
+        with condition:
+            if not condition.wait_for(lambda:bool(sessions),timeout=8):raise RuntimeError('Native reading session not received')
+            session=sessions[-1]
+        host_rtc=os.environ.get('PEBBLE_QA_HOST_RTC')=='1'
+        start=int(time.time()) if host_rtc else SAMPLE_TIME
+        plan=fixture_plan(session,now=start,mode='complications',names=names,language=language)
+        if not plan['presets']:raise ValueError('No complication cases matched')
+        send_data_to_qemu(pebble.transport,QemuBattery(percent=100,charging=False))
+        send_data_to_qemu(pebble.transport,QemuTimeFormat(is_24_hour=True))
+        captures=[];actual=[]
+        for index,preset in enumerate(plan['presets']):
+            if host_rtc:preset=fixture_plan(session,now=int(time.time()),mode='complications',names=names,language=language)['presets'][index]
+            if any(token!=session for token in sessions):raise RuntimeError('Native session changed during reading capture')
+            actual.append(preset)
+            if not host_rtc:
+                pebble.send_packet(TimeMessage(message=SetUTC(unix_time=preset['fixtureNow'],utc_offset=0,tz_name='UTC')))
+            send_data_to_qemu(pebble.transport,QemuTimelinePeek(enabled=preset['state']=='timeline'))
+            values={keys[name]:Uint32(value) for name,value in preset['integers'].items()}
+            values.update({keys[name]:ByteArray(bytes(value)) for name,value in preset['bytes'].items()})
+            with condition:
+                tid=service.send_message(target,values)
+                if not condition.wait_for(lambda:tid in receipts,timeout=10):raise RuntimeError('Complication fixture ACK timed out')
+                if not receipts.pop(tid):raise RuntimeError('Native complication fixture rejected')
+            time.sleep(.8)
+            previous=None
+            for attempt in range(4):
+                rows=Screenshot(pebble).grab_image()
+                if len(rows)!=228 or any(len(row)!=600 for row in rows):raise RuntimeError('Expected native 200×228 RGB')
+                pixels=b''.join(rows)
+                # The active pose includes a genuine running Timer. Its clock
+                # may tick while the header and both readings remain settled.
+                stable=pixels[:200*106*3] if preset['state']=='active' else pixels
+                if previous==stable:break
+                previous=stable;time.sleep(.15)
+            else:raise RuntimeError('Complication capture did not settle: '+preset['name'])
+            destination=output/(preset['name']+'.png')
+            Image.frombytes('RGB',(200,228),pixels).save(destination)
+            captures.append({'name':preset['name'],'file':destination.name,'scenario':preset['scenario'],
+                'theme':preset['theme'],'timelinePeek':preset['state']=='timeline','language':preset['language'],
+                'fixture_now_utc':preset['fixtureNow'],'sha256':sha256(destination.read_bytes()),
+                'rgb_sha256':sha256(pixels),'settled_native_rgb_equal':preset['state']!='active',
+                'settled_header_readings_rgb_equal':True,'running_activity_clock_changes_allowed':preset['state']=='active',
+                'native_pixels_modified':False})
+            print('Captured '+preset['name'],flush=True)
+        plan['presets']=actual
+        (output/'fixtures.json').write_text(json.dumps(plan,indent=2)+'\n')
+        report={'version':info['versionLabel'],'session':session,'candidate_source_pbw_sha256':sha256(pbw.read_bytes()),
+            'captured_native_pbw_sha256':sha256(native.read_bytes()),'native_payload_sha256':payload,
+            'fixture_encoder':{'core':plan['coreVersion'],'activities':plan['activitiesVersion'],
+                'core_wire_version':4,'activity_wire_version':plan['activityWireVersion'],
+                'production_reading_host':True,'dynamic_label_adapter':True},
+            'phone_javascript_executed':False,'native_locale':'Emulator system locale; not changed by these fixtures',
+            'phone_fixture_language':language,'captures':captures,'visual_review':{'reviewed':False},
+            'scope':'Focused actual native complication captures with synthetic public provider envelopes passed through the production phone host, Dynamic label adapter and wire encoder in Node. No physical phone/provider/watch verification; no embedded preview assets modified.'}
+        (output/'complications.json').write_text(json.dumps(report,indent=2)+'\n')
+        return report
+    finally:
+        send_data_to_qemu(pebble.transport,QemuTimelinePeek(enabled=False))
+        for handle in handles:service.unregister_handler(handle)
+        if owned:service.shutdown()
+
+
 def capture_motion(pebble,pbw,output):
     """Record actual incoming replacement frames; no interpolated artwork.
 
@@ -394,9 +496,14 @@ def main():
     parser.add_argument('--preview',type=Path,help='Explicit asset destination; defaults to the QA output directory')
     parser.add_argument('--plan',action='store_true',help='Print fixture plan only; no connection, installation or images')
     parser.add_argument('--motion',action='store_true',help='Capture incoming replacement frames instead of static presets')
+    parser.add_argument('--complications',action='store_true',help='Capture focused production-host reading fixtures without updating Clay previews')
+    parser.add_argument('--case',dest='cases',action='append',help='Complication scenario name; repeat to select several')
+    parser.add_argument('--language',choices=['en','cs'],default='en',help='Phone fixture value language; native captions follow the emulator locale')
     args=parser.parse_args()
+    if args.motion and args.complications:parser.error('Choose --motion or --complications')
+    if args.cases and not args.complications:parser.error('--case requires --complications')
     if args.plan:
-        print(json.dumps(fixture_plan(42),indent=2));return
+        print(json.dumps(fixture_plan(42,mode='complications' if args.complications else None,names=args.cases,language=args.language),indent=2));return
     if not args.emulator:parser.error('Capture requires explicit --emulator emery')
     from pebble_tool.commands.base import PebbleCommand
     class PreviewConnection(PebbleCommand):
@@ -404,7 +511,8 @@ def main():
     command=PreviewConnection();command._set_debugging(0)
     connection=command._connect(argparse.Namespace(v=0,emulator=args.emulator,sdk=None,vnc=False,sunlight=False))
     version=json.loads((ROOT/'package.json').read_text())['version']
-    if args.motion:capture_motion(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-motion')
+    if args.complications:capture_complications(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-complications',names=args.cases,language=args.language)
+    elif args.motion:capture_motion(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-motion')
     else:capture(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-previews',args.preview)
 
 if __name__=='__main__':main()

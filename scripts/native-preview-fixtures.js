@@ -198,11 +198,99 @@ function summaryPresets(options){
   return {coreVersion:base.coreVersion,activitiesVersion:base.activitiesVersion,activityWireVersion:3,session,now,presets};
 }
 function activityPresets(options){return summaryPresets(options);}
-module.exports={fixtures,activityPresets,summaryPresets,musicFromSource,notificationFromSource};
+function complicationReading(options) {
+  const make=require('pebble-watchface-core/readings').createComplications;
+  const labelForReading=require('../src/pkjs/reading-label');
+  const localization=require('../src/pkjs/localization');
+  let clock=options.now,bytes=null;
+  const requests=[];
+  const host=make({pebble:{subscribeToSource:request=>{requests.push(request);return {unsubscribe(){}};}},
+    keys:{COMPLICATION_DATA:'COMPLICATION_DATA',REQUEST_COMPLICATIONS:'REQUEST_COMPLICATIONS'},
+    now:()=>clock*1000,later:()=>1,cancelLater(){},labelForReading,
+    getSettings:()=>({clockFormat:24,language:options.language||'en'}),
+    localizeBoolean:value=>localization.t(value?'stateOn':'stateOff',options.language||'en'),
+    send:(payload,ok)=>{if(payload.COMPLICATION_DATA)bytes=payload.COMPLICATION_DATA;if(ok)ok();}});
+  host.refresh(true,options.session);
+  const short=value=>({shortText:{text:value}});
+  const preferences=requests.find(request=>request.category==='preferences');
+  preferences.onData({validUntilMs:(clock+7200)*1000,instances:options.slots.map((slot,index)=>slot?({instanceId:String(index),properties:{
+    category:short(slot.category),item:short(slot.item),property:short(slot.property),index:{numericValue:{value:slot.index}},
+    ...(slot.label?{label:short(slot.label)}:{})}}):null).filter(Boolean)});
+  for(const request of requests.filter(request=>request.category!=='preferences')) {
+    if(options.state==='loading')continue;
+    if(options.state==='unavailable'){request.onError({code:'SOURCE_UNAVAILABLE'});continue;}
+    const instances=options.sources[request.category+'/'+request.item];
+    if(!instances)throw Error('Missing production reading fixture '+request.category+'/'+request.item);
+    request.onData({pluginUuid:'46f0a5c9-48ce-4ecb-87b7-c1510088a3d2',
+      validUntilMs:(clock+(options.state==='expired'?1:7200))*1000,instances});
+  }
+  if(options.state==='expired'){clock+=2;host.configure();}
+  if(!bytes)throw Error('Production complication host did not publish');
+  return {bytes,now:clock,status:host.status()};
+}
+function complicationPresets(options) {
+  const now=options.now,session=options.session;
+  if(!Number.isInteger(now)||now<1||!Number.isInteger(session)||session<2)throw Error('Expected UTC seconds and native session >=2');
+  const short=text=>({shortText:{text}}),numeric=(value,unit)=>({numericValue:{value,unit}});
+  const weather=(property,index=0,label)=>({category:'weather',item:'location',property,index,...(label?{label}:{})});
+  const named=(instanceId,name,properties)=>({instanceId,name,properties:{name:short(name),...properties}});
+  const temperature=(value=5)=>({...short(value+'°C'),...numeric(value,'°C')});
+  const rain=value=>({...short(value+'%'),numericValue:{value,unit:'%',min:0,max:100}});
+  const prague=properties=>named('prague','Praha',properties),brno=properties=>named('brno','Brno',properties);
+  const observed={observed_at:{timestamp:{value:now-90}}};
+  const ordinary={slots:[weather('temperature'),weather('precipitation')],sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(40),...observed})]}};
+  const image={width:8,height:4,palette:Buffer.from([0xc0,0xff]).toString('base64'),pixels:Buffer.from(Array.from({length:16},(_,i)=>i%2?0x01:0x10)).toString('base64')};
+  const specs=[
+    {name:'temperature-rain',...ordinary},
+    {name:'rain-100',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(100),...observed})]}},
+    {name:'long-temperature-value',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(123.4),precipitation:rain(40),...observed})]}},
+    {name:'temperature-too-long',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(1234567890),precipitation:rain(40),...observed})]}},
+    {name:'first-slot-only',slots:[weather('temperature')],sources:ordinary.sources},
+    {name:'second-slot-only',slots:[null,weather('temperature')],sources:ordinary.sources},
+    {name:'negative-feels',slots:[weather('feels_like'),weather('precipitation')],sources:{'weather/location':[prague({feels_like:temperature(-12.4),precipitation:rain(40)})]}},
+    {name:'forecast-high-low',slots:[weather('high'),weather('low')],sources:{'weather/location':[prague({high:temperature(13),low:temperature(-2),is_forecast:{boolean:{value:true}}})]}},
+    {name:'humidity-phone',slots:[weather('humidity'),{category:'phone',item:'phone_state',property:'battery_level',index:0}],sources:{'weather/location':[prague({humidity:{...short('74%'),...numeric(74,'%')},humidity_observed_at:{timestamp:{value:now-120}}})],'phone/phone_state':[named('phone','Phone',{battery_level:{...short('87%'),...numeric(87,'%')}})]}},
+    {name:'wind-long-unit',slots:[weather('wind_speed'),weather('wind_direction')],sources:{'weather/location':[prague({wind_speed:{...short('23 kilometres/hour'),...numeric(23,'kilometres/hour')},wind_direction:{...short('270° W'),...numeric(270,'°')},wind_observed_at:{timestamp:{value:now-45}}})]}},
+    {name:'timestamp-boolean',slots:[{category:'calendar',item:'event',property:'start',index:0},{category:'home',item:'light',property:'on',index:0}],sources:{'calendar/event':[named('event','Team review',{start:{timestamp:{value:now+3600}}})],'home/light':[named('kitchen','Kitchen',{on:{boolean:{value:true}}})]}},
+    {name:'generic-text-image',slots:[{category:'device',item:'router',property:'status',index:0},{category:'camera',item:'view',property:'image',index:0}],sources:{'device/router':[named('office','Office',{status:short('Connected')})],'camera/view':[named('front-door','Front door',{image:{image}})]}},
+    {name:'finance-public-tickers',slots:[{category:'finance',item:'stock',property:'price',index:0},{category:'finance',item:'stock',property:'price',index:1}],sources:{'finance/stock':[named('AAPL','Apple Inc.',{price:{...short('$225.50'),...numeric(225.5,'USD')}}),named('BRK.B','Berkshire Hathaway',{price:{...short('$478.21'),...numeric(478.21,'USD')}})]}},
+    {name:'two-weather-locations',slots:[weather('temperature',0),weather('temperature',1)],sources:{'weather/location':[prague({temperature:temperature(),...observed}),brno({temperature:temperature(-2),...observed})]}},
+    {name:'two-weather-locations-expired',state:'expired',slots:[weather('temperature',0),weather('temperature',1)],sources:{'weather/location':[prague({temperature:temperature(),...observed}),brno({temperature:temperature(-2),...observed})]}},
+    {name:'two-locations-qualifiers',slots:[weather('feels_like',0),weather('high',1)],sources:{'weather/location':[prague({feels_like:temperature(-12)}),brno({high:temperature(14),is_forecast:{boolean:{value:true}}})]}},
+    {name:'czech-custom-labels',language:'cs',slots:[weather('feels_like',0,'Doma'),{category:'home',item:'light',property:'on',index:0,label:'Obývák'}],sources:{'weather/location':[prague({feels_like:temperature(-7)})],'home/light':[named('living','Obývák',{on:{boolean:{value:true}}})]}},
+    {name:'loading',state:'loading',...ordinary},
+    {name:'unavailable',state:'unavailable',...ordinary},
+    {name:'expired',state:'expired',...ordinary}
+  ];
+  let sequence=options.sequence||500;
+  const presets=[];
+  for(const theme of ['light','dark'])for(const spec of specs)for(const pose of ['idle','active','timeline']) {
+    if(options.names&&!options.names.includes(spec.name))continue;
+    const result=complicationReading({...spec,now,session,language:spec.language||options.language||'en'});
+    const dark=theme==='dark';
+    const revision=++sequence;
+    const cards=pose==='active'?[presentation.project(library.summary.toView({
+      provider:'50e9ef12-a5ab-4369-a3b5-3447bfba5151',displayName:'Timer',revision,
+      observedAt:result.now,validUntil:result.now+7200,record:{id:'complication-tea',type:'standard',
+        name:'Tea',icon:'timer',headline:{type:'clock',mode:'countdown',deadline:result.now+151}}}))]:[];
+    presets.push({name:spec.name+'-'+(pose==='timeline'?'peek-':pose==='active'?'active-':'')+theme,state:pose,scenario:spec.name,
+      theme,format:24,fixtureNow:result.now,language:spec.language||options.language||'en',
+      nativeLocaleFollowsEmulator:true,readingStatus:result.status.slots,selectedReadings:spec.slots,
+      integers:{BACKGROUND_COLOR:dark?0:0xffffff,TEXT_COLOR:dark?0xffffff:0,ACCENT_COLOR:0x55aaff,
+        ANIMATIONS:0,CLOCK_FORMAT:24,SHOW_STATUS:1,NOTIFICATION_VIBRATION:0,NIGHT_PALETTE:0,REQUEST_CONTEXT:session},
+      bytes:{COMPLICATION_DATA:result.bytes,CONTEXT_DATA:core.packComplications([],result.now),
+        CONTEXT_STATE:[session&255,(session>>>8)&255,(session>>>16)&255,(session>>>24)&255,0,0,0,0,0,0,0,0,0],
+        ACTIVITY_DATA:activity.encode(cards,{session,revision,sentAt:result.now})}});
+  }
+  return {coreVersion:require('pebble-watchface-core/package.json').version,
+    activitiesVersion:require('pebble-activities/package.json').version,activityWireVersion:3,
+    coreWireVersion:4,session,now,presets,productionReadingHost:true,dynamicLabelAdapter:true};
+}
+module.exports={fixtures,activityPresets,summaryPresets,musicFromSource,notificationFromSource,complicationReading,complicationPresets};
 if(require.main===module) {
   let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',value=>input+=value);
   process.stdin.on('end',()=>{
     const options=JSON.parse(input);
-    process.stdout.write(JSON.stringify(options.mode==='activities'||options.mode==='summary'?summaryPresets(options):fixtures(options)));
+    process.stdout.write(JSON.stringify(options.mode==='complications'?complicationPresets(options):options.mode==='activities'||options.mode==='summary'?summaryPresets(options):fixtures(options)));
   });
 }

@@ -44,6 +44,7 @@ function fixture(settings = {}, locales = {}) {
       if (name === './settings-page') return require('../src/pkjs/settings-page');
       if (name === './settings-preview') return require('../src/pkjs/settings-preview');
       if (name === './localization') return require('../src/pkjs/localization');
+      if (name === './reading-label') return require('../src/pkjs/reading-label');
       if (name === './activity-presentation') return presentationModule.exports;
       if (name === '@rebble/clay') return function(config,_custom,opts) {
         assert.equal(opts.autoHandleEvents,false);

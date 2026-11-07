@@ -103,7 +103,8 @@ var complications = createComplications({
   },
   localizeBoolean: function(value) {
     return localization.t(value ? 'stateOn' : 'stateOff', settingsLanguage());
-  }
+  },
+  labelForReading: require('./reading-label')
 });
 
 function enabledSetting(name, fallback) {

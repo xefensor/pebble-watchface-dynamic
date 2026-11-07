@@ -18,8 +18,7 @@ static inline bool watch_clock_uses_12(unsigned format,bool system_24) {
 
 typedef struct {
   float clock_x, clock_y, clock_size, date_x, date_y;
-  float row_y, icon_x, icon_y, icon_radius, icon_size;
-  float value_x, value_y, number_size, unit_size, label_y, label_alpha;
+  float row_y, number_size, label_y;
   float context, music, notice, peek;
 } WatchPose;
 
@@ -58,18 +57,17 @@ static inline float watch_date_split(float context) {
 
 static inline WatchPose watch_pose_idle(void) {
   return (WatchPose){100,110,80,100,31,
-    147,0,0,17,24,0,48,34,18,68,1,0,0,0,0};
+    164,40,44,0,0,0,0};
 }
 
 static inline WatchPose watch_pose_context(bool notice) {
   return (WatchPose){58,42,42,158,36,
-    65,-30,0,12,18,12,10,28,18,31,1,
-    1,notice ? 0 : 1,notice ? 1 : 0,0};
+    66,28,34,1,notice?0:1,notice?1:0,0};
 }
 
 static inline WatchPose watch_pose_peek(void) {
   return (WatchPose){100,91,68,100,31,
-    129,-30,0,12,18,12,10,28,18,31,1,0,0,0,1};
+    129,28,34,0,0,0,1};
 }
 
 static inline WatchPose watch_pose_summary(void) {
@@ -82,25 +80,17 @@ static inline float watch_context_visibility(WatchPose pose) {
   return watch_clamp(pose.music+pose.notice);
 }
 
-// Horizontal separation and number fitting precede vertical convergence.
-// This avoids the icon/value collision a straight interpolation would cause.
+// Each reading's icon, number, unit and second line share one moving group.
+// No independent lateral paths can cross another slot during a pose change.
 static inline WatchPose watch_pose_between(WatchPose a, WatchPose b, float amount) {
   WatchPose result;
-  const bool enter = a.icon_x == 0 && b.icon_x < 0;
-  const bool leave = a.icon_x < 0 && b.icon_x == 0;
-  const float lateral = enter ? watch_clamp(amount * 1.7f) :
-      leave ? 1 - watch_clamp((1 - amount) * 1.7f) : amount;
 #define WATCH_MIX(field) result.field = watch_lerp(a.field,b.field,amount)
-#define WATCH_LATERAL(field) result.field = watch_lerp(a.field,b.field,lateral)
   WATCH_MIX(clock_x); WATCH_MIX(clock_y); WATCH_MIX(clock_size);
   WATCH_MIX(date_x); WATCH_MIX(date_y); WATCH_MIX(row_y);
-  WATCH_LATERAL(icon_x); WATCH_MIX(icon_y); WATCH_MIX(icon_radius);
-  WATCH_MIX(icon_size); WATCH_LATERAL(value_x); WATCH_MIX(value_y);
-  WATCH_LATERAL(number_size); WATCH_LATERAL(unit_size);
-  WATCH_MIX(label_y); WATCH_MIX(label_alpha); WATCH_MIX(context);
+  WATCH_MIX(number_size);
+  WATCH_MIX(label_y); WATCH_MIX(context);
   WATCH_MIX(music); WATCH_MIX(notice); WATCH_MIX(peek);
 #undef WATCH_MIX
-#undef WATCH_LATERAL
   return result;
 }
 

@@ -15,6 +15,45 @@ also use at least22px and are measured at the same size before choosing a layout
 Activity icon boxes remain centered beside measured glyph ink. Shared helpers
 do not own activity selection, expiry, privacy, navigation or clock scheduling.
 
+## Complications on the review branch
+
+The two global Pebble complication choices retain their positions in equal
+columns. Each reading combines a source symbol and its value/unit in one group.
+The idle value targets 40px; activity and Peek values target 28px. Units and
+meaningful captions use Roboto Condensed 22px. Clock/date geometry and the ACT3
+activity composition remain independent of this reading layout.
+
+Ordinary temperature and rain captions are omitted when their symbols and units
+already identify the reading. Feels-like, high/low, forecast, custom labels and
+needed public source names remain. Rain and humidity have different symbols.
+The phone adapter passes public source context through the existing label field;
+music and notification identity retain their transient privacy boundary.
+
+Fit complete values and units before optional decoration. A long unit can use
+the second line when that line is free. A meaningful caption has priority over
+an indicator. Numeric overflow uses a clear localized fallback, rather than
+silently cutting digits or reducing them to tiny text. Free text starts at its
+beginning and can use bounded wrapping/ellipsis. Images preserve aspect ratio.
+
+A short range bar can occupy a free second line only with authoritative bounds
+or a validated precipitation probability. An arbitrary percentage is not a rain
+reading. Loading, unavailable and expired states clear the fresh-looking value
+and range indication, retaining only permitted identity. Unconfigured positions
+stay empty; the other reading does not move into their place.
+
+The group moves as a unit through idle, activity and native Peek geometry. It
+does not add continuous gauge animation, scrolling content or source rotation.
+The existing native visibility, expiry and clock scheduling contracts remain.
+
+This branch uses the local unpublished Core 0.5.2-dev.0 candidate for its optional
+public-label callback. The v4 wire, message-key numbering, saved preferences and
+global complication picker are unchanged. Forecast-series charts and new native
+health sources are separate features, not part of this layout change.
+
+Native review reproduced a brief clock/date overlap during idle/activity motion
+in both the previous build and this branch. This complication pass preserves that
+clock/date path; the new reading groups remain clear during the transition.
+
 Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
 ## Native/phone verification

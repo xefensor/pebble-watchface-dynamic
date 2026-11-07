@@ -41,27 +41,28 @@ typedef struct {
   const char *details[12];
   const char *forecast;
   const char *loading,*unavailable,*expired,*first,*second,*paused;
+  const char *overflow;
 } ReadingLanguage;
 
 static inline const ReadingLanguage *reading_language(const char *locale) {
   static const ReadingLanguage languages[]={
-    {"en",{"READING","TEMP","RAIN","BATTERY","HUMIDITY","WIND","UV","WEATHER","RANGE","VALUE","STATUS","TIME"},{"","TEMP","FEELS LIKE","HIGH","LOW","RAIN","HUMIDITY","WIND SPEED","DIRECTION","UV","WEATHER","PHONE"},"FORECAST","Loading","Unavailable","Expired","SLOT 1","SLOT 2","Paused"},
-    {"cs",{"HODNOTA","TEPLOTA","DÉŠŤ","BATERIE","VLHKOST","VÍTR","UV","POČASÍ","ROZSAH","HODNOTA","STAV","ČAS"},{"","TEPLOTA","POCITOVÁ","MAXIMUM","MINIMUM","DÉŠŤ","VLHKOST","RYCHLOST","SMĚR","UV","POČASÍ","TELEFON"},"PŘEDPOVĚĎ","Načítání","Nedostupné","Vypršelo","POZICE 1","POZICE 2","Pozastaveno"},
-    {"sk",{"HODNOTA","TEPLOTA","DÁŽĎ","BATÉRIA","VLHKOSŤ","VIETOR","UV","POČASIE","ROZSAH","HODNOTA","STAV","ČAS"},{"","TEPLOTA","POCITOVÁ","MAXIMUM","MINIMUM","DÁŽĎ","VLHKOSŤ","RÝCHLOSŤ","SMER","UV","POČASIE","TELEFÓN"},"PREDPOVEĎ","Načítanie","Nedostupné","Vypršalo","POZÍCIA 1","POZÍCIA 2","Pozastavené"},
-    {"de",{"ANZEIGE","TEMP","REGEN","AKKU","FEUCHTE","WIND","UV","WETTER","BEREICH","WERT","STATUS","ZEIT"},{"","TEMP","GEFÜHLT","HOCH","TIEF","REGEN","FEUCHTE","WINDSTÄRKE","RICHTUNG","UV","WETTER","TELEFON"},"VORHERSAGE","Lädt","Nicht da","Abgelaufen","FELD 1","FELD 2","Pausiert"},
-    {"fr",{"DONNÉE","TEMP","PLUIE","BATTERIE","HUMIDITÉ","VENT","UV","MÉTÉO","PLAGE","VALEUR","ÉTAT","HEURE"},{"","TEMP","RESSENTI","MAX","MIN","PLUIE","HUMIDITÉ","VITESSE","DIRECTION","UV","MÉTÉO","TÉLÉPHONE"},"PRÉVISION","Chargement","Indisponible","Expiré","ZONE 1","ZONE 2","En pause"},
-    {"es",{"DATO","TEMP","LLUVIA","BATERÍA","HUMEDAD","VIENTO","UV","TIEMPO","RANGO","VALOR","ESTADO","HORA"},{"","TEMP","SENSACIÓN","MÁX","MÍN","LLUVIA","HUMEDAD","VELOCIDAD","DIRECCIÓN","UV","TIEMPO","TELÉFONO"},"PRONÓSTICO","Cargando","No disponible","Caducado","ESPACIO 1","ESPACIO 2","En pausa"},
-    {"it",{"DATO","TEMP","PIOGGIA","BATTERIA","UMIDITÀ","VENTO","UV","METEO","INTERVALLO","VALORE","STATO","ORA"},{"","TEMP","PERCEPITA","MAX","MIN","PIOGGIA","UMIDITÀ","VELOCITÀ","DIREZIONE","UV","METEO","TELEFONO"},"PREVISIONE","Caricamento","Non disponibile","Scaduto","SPAZIO 1","SPAZIO 2","In pausa"},
-    {"pt",{"DADO","TEMP","CHUVA","BATERIA","UMIDADE","VENTO","UV","TEMPO","INTERVALO","VALOR","ESTADO","HORA"},{"","TEMP","SENSAÇÃO","MÁX","MÍN","CHUVA","UMIDADE","VELOCIDADE","DIREÇÃO","UV","TEMPO","TELEFONE"},"PREVISÃO","Carregando","Indisponível","Expirado","ESPAÇO 1","ESPAÇO 2","Em pausa"},
-    {"nl",{"WAARDE","TEMP","REGEN","ACCU","VOCHT","WIND","UV","WEER","BEREIK","WAARDE","STATUS","TIJD"},{"","TEMP","GEVOEL","HOOG","LAAG","REGEN","VOCHT","WINDSNELHEID","RICHTING","UV","WEER","TELEFOON"},"VERWACHTING","Laden","Niet beschikbaar","Verlopen","VAK 1","VAK 2","Gepauzeerd"},
-    {"pl",{"DANE","TEMP","DESZCZ","BATERIA","WILGOTNOŚĆ","WIATR","UV","POGODA","ZAKRES","WARTOŚĆ","STAN","CZAS"},{"","TEMP","ODCZUWALNA","MAKS","MIN","DESZCZ","WILGOTNOŚĆ","PRĘDKOŚĆ","KIERUNEK","UV","POGODA","TELEFON"},"PROGNOZA","Ładowanie","Niedostępne","Wygasło","POLE 1","POLE 2","Wstrzymano"},
-    {"da",{"VÆRDI","TEMP","REGN","BATTERI","FUGT","VIND","UV","VEJR","OMRÅDE","VÆRDI","STATUS","TID"},{"","TEMP","FØLES SOM","HØJ","LAV","REGN","FUGT","VINDHAST","RETNING","UV","VEJR","TELEFON"},"PROGNOSE","Indlæser","Utilgængelig","Udløbet","FELT 1","FELT 2","Sat på pause"},
-    {"sv",{"VÄRDE","TEMP","REGN","BATTERI","FUKT","VIND","UV","VÄDER","INTERVALL","VÄRDE","STATUS","TID"},{"","TEMP","KÄNNS SOM","HÖG","LÅG","REGN","FUKT","VINDHAST","RIKTNING","UV","VÄDER","TELEFON"},"PROGNOS","Laddar","Ej tillgänglig","Utgånget","FÄLT 1","FÄLT 2","Pausad"},
-    {"no",{"VERDI","TEMP","REGN","BATTERI","FUKT","VIND","UV","VÆR","OMRÅDE","VERDI","STATUS","TID"},{"","TEMP","FØLES SOM","HØY","LAV","REGN","FUKT","VINDSTYRKE","RETNING","UV","VÆR","TELEFON"},"PROGNOSE","Laster","Utilgjengelig","Utløpt","FELT 1","FELT 2","Satt på pause"},
-    {"fi",{"ARVO","LÄMPÖ","SADE","AKKU","KOSTEUS","TUULI","UV","SÄÄ","ALUE","ARVO","TILA","AIKA"},{"","LÄMPÖ","TUNTUU","YLIN","ALIN","SADE","KOSTEUS","NOPEUS","SUUNTA","UV","SÄÄ","PUHELIN"},"ENNUSTE","Ladataan","Ei saatavilla","Vanhentunut","PAIKKA 1","PAIKKA 2","Keskeytetty"},
-    {"hu",{"ÉRTÉK","HŐFOK","ESŐ","AKKU","PÁRA","SZÉL","UV","IDŐJÁRÁS","TARTOMÁNY","ÉRTÉK","ÁLLAPOT","IDŐ"},{"","HŐFOK","HŐÉRZET","MAX","MIN","ESŐ","PÁRA","SEBESSÉG","IRÁNY","UV","IDŐJÁRÁS","TELEFON"},"ELŐREJELZÉS","Betöltés","Nem elérhető","Lejárt","HELY 1","HELY 2","Szüneteltetve"},
-    {"ro",{"VALOARE","TEMP","PLOAIE","BATERIE","UMIDITATE","VÂNT","UV","VREME","INTERVAL","VALOARE","STARE","ORĂ"},{"","TEMP","RESIMȚITĂ","MAX","MIN","PLOAIE","UMIDITATE","VITEZĂ","DIRECȚIE","UV","VREME","TELEFON"},"PROGNOZĂ","Se încarcă","Indisponibil","Expirat","POZIȚIA 1","POZIȚIA 2","În pauză"},
-    {"tr",{"DEĞER","SICAKLIK","YAĞMUR","PİL","NEM","RÜZGÂR","UV","HAVA","ARALIK","DEĞER","DURUM","SAAT"},{"","SICAKLIK","HİSSEDİLEN","EN YÜKSEK","EN DÜŞÜK","YAĞMUR","NEM","HIZ","YÖN","UV","HAVA","TELEFON"},"TAHMİN","Yükleniyor","Kullanılamıyor","Süresi doldu","ALAN 1","ALAN 2","Duraklatıldı"}
+    {"en",{"READING","TEMP","RAIN","BATTERY","HUMIDITY","WIND","UV","WEATHER","RANGE","VALUE","STATUS","TIME"},{"","TEMP","Feels","High","Low","RAIN","HUMIDITY","WIND SPEED","DIRECTION","UV","WEATHER","PHONE"},"Forecast","Loading","No data","Expired","SLOT 1","SLOT 2","Paused","Too long"},
+    {"cs",{"HODNOTA","TEPLOTA","DÉŠŤ","BATERIE","VLHKOST","VÍTR","UV","POČASÍ","ROZSAH","HODNOTA","STAV","ČAS"},{"","TEPLOTA","Pocitová","Max","Min","DÉŠŤ","VLHKOST","RYCHLOST","SMĚR","UV","POČASÍ","TELEFON"},"Předp.","Načítání","Bez dat","Vypršelo","POZICE 1","POZICE 2","Pozastaveno","Dlouhé"},
+    {"sk",{"HODNOTA","TEPLOTA","DÁŽĎ","BATÉRIA","VLHKOSŤ","VIETOR","UV","POČASIE","ROZSAH","HODNOTA","STAV","ČAS"},{"","TEPLOTA","Pocitová","Max","Min","DÁŽĎ","VLHKOSŤ","RÝCHLOSŤ","SMER","UV","POČASIE","TELEFÓN"},"Predp.","Načítanie","Bez dát","Vypršalo","POZÍCIA 1","POZÍCIA 2","Pozastavené","Dlhé"},
+    {"de",{"ANZEIGE","TEMP","REGEN","AKKU","FEUCHTE","WIND","UV","WETTER","BEREICH","WERT","STATUS","ZEIT"},{"","TEMP","Gefühlt","Hoch","Tief","REGEN","FEUCHTE","WINDSTÄRKE","RICHTUNG","UV","WETTER","TELEFON"},"Prognose","Lädt","Nicht da","Verfallen","FELD 1","FELD 2","Pausiert","Zu lang"},
+    {"fr",{"DONNÉE","TEMP","PLUIE","BATTERIE","HUMIDITÉ","VENT","UV","MÉTÉO","PLAGE","VALEUR","ÉTAT","HEURE"},{"","TEMP","Ressenti","Max","Min","PLUIE","HUMIDITÉ","VITESSE","DIRECTION","UV","MÉTÉO","TÉLÉPHONE"},"Prévision","En cours","Sans info","Expiré","ZONE 1","ZONE 2","En pause","Trop long"},
+    {"es",{"DATO","TEMP","LLUVIA","BATERÍA","HUMEDAD","VIENTO","UV","TIEMPO","RANGO","VALOR","ESTADO","HORA"},{"","TEMP","Percibida","Máx","Mín","LLUVIA","HUMEDAD","VELOCIDAD","DIRECCIÓN","UV","TIEMPO","TELÉFONO"},"Previsión","Cargando","Sin datos","Caducado","ESPACIO 1","ESPACIO 2","En pausa","Largo"},
+    {"it",{"DATO","TEMP","PIOGGIA","BATTERIA","UMIDITÀ","VENTO","UV","METEO","INTERVALLO","VALORE","STATO","ORA"},{"","TEMP","Percepita","Max","Min","PIOGGIA","UMIDITÀ","VELOCITÀ","DIREZIONE","UV","METEO","TELEFONO"},"Prev.","Attendi","Assente","Scaduto","SPAZIO 1","SPAZIO 2","In pausa","Lungo"},
+    {"pt",{"DADO","TEMP","CHUVA","BATERIA","UMIDADE","VENTO","UV","TEMPO","INTERVALO","VALOR","ESTADO","HORA"},{"","TEMP","Sensação","Máx","Mín","CHUVA","UMIDADE","VELOCIDADE","DIREÇÃO","UV","TEMPO","TELEFONE"},"Previsão","Aguarde","Sem info","Expirado","ESPAÇO 1","ESPAÇO 2","Em pausa","Longo"},
+    {"nl",{"WAARDE","TEMP","REGEN","ACCU","VOCHT","WIND","UV","WEER","BEREIK","WAARDE","STATUS","TIJD"},{"","TEMP","Gevoel","Hoog","Laag","REGEN","VOCHT","WINDSNELHEID","RICHTING","UV","WEER","TELEFOON"},"Verwacht","Laden","Geen info","Verlopen","VAK 1","VAK 2","Gepauzeerd","Te lang"},
+    {"pl",{"DANE","TEMP","DESZCZ","BATERIA","WILGOTNOŚĆ","WIATR","UV","POGODA","ZAKRES","WARTOŚĆ","STAN","CZAS"},{"","TEMP","Odczucie","Maks","Min","DESZCZ","WILGOTNOŚĆ","PRĘDKOŚĆ","KIERUNEK","UV","POGODA","TELEFON"},"Prognoza","Ładuje","Brak","Wygasło","POLE 1","POLE 2","Wstrzymano","Za długie"},
+    {"da",{"VÆRDI","TEMP","REGN","BATTERI","FUGT","VIND","UV","VEJR","OMRÅDE","VÆRDI","STATUS","TID"},{"","TEMP","Føles","Høj","Lav","REGN","FUGT","VINDHAST","RETNING","UV","VEJR","TELEFON"},"Prognose","Indlæser","Mangler","Udløbet","FELT 1","FELT 2","Sat på pause","For langt"},
+    {"sv",{"VÄRDE","TEMP","REGN","BATTERI","FUKT","VIND","UV","VÄDER","INTERVALL","VÄRDE","STATUS","TID"},{"","TEMP","Känns","Hög","Låg","REGN","FUKT","VINDHAST","RIKTNING","UV","VÄDER","TELEFON"},"Prognos","Laddar","Saknas","Utgånget","FÄLT 1","FÄLT 2","Pausad","Långt"},
+    {"no",{"VERDI","TEMP","REGN","BATTERI","FUKT","VIND","UV","VÆR","OMRÅDE","VERDI","STATUS","TID"},{"","TEMP","Føles","Høy","Lav","REGN","FUKT","VINDSTYRKE","RETNING","UV","VÆR","TELEFON"},"Prognose","Laster","Mangler","Utløpt","FELT 1","FELT 2","Satt på pause","For langt"},
+    {"fi",{"ARVO","LÄMPÖ","SADE","AKKU","KOSTEUS","TUULI","UV","SÄÄ","ALUE","ARVO","TILA","AIKA"},{"","LÄMPÖ","Tuntuu","Ylin","Alin","SADE","KOSTEUS","NOPEUS","SUUNTA","UV","SÄÄ","PUHELIN"},"Ennuste","Ladataan","Ei tietoa","Vanhent.","PAIKKA 1","PAIKKA 2","Keskeytetty","Pitkä"},
+    {"hu",{"ÉRTÉK","HŐFOK","ESŐ","AKKU","PÁRA","SZÉL","UV","IDŐJÁRÁS","TARTOMÁNY","ÉRTÉK","ÁLLAPOT","IDŐ"},{"","HŐFOK","Hőérzet","Max","Min","ESŐ","PÁRA","SEBESSÉG","IRÁNY","UV","IDŐJÁRÁS","TELEFON"},"Előrejel.","Betöltés","Hiányzik","Lejárt","HELY 1","HELY 2","Szüneteltetve","Hosszú"},
+    {"ro",{"VALOARE","TEMP","PLOAIE","BATERIE","UMIDITATE","VÂNT","UV","VREME","INTERVAL","VALOARE","STARE","ORĂ"},{"","TEMP","Resimțită","Max","Min","PLOAIE","UMIDITATE","VITEZĂ","DIRECȚIE","UV","VREME","TELEFON"},"Prognoză","Încărcare","Fără date","Expirat","POZIȚIA 1","POZIȚIA 2","În pauză","Prea lung"},
+    {"tr",{"DEĞER","SICAKLIK","YAĞMUR","PİL","NEM","RÜZGÂR","UV","HAVA","ARALIK","DEĞER","DURUM","SAAT"},{"","SICAKLIK","Hissed.","Yüksek","Düşük","YAĞMUR","NEM","HIZ","YÖN","UV","HAVA","TELEFON"},"Tahmin","Yüklüyor","Veri yok","Süre bitti","ALAN 1","ALAN 2","Duraklatıldı","Çok uzun"}
   };
   if(locale)for(size_t i=1;i<sizeof(languages)/sizeof(languages[0]);++i) {
     const char *code=languages[i].lang;
@@ -92,6 +93,71 @@ static inline const char *reading_label(const ComplicationSlot *slot,unsigned ki
   return language->labels[kind];
 }
 
+static inline bool reading_same_label(const char *a,const char *b) {
+  while(*a&&*b) {
+    unsigned x=(unsigned char)*a++,y=(unsigned char)*b++;
+    if(x>='A'&&x<='Z')x+='a'-'A';
+    if(y>='A'&&y<='Z')y+='a'-'A';
+    if(x=='_')x=' ';
+    if(y=='_')y=' ';
+    if(x!=y)return false;
+  }
+  return !*a&&!*b;
+}
+
+/* Qualifiers retain priority when a renderer fits the optional context tail. */
+static inline const char *reading_qualifier(const ComplicationSlot *slot,unsigned kind,
+    const char *locale) {
+  const ReadingLanguage *language=reading_language(locale);
+  if(slot->detail>=COMPLICATION_DETAIL_FEELS_LIKE&&slot->detail<=COMPLICATION_DETAIL_LOW)
+    return language->details[slot->detail];
+  if(kind==COMPLICATION_SEMANTIC_TEMPERATURE&&(slot->qualifiers&COMPLICATION_QUALIFIER_FORECAST))
+    return language->forecast;
+  return "";
+}
+
+/* An icon replaces a type name, never the source/variant which identifies a
+ * reading. Unknown/custom labels retain their original spelling and case. */
+static inline const char *reading_caption(const ComplicationSlot *slot,unsigned kind,
+    unsigned index,const char *locale,char *buffer,size_t capacity) {
+  if(!buffer||!capacity)return "";
+  buffer[0]=0;
+  const ReadingLanguage *language=reading_language(locale),*english=reading_language("en");
+  if(kind>COMPLICATION_SEMANTIC_TIMESTAMP)kind=COMPLICATION_SEMANTIC_GENERIC;
+  const char *qualifier=reading_qualifier(slot,kind,locale),*context=slot->label;
+  // Missing/amount-only precipitation has no validated probability kind.
+  // Localize its known property name without inventing a gauge or a value.
+  if(kind==COMPLICATION_SEMANTIC_GENERIC&&slot->source_kind==COMPLICATION_SOURCE_WEATHER&&
+      reading_same_label(context,"precipitation"))context=language->labels[COMPLICATION_SEMANTIC_PRECIPITATION];
+  const unsigned detail=slot->detail<=COMPLICATION_DETAIL_PHONE_BATTERY?slot->detail:0;
+  if(reading_same_label(context,language->labels[kind])||
+      reading_same_label(context,english->labels[kind])||
+      (detail&&(reading_same_label(context,language->details[detail])||
+        reading_same_label(context,english->details[detail])))||
+      (*qualifier&&reading_same_label(context,qualifier))||
+      (kind==COMPLICATION_SEMANTIC_TEMPERATURE&&reading_same_label(context,"temperature"))||
+      (detail==COMPLICATION_DETAIL_FEELS_LIKE&&reading_same_label(context,"feels like"))||
+      (kind==COMPLICATION_SEMANTIC_PRECIPITATION&&reading_same_label(context,"precipitation"))||
+      (kind==COMPLICATION_SEMANTIC_BATTERY&&(reading_same_label(context,"battery level")||
+        (slot->source_kind==COMPLICATION_SOURCE_PHONE&&
+         reading_same_label(context,language->details[COMPLICATION_DETAIL_PHONE_BATTERY])))))context="";
+  if(!*qualifier&&!*context) {
+    if(kind==COMPLICATION_SEMANTIC_TEMPERATURE||kind==COMPLICATION_SEMANTIC_PRECIPITATION||
+        kind==COMPLICATION_SEMANTIC_HUMIDITY||
+        (kind==COMPLICATION_SEMANTIC_BATTERY&&slot->source_kind==COMPLICATION_SOURCE_PHONE))return buffer;
+    context=reading_label(slot,kind,index,locale);
+  }
+  watch_layout_copy_utf8(*qualifier?qualifier:context,buffer,capacity);
+  if(*qualifier&&*context) {
+    const size_t length=strlen(buffer);
+    if(length+5<capacity) {
+      memcpy(buffer+length," · ",5);
+      watch_layout_copy_utf8(context,buffer+length+4,capacity-length-4);
+    }
+  }
+  return buffer;
+}
+
 typedef int (*ReadingLabelWidth)(const void *context,const char *text);
 // This is the measured label-fitting path used by the renderer. Preserve
 // whole source scalars and reserve all three ellipsis bytes plus its NUL.
@@ -112,6 +178,10 @@ static inline void reading_label_ellipsize(char *text,size_t capacity,int width,
 static inline const char *reading_state_label(ReadingState state,const char *locale) {
   const ReadingLanguage *language=reading_language(locale);
   return state==READING_LOADING?language->loading:state==READING_EXPIRED?language->expired:language->unavailable;
+}
+
+static inline const char *reading_overflow_label(const char *locale) {
+  return reading_language(locale)->overflow;
 }
 
 // A clock mark means a known observation is at least an hour old. Native

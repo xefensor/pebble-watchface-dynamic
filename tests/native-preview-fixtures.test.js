@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const {test}=require('node:test');
 const library=require('pebble-activities');
 const fixtures=require('../scripts/native-preview-fixtures');
+const readingWire=require('pebble-watchface-core').wire;
 const N=1793700000,S=7;
 function records(value){
   const bytes=Buffer.from(value);assert.equal(bytes.toString('ascii',0,4),'ACT3');assert.equal(bytes[4],3);
@@ -52,5 +53,64 @@ test('approved normal and compact activity combinations have light and dark nati
     const value=fixtures.notificationFromSource(N,S,options);
     assert.equal(value.card.validUntil,N+8);assert.equal(value.card.openApp.watchAppUuid,'b2cae818-10f8-46df-ad2b-98ad2254a3c1');
     assert.equal(value.sidecar.length,13);assert.equal(Buffer.from(value.sidecar).readUInt32LE(9),N+8);
+  }
+});
+
+function readings(value) {
+  const bytes=Buffer.from(value),checked=Array.from(bytes);
+  assert.equal(bytes[0],4);assert.equal(bytes.length,bytes.readUInt16LE(2));
+  checked[4]=checked[5]=0;assert.equal(readingWire.crc16Xmodem(checked),bytes.readUInt16LE(4));
+  let at=6;const result=[];
+  for(let i=0;i<5;i++) {
+    const flags=bytes[at],textLength=bytes[at+2],unitLength=bytes[at+22],labelLength=bytes[at+23];
+    const pool=at+56;
+    result.push({status:bytes[at+1],flags,width:bytes[at+3],height:bytes[at+4],displayKind:bytes[at+5],kind:bytes[at+20],semanticFlags:bytes[at+21],
+      detail:bytes[at+25],qualifiers:bytes[at+26],value:bytes.readDoubleLE(at+28),observedAt:bytes.readUInt32LE(at+52),
+      timestamp:bytes.readUInt32LE(at+16),text:bytes.toString('utf8',pool,pool+textLength),
+      unit:bytes.toString('utf8',pool+textLength,pool+textLength+unitLength),
+      label:bytes.toString('utf8',pool+textLength+unitLength,pool+textLength+unitLength+labelLength)});
+    at+=56+textLength+unitLength+labelLength+(flags&2?16+bytes.readUInt16LE(at+14):0);
+  }
+  assert.equal(at,bytes.length);return result;
+}
+test('focused complications cover real host values, identity, failures and active/Peek boundaries',()=>{
+  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,120);
+  assert.equal(plan.productionReadingHost,true);assert.equal(plan.dynamicLabelAdapter,true);
+  for(const preset of plan.presets) {
+    const slots=readings(preset.bytes.COMPLICATION_DATA);
+    assert.equal(slots.slice(2).every(slot=>slot.status===0),true);
+    assert.equal(records(preset.bytes.ACTIVITY_DATA).length,preset.state==='active'?1:0);
+  }
+  const find=name=>readings(plan.presets.find(preset=>preset.name===name+'-light').bytes.COMPLICATION_DATA);
+  let slots=find('temperature-rain');
+  assert.deepEqual(slots.slice(0,2).map(slot=>slot.kind),[readingWire.SEMANTIC_KIND.TEMPERATURE,readingWire.SEMANTIC_KIND.PRECIPITATION]);
+  assert.deepEqual(slots.slice(0,2).map(slot=>slot.value),[5,40]);assert.equal(slots[0].observedAt,N-90);
+  assert.ok(slots.slice(0,2).every(slot=>slot.label!=='Praha'),'one city is not repeated twice');
+  assert.equal(find('rain-100')[1].value,100);assert.equal(find('rain-100')[1].displayKind,1);
+  assert.equal(find('long-temperature-value')[0].text,'123.4°C');
+  assert.equal(find('temperature-too-long')[0].text,'1234567890°C');
+  assert.deepEqual(find('first-slot-only').slice(0,2).map(slot=>slot.status),[2,0]);
+  assert.deepEqual(find('second-slot-only').slice(0,2).map(slot=>slot.status),[0,2]);
+  assert.equal(find('second-slot-only')[1].value,5);
+  assert.equal(find('negative-feels')[0].value,-12.4);assert.equal(find('negative-feels')[0].detail,readingWire.DETAIL_KIND.FEELS_LIKE);
+  assert.deepEqual(find('forecast-high-low').slice(0,2).map(slot=>slot.detail),[readingWire.DETAIL_KIND.HIGH,readingWire.DETAIL_KIND.LOW]);
+  assert.ok(find('forecast-high-low').slice(0,2).every(slot=>slot.qualifiers&readingWire.QUALIFIERS.FORECAST));
+  assert.deepEqual(find('humidity-phone').slice(0,2).map(slot=>slot.kind),[readingWire.SEMANTIC_KIND.HUMIDITY,readingWire.SEMANTIC_KIND.BATTERY]);
+  assert.ok(find('humidity-phone').slice(0,2).every(slot=>slot.displayKind===0));
+  assert.equal(find('wind-long-unit')[0].unit,'kilometres/hour');
+  assert.equal(find('timestamp-boolean')[0].timestamp,N+3600);
+  assert.equal(find('timestamp-boolean')[1].label,'Kitchen');
+  assert.equal(find('generic-text-image')[0].text,'Connected');assert.ok(find('generic-text-image')[1].flags&4);
+  assert.equal(find('generic-text-image')[1].width,8);assert.equal(find('generic-text-image')[1].height,4);
+  assert.deepEqual(find('finance-public-tickers').slice(0,2).map(slot=>slot.label),['AAPL','BRK.B']);
+  assert.deepEqual(find('two-weather-locations').slice(0,2).map(slot=>slot.label),['Praha','Brno']);
+  assert.deepEqual(find('two-weather-locations-expired').slice(0,2).map(slot=>slot.label),['Praha','Brno']);
+  assert.deepEqual(find('two-weather-locations-expired').slice(0,2).map(slot=>slot.status),[7,7]);
+  assert.deepEqual(find('two-locations-qualifiers').slice(0,2).map(slot=>slot.label),['Praha','Brno']);
+  assert.equal(find('czech-custom-labels')[0].label,'Doma');assert.equal(find('czech-custom-labels')[1].label,'Obývák');
+  assert.equal(find('czech-custom-labels')[1].text,'Zapnuto');
+  for(const[name,status]of [['loading',1],['unavailable',3],['expired',7]]) {
+    slots=find(name);assert.deepEqual(slots.slice(0,2).map(slot=>slot.status),[status,status]);
+    assert.ok(slots.slice(0,2).every(slot=>slot.text===''&&slot.observedAt===0&&slot.semanticFlags===0));
   }
 });
