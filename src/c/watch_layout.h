@@ -41,6 +41,15 @@ static inline float watch_ease(float value) {
   return 1 + 1.65f * value * value * value + 0.65f * value * value;
 }
 
+// Incoming content travels from the right, then settles back by only three
+// physical pixels. Keep progress separate from displacement: passing the target
+// is part of the motion, not a signal to end it early.
+static inline float watch_incoming(float progress) {
+  progress=watch_clamp(progress);
+  if(progress<0.72f)return watch_lerp(0,1.015f,watch_smooth(progress/0.72f));
+  return watch_lerp(1.015f,1,watch_smooth((progress-0.72f)/0.28f));
+}
+
 // Wait for the large clock to vacate the right column, then unfold the date.
 // Native Peek uses the same context interpolation in the reverse direction.
 static inline float watch_date_split(float context) {

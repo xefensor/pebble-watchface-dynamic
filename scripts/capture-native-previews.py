@@ -291,6 +291,78 @@ def capture_activities(pebble,session,output,appmessage=None):
         if owned:service.shutdown()
 
 
+def capture_motion(pebble,pbw,output):
+    """Record actual incoming replacement frames; no interpolated artwork.
+
+    The sample bridge supplies Music followed by a new notification. Timestamps
+    describe screenshot acquisition on the host, not physical display latency.
+    """
+    from libpebble2.services.appmessage import AppMessageService,Uint32,ByteArray
+    from libpebble2.services.screenshot import Screenshot
+    from libpebble2.protocol.system import TimeMessage,SetUTC
+    from libpebble2.protocol.apps import AppRunState,AppRunStateStart
+    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection
+    from pebble_tool.commands.emucontrol import send_data_to_qemu
+    from pebble_tool.commands.install import ToolAppInstaller
+    from PIL import Image
+    output=Path(output);output.mkdir(parents=True,exist_ok=True)
+    native=output/'native-candidate.pbw';info,payload=native_candidate(pbw,native)
+    target=uuid.UUID(info['uuid']);keys=info['messageKeys']
+    service=AppMessageService(pebble);condition=threading.Condition();sessions=[];receipts={}
+    def receive(_tid,app_uuid,data):
+        token=data.get(keys['REQUEST_ACTIVITIES'],data.get(keys['REQUEST_CONTEXT'],0))
+        if app_uuid==target and isinstance(token,int) and token>=2:
+            with condition:sessions.append(token);condition.notify_all()
+    def receipt(tid,app_uuid):
+        if app_uuid==target:
+            with condition:receipts[tid]=True;condition.notify_all()
+    handles=[service.register_handler('appmessage',receive),service.register_handler('ack',receipt)]
+    try:
+        send_data_to_qemu(pebble.transport,QemuBluetoothConnection(connected=True))
+        ToolAppInstaller(pebble,str(native),quiet=True).install()
+        pebble.send_packet(AppRunState(data=AppRunStateStart(uuid=target)))
+        with condition:
+            if not condition.wait_for(lambda:bool(sessions),timeout=8):raise RuntimeError('No native session')
+        plan=fixture_plan(sessions[-1]);presets={p['name']:p for p in plan['presets']}
+        def send(preset):
+            values=dict(preset['integers']);values['ANIMATIONS']=1
+            dictionary={keys[name]:Uint32(value) for name,value in values.items()}
+            dictionary.update({keys[name]:ByteArray(bytes(value)) for name,value in preset['bytes'].items()})
+            with condition:
+                tid=service.send_message(target,dictionary)
+                if not condition.wait_for(lambda:tid in receipts,timeout=8):raise RuntimeError('No fixture ACK')
+        pebble.send_packet(TimeMessage(message=SetUTC(unix_time=SAMPLE_TIME,utc_offset=0,tz_name='UTC')))
+        # Let the RTC correction settle before accepting source validity. A
+        # first frame received against the host date would correctly expire.
+        send(presets['idle-24-light']);time.sleep(1.1)
+        send(presets['music-24-light']);time.sleep(1)
+        before=b''.join(Screenshot(pebble).grab_image())
+        Image.frombytes('RGB',(200,228),before).save(output/'before.png')
+        reference=ROOT/'docs/qa'/info['versionLabel']/'native-previews/music-24-light.png'
+        if reference.exists() and Image.open(reference).convert('RGB').tobytes()!=before:
+            raise RuntimeError('Replacement baseline differs from the settled Music preview')
+        frames=[];captures=[]
+        send(presets['notification-24-light']);started=time.monotonic()
+        for index,offset in enumerate([0,.04,.08,.12,.16,.20,.24,.28,.34,.42,.55,.70]):
+            time.sleep(max(0,started+offset-time.monotonic()))
+            rows=Screenshot(pebble).grab_image();pixels=b''.join(rows)
+            image=Image.frombytes('RGB',(200,228),pixels)
+            path=output/('incoming-%02d.png'%index);image.save(path);frames.append(image)
+            captures.append({'file':path.name,'elapsedMs':round((time.monotonic()-started)*1000),
+                'sha256':sha256(path.read_bytes()),'rgbSha256':sha256(pixels)})
+        if len({row['rgbSha256'] for row in captures})<3:raise RuntimeError('No actual intermediate motion frames')
+        if captures[-1]['rgbSha256']!=captures[-2]['rgbSha256']:raise RuntimeError('Motion did not settle')
+        durations=[max(20,round((b['elapsedMs']-a['elapsedMs'])/10)*10) for a,b in zip(captures,captures[1:])]+[700]
+        frames[0].save(output/'incoming.gif',save_all=True,append_images=frames[1:],duration=durations,loop=0,disposal=2)
+        report={'version':info['versionLabel'],'nativePayloadSha256':payload,'captures':captures,
+            'scope':'Actual native Screenshot-service frames with synthetic Music/notification fixtures. GIF uses only these frames; no interpolation. Host acquisition timing is not physical-watch latency.'}
+        (output/'motion.json').write_text(json.dumps(report,indent=2)+'\n')
+        return report
+    finally:
+        for handle in handles:service.unregister_handler(handle)
+        service.shutdown()
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--emulator',choices=['emery'],help='Explicit emulator selection; never inferred')
@@ -298,6 +370,7 @@ def main():
     parser.add_argument('--output',type=Path)
     parser.add_argument('--preview',type=Path,default=ROOT/'src/pkjs/settings-preview.js')
     parser.add_argument('--plan',action='store_true',help='Print fixture plan only; no connection, installation or images')
+    parser.add_argument('--motion',action='store_true',help='Capture incoming replacement frames instead of static presets')
     args=parser.parse_args()
     if args.plan:
         print(json.dumps(fixture_plan(42),indent=2));return
@@ -308,6 +381,7 @@ def main():
     command=PreviewConnection();command._set_debugging(0)
     connection=command._connect(argparse.Namespace(v=0,emulator=args.emulator,sdk=None,vnc=False,sunlight=False))
     version=json.loads((ROOT/'package.json').read_text())['version']
-    capture(connection,args.pbw,args.output or ROOT/'docs/qa'/version/'native-previews',args.preview)
+    if args.motion:capture_motion(connection,args.pbw,args.output or ROOT/'docs/qa'/version/'native-motion')
+    else:capture(connection,args.pbw,args.output or ROOT/'docs/qa'/version/'native-previews',args.preview)
 
 if __name__=='__main__':main()

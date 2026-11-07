@@ -1,0 +1,28 @@
+{
+  "version": "0.18.0",
+  "branch": "design/pebble-native-redesign",
+  "publication": "unpublished-design-alternative",
+  "pbwSha256": "c8f2d6e6ed9a68524ef2e521663127bb4b3f40b18307c6bb65844c46c6fdc030",
+  "checks": {
+    "javascript": 134,
+    "nativeC": 13,
+    "productionCallbackLifecycle": "PASS",
+    "releaseAutomation": 19,
+    "minification": 8,
+    "exactArtifactFontSourceAudit": "PASS",
+    "freshNativePresets": 24,
+    "actualNativeMotion": "PASS",
+    "finalRenderBinding": "PASS: unchanged binary/resources",
+    "generatedConfig": "PASS",
+    "freshBrowser": "BLOCKED: Chromium exit 133, crashpad setsockopt EPERM",
+    "physicalWatch": "NOT RUN",
+    "realAndroidWebView": "NOT RUN"
+  },
+  "nativePayloadSha256": {
+    "emery/pebble-app.bin": "1e507f6b2522b43062178dd8c271a5a2b4492e3d2f4cd2587e74bd4c06534ac9",
+    "emery/app_resources.pbpack": "2bf4e3cbeaae59e48d65993ece095cc59364cc91528485a588c8fdd254bb8fbb",
+    "emery/manifest.json": "dfae4f5bd83183bb6c960423d4ffc0be6ad0971741a2fd8b7f2992edd09aeeea"
+  },
+  "historicalStoreKitVersion": "0.17.0",
+  "notes": "Browser preview uses actual Clay with a local sample bridge; no live phone/watch persistence is established."
+}

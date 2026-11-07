@@ -1,0 +1,24 @@
+{
+  "version": "0.18.0",
+  "finalPbwSha256": "c8f2d6e6ed9a68524ef2e521663127bb4b3f40b18307c6bb65844c46c6fdc030",
+  "finalSdkPayloadSha256": {
+    "emery/pebble-app.bin": "1e507f6b2522b43062178dd8c271a5a2b4492e3d2f4cd2587e74bd4c06534ac9",
+    "emery/app_resources.pbpack": "2bf4e3cbeaae59e48d65993ece095cc59364cc91528485a588c8fdd254bb8fbb",
+    "emery/manifest.json": "dfae4f5bd83183bb6c960423d4ffc0be6ad0971741a2fd8b7f2992edd09aeeea"
+  },
+  "captures": [
+    {
+      "originalCaptureReport": "native-previews/previews.json",
+      "binaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "5254e4b93879fcc60c334f9dcf02b86a516e4cc534ce816dbf32f31e2fcd4a7a",
+      "originalCapturePayloadHashesRetained": true
+    },
+    {
+      "originalCaptureReport": "native-motion/motion.json",
+      "binaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "a7fe98168ce074afd4e1a167910131cebe2b70789f7b344ded17cb0def339dea",
+      "originalCapturePayloadHashesRetained": true
+    }
+  ],
+  "scope": "Native binary/resources are identical across original captures and final phone-only incremental rebundle. Manifest metadata differs. Original capture PBW/manifest hashes remain historical; this is a comparison, not a new capture."
+}

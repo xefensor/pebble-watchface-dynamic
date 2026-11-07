@@ -1,5 +1,16 @@
 # Dynamic validation
 
+## 0.18.0 Pebble-native branch trial — 7 November 2026
+
+[Current trial evidence](qa/0.18.0/VALIDATION.md): all 134 portable JS tests,
+13 C fixtures, production callback lifecycle regression, 19 release tests,
+8 minification tests, native build and exact package/font/source audit pass.
+Twenty-four fresh static Emery captures match the final native payload; actual
+incoming replacement frames and a pixel-verified GIF show directional motion
+and settle. Browser execution is blocked by a fresh Chromium crashpad EPERM
+failure; actual-phone and physical-watch checks remain unperformed. Older browser
+captures are historical. No public/store release was prepared.
+
 ## 0.17.0 shared UI — local candidate, 6 November 2026
 
 The [implementation record](UX-ALIGNMENT.md) and

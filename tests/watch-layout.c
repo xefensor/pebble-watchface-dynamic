@@ -3,6 +3,9 @@
 #include "../src/c/reading_presentation.h"
 
 int main(void) {
+  assert(watch_incoming(0)==0&&watch_incoming(1)==1&&watch_incoming(2)==1);
+  assert(watch_incoming(0.72f)>1&&watch_incoming(0.72f)<=1.0151f);
+  assert(watch_incoming(0.9f)<watch_incoming(0.72f)&&watch_incoming(0.9f)>1);
   assert(watch_clock_format(-1,-1)==WATCH_CLOCK_FOLLOW);
   assert(watch_clock_format(-1,0)==WATCH_CLOCK_24);
   assert(watch_clock_format(-1,1)==WATCH_CLOCK_12);

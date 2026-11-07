@@ -3,7 +3,8 @@
 // Clay retains the established preference keys. Page-only choices translate to
 // these fields, so notification privacy remains compatible with earlier builds.
 module.exports = [
-  {type:'heading',defaultValue:'Dynamic Settings'},
+  {type:'heading',defaultValue:'Dynamic'},
+  {type:'text',id:'dynamic-intro',defaultValue:'Choose colours and what appears on your watch.'},
   {type:'section',items:[
     {type:'heading',defaultValue:'Appearance'},
     {type:'text',id:'dynamic-preview',defaultValue:'Layout & colour preview'},

@@ -1,5 +1,8 @@
 # Dynamic
 
+Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.0.
+[Design choices and review evidence](docs/REDESIGN.md).
+
 A Pebble Time 2 watchface with rounded time, two horizontal readings and
 notification-style activities. Version 0.16.2 fixes paused-media state and
 provider recovery while retaining the earlier rendering and package
@@ -11,21 +14,28 @@ Canonical repository: **`xefensor/pebble-watchface-dynamic`**. The
 [XOCE repository migration](docs/REPOSITORY-MIGRATION.md) preserves Dynamic's
 identity, package names and published release files.
 
-## Local shared-UI candidate
+## Local Pebble-native design trial
 
-**0.17.0 is built locally and has not been published.** Its bundled phone page
-uses the shared neutral/blue settings style and keeps all 17 languages. Save
+**0.18.0 is built locally on `design/pebble-native-redesign` and has not been
+published.** Native Gothic utility labels/date, stronger semantic icons and a
+small incoming-content settle sit alongside the existing Fredoka clock and
+activity composition. Its bundled phone page uses the shared neutral/blue style,
+a short introduction, neutral headings and 16/24px spacing in all 17 languages. Save
 stays open with a confirmed **✓ Saved** indicator; Discard restores the latest
 confirmed draft without a write. Existing custom RGB colours survive unrelated
-saves. The native watchface composition and activity contracts are unchanged.
+saves. The activity/source/privacy contracts and fixed layout remain intact.
 
 The packaged `config.html` uses Pebble's configuration bridge. The older
 `showConfiguration` return-URL fallback still saves and closes; it does not
 pretend to provide in-page confirmation. Phone storage and watch delivery are
 reported separately. See [the implementation handoff](docs/UX-ALIGNMENT.md) and
-[0.17.0 validation](docs/qa/0.17.0/VALIDATION.md).
+[design trial notes](docs/REDESIGN.md) and
+[0.18.0 validation](docs/qa/0.18.0/VALIDATION.md). Fresh native captures and the
+artifact audit pass; fresh Chromium checks are blocked by this environment.
 
-Local installable file: [Dynamic-0.17.0.pbw](dist/Dynamic-0.17.0.pbw).
+Local installable file: [Dynamic-0.18.0.pbw](dist/Dynamic-0.18.0.pbw).
+Review [the phone page](docs/qa/0.18.0/phone-preview.html) with its labelled
+sample-only bridge and [actual native motion](docs/qa/0.18.0/native-motion/incoming.gif).
 The published downloads below retain their original versions and bytes.
 
 ## Download
@@ -381,7 +391,7 @@ installed in your build environment.
 npm ci --ignore-scripts
 npm test
 npm run build
-python3 scripts/check-native-style.py --pbw dist/Dynamic-0.17.0.pbw
+python3 scripts/check-native-style.py --pbw dist/Dynamic-0.18.0.pbw
 python3 scripts/package-source.py
 ```
 
@@ -393,7 +403,7 @@ assets. Native captures check the appearance of the clock, text and motion.
 Validation is recorded separately for each release. For a packaged build:
 
 ```sh
-pebble install --emulator emery dist/Dynamic-0.17.0.pbw
+pebble install --emulator emery dist/Dynamic-0.18.0.pbw
 ```
 
 The clock outline and body-baseline headers are committed with their source
@@ -428,7 +438,7 @@ See [the release guide](docs/GITHUB-RELEASES.md) and [maintainer notes](AGENTS.m
 
 ## Shared core
 
-The local 0.17.0 candidate pins Core 0.5.1 and Activities 0.4.4; published
+The local 0.18.0 candidate pins Core 0.5.1 and Activities 0.4.4; published
 0.16.0 retains its original Activities 0.4.2 pin. Halftone keeps its own
 dependency pin; installing Dynamic does not change Halftone.
 

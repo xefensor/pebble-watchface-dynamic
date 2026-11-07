@@ -1,5 +1,12 @@
 # Design references and motion
 
+The unpublished 0.18.0 branch trial adds native Gothic Bold utility/date roles,
+2px/filled semantic symbols and a bounded 3px settle within the existing 280ms
+incoming motion. Fredoka, exact-metric activity body text and established
+geometry remain. [Trial notes](REDESIGN.md) and [fresh evidence](qa/0.18.0/VALIDATION.md)
+describe this alternative. The older version-specific rationale below remains
+historical and does not establish validation of the new binary.
+
 Dynamic 0.14.0 retains the 0.13.0 native renderer. It uses a chunky digital clock
 and a composition that makes room for
 context. It is an independent watchface by Xef. Pebble's watchfaces, plugin

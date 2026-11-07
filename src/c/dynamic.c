@@ -463,8 +463,9 @@ static void prv_motion_frame(void *context) {
     if(t>=1) { s_pose=s_pose_target;s_layout_active=false; }
   }
   if(s_slide_active) {
-    s_slide_amount=watch_smooth((now-s_slide_started)/280.0f);
-    if(s_slide_amount>=1)s_slide_active=false;
+    const float progress=(now-s_slide_started)/280.0f;
+    s_slide_amount=watch_incoming(progress);
+    if(progress>=1){s_slide_active=false;s_slide_amount=1;}
   }
   if(s_slide_active&&!s_layout_active&&s_context_layer)prv_dirty(s_context_layer);
   else prv_sync_layers();
@@ -643,7 +644,18 @@ static bool prv_draw_number(GContext *ctx,const ReadingParts *parts,float center
   return true;
 }
 static int prv_label_width(const void *context,const char *text) {
-  return prv_measure(text,*(const int *)context).w;
+  (void)context;
+  return graphics_text_layout_get_content_size(text,fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
+      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
+}
+// Native Gothic belongs to compact utility roles. The activity renderer keeps
+// its exact per-glyph metrics and Fredoka keeps the numeric/clock hierarchy.
+static void prv_utility_text(GContext *ctx,const char *text,bool date,int x,int baseline,
+    int width,GColor color,GTextAlignment alignment) {
+  const int height=date?18:14;
+  graphics_context_set_text_color(ctx,color);
+  graphics_draw_text(ctx,text,fonts_get_system_font(date?FONT_KEY_GOTHIC_18_BOLD:FONT_KEY_GOTHIC_14_BOLD),
+      GRect(x,baseline-height,width,height+8),GTextOverflowModeFill,alignment,NULL);
 }
 static void prv_reading_label(GContext *ctx,const ComplicationSlot *slot,unsigned kind,
                                unsigned index,WatchPose p) {
@@ -655,7 +667,7 @@ static void prv_reading_label(GContext *ctx,const ComplicationSlot *slot,unsigne
   const int baseline=prv_round(p.row_y+p.label_y);
   if(s_window_layer&&baseline+body_text_descent(label,point)>
       layer_get_unobstructed_bounds(s_window_layer).size.h-2)return;
-  prv_text(ctx,label,point,center-44,baseline,reading_is_aged(slot,time(NULL))?76:88,
+  prv_utility_text(ctx,label,false,center-44,baseline,reading_is_aged(slot,time(NULL))?76:88,
       prv_muted_text(p.label_alpha),GTextAlignmentCenter);
 }
 static void prv_age_mark(GContext *ctx,const ComplicationSlot *slot,unsigned index,WatchPose p,bool label) {
@@ -783,21 +795,22 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
   const float vertical=watch_clamp(split*2);
   // Separate the baselines before converging the two text runs horizontally.
   const float lateral=watch_smooth((split-0.25f)/0.75f);
-  const int inline_point=20;
-  const float whole_width=prv_measure(s_compact_date_buffer,inline_point).w;
-  const float week_width=prv_measure(s_weekday_buffer,inline_point).w;
-  const float date_width=prv_measure(s_numeric_date_buffer,inline_point).w;
+  const GFont date_font=fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  const float whole_width=graphics_text_layout_get_content_size(s_compact_date_buffer,date_font,
+      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
+  const float week_width=graphics_text_layout_get_content_size(s_weekday_buffer,date_font,
+      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
+  const float date_width=graphics_text_layout_get_content_size(s_numeric_date_buffer,date_font,
+      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
   const float week_center=p.date_x+(week_width-whole_width)/2*(1-lateral);
   const float date_center=p.date_x+(whole_width-date_width)/2*(1-lateral);
-  const int week_point=prv_point(prv_round(watch_lerp(inline_point,14,vertical)));
-  const int date_point=prv_point(prv_round(watch_lerp(inline_point,20,vertical)));
-  prv_text(ctx,s_weekday_buffer,week_point,prv_round(week_center-38),
+  prv_utility_text(ctx,s_weekday_buffer,true,prv_round(week_center-38),
       prv_round(p.date_y-5*vertical),76,s_text_color,GTextAlignmentCenter);
-  prv_text(ctx,s_numeric_date_buffer,date_point,prv_round(date_center-38),
+  prv_utility_text(ctx,s_numeric_date_buffer,true,prv_round(date_center-38),
       prv_round(p.date_y+16*vertical),76,s_text_color,GTextAlignmentCenter);
   if(vertical<0.99f) {
     const float center=p.date_x+(week_width-date_width)/2*(1-lateral);
-    prv_text(ctx,"·",inline_point,prv_round(center-38),prv_round(p.date_y),76,
+    prv_utility_text(ctx,"·",true,prv_round(center-38),prv_round(p.date_y),76,
         prv_faded_text(1-vertical),GTextAlignmentCenter);
   }
 }
@@ -1013,7 +1026,7 @@ static void prv_draw_activity_image(GContext *ctx,const PavCard *activity,int x,
 static void prv_activity_symbol(GContext *ctx,unsigned symbol,unsigned direction,int x,int y,int size) {
   const int l=x+size/6,r=x+size*5/6,m=x+size/2,t=y+size/6,b=y+size*5/6,c=y+size/2;
   graphics_context_set_stroke_color(ctx,prv_accent_color());
-  graphics_context_set_fill_color(ctx,prv_accent_color());graphics_context_set_stroke_width(ctx,size>=24?2:1);
+  graphics_context_set_fill_color(ctx,prv_accent_color());graphics_context_set_stroke_width(ctx,2);
   if(direction) {
     if(direction==PAV_DIRECTION_STRAIGHT) {
       graphics_draw_line(ctx,GPoint(m,b),GPoint(m,t));graphics_draw_line(ctx,GPoint(m,t),GPoint(l,c));
@@ -1032,11 +1045,16 @@ static void prv_activity_symbol(GContext *ctx,unsigned symbol,unsigned direction
     graphics_draw_line(ctx,GPoint(m+size/6,c-size/6),GPoint(m-size/8,c-size/6));
     graphics_draw_line(ctx,GPoint(m+size/6,c-size/6),GPoint(m+size/6,c+size/8));
   } else if(symbol==PAV_SYMBOL_TIMER) {
-    graphics_draw_line(ctx,GPoint(l,t),GPoint(r,t));graphics_draw_line(ctx,GPoint(l,b),GPoint(r,b));
-    graphics_draw_line(ctx,GPoint(l,t+2),GPoint(r,b-2));graphics_draw_line(ctx,GPoint(r,t+2),GPoint(l,b-2));
-    graphics_draw_line(ctx,GPoint(l,b-2),GPoint(r,b-2));
+    graphics_fill_rect(ctx,GRect(l,t,r-l+1,2),0,GCornerNone);
+    graphics_fill_rect(ctx,GRect(l,b-1,r-l+1,2),0,GCornerNone);
+    for(int row=t+2;row<b-1;++row) {
+      const int distance=row<c?c-row:row-c;
+      const int half=(r-l)*distance/(b-t);
+      graphics_fill_rect(ctx,GRect(m-half,row,half*2+1,1),0,GCornerNone);
+    }
   } else if(symbol==PAV_SYMBOL_MEDIA) {
-    graphics_draw_line(ctx,GPoint(m,t),GPoint(r,y));graphics_draw_line(ctx,GPoint(m,t),GPoint(m,b));
+    graphics_fill_rect(ctx,GRect(m,t,2,b-t+1),0,GCornerNone);
+    graphics_draw_line(ctx,GPoint(m,t),GPoint(r,y+1));
     graphics_fill_circle(ctx,GPoint(m-size/8,b),size/6);
   } else {
     graphics_fill_circle(ctx,GPoint(l,t),size/8);graphics_fill_circle(ctx,GPoint(r,t),size/8);

@@ -7,10 +7,10 @@ module.exports = function() {
   var style = document.createElement('style');
   style.id = 'dynamic-settings-style';
   style.textContent = [
-    ':root{color-scheme:light;--page:#f4f5f7;--card:#fff;--ink:#15181c;--muted:#5d6571;--line:#d9dee6;--accent:#145ca3;--field:#f4f5f7;--track:#cad0d6}',
-    '@media(prefers-color-scheme:dark){:root{color-scheme:dark;--page:#11151b;--card:#1d232d;--ink:#f3f5f7;--muted:#b5bfcc;--line:#465165;--accent:#8abfff;--field:#262e39;--track:#565f6a}}',
+    ':root{color-scheme:light;--page:#f4f5f7;--card:#fff;--ink:#15181c;--muted:#5d6571;--line:#d9dee6;--accent:#145ca3;--on-accent:#fff;--field:#f4f5f7;--track:#cad0d6}',
+    '@media(prefers-color-scheme:dark){:root{color-scheme:dark;--page:#11151b;--card:#1d232d;--ink:#f3f5f7;--muted:#b5bfcc;--line:#465165;--accent:#8abfff;--on-accent:#11151b;--field:#262e39;--track:#565f6a}}',
     'html{font-size:16px!important;height:auto;background:var(--page)!important;color:var(--ink)!important}',
-    'body{box-sizing:border-box;height:auto;max-width:512px;margin:0 auto;padding:20px 16px 140px;padding-bottom:calc(var(--dynamic-save-height,108px) + 32px + env(safe-area-inset-bottom));background:var(--page);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}',
+    'body{box-sizing:border-box;height:auto;max-width:512px;margin:0 auto;padding:24px 16px 140px;padding-bottom:calc(var(--dynamic-save-height,108px) + 32px + env(safe-area-inset-bottom));background:var(--page);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}',
     '*,*:before,*:after{box-sizing:border-box}',
     // Clay adds component styles after this hook. Scope colour rules to the
     // form so late defaults cannot reintroduce white inputs or orange text.
@@ -30,14 +30,17 @@ module.exports = function() {
     '#main-form .dynamic-save-state p{color:var(--muted)}',
     '#main-form .dynamic-warning p{color:#934300}',
     '@media(prefers-color-scheme:dark){#main-form .dynamic-warning p{color:#ffbd77}}',
-    '#main-form>.component-heading:first-child{padding:0 2px 20px}',
+    '#main-form>.component-heading:first-child{padding:0}',
     '.component-heading h1,.component-heading h2,.component-heading h3,.component-heading h4{margin:0;color:var(--ink);font:700 20px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
-    '#main-form>.component-heading:first-child h1,#main-form>.component-heading:first-child h2,#main-form>.component-heading:first-child h4{font-size:28px;letter-spacing:-.6px}',
-    '#main-form>.component-heading:first-child:after{content:"";display:block;width:48px;height:5px;margin-top:12px;background:var(--accent)}',
-    '.section{margin:0 0 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:none;overflow:hidden}',
-    '.section>.component{margin-top:0!important;padding:13px 16px;position:relative}',
-    '.section>.component-heading:first-child{padding:16px 16px 10px;background:none;border-radius:0}',
-    '.section>.component-heading:first-child h1,.section>.component-heading:first-child h2,.section>.component-heading:first-child h4{color:var(--accent)}',
+    '#main-form>.component-heading:first-child h1,#main-form>.component-heading:first-child h2,#main-form>.component-heading:first-child h4{font-size:28px;line-height:1.2;letter-spacing:-.6px}',
+    '#main-form>.component-heading:first-child:after{display:none}',
+    '#main-form>.dynamic-intro{margin:8px 0 24px;padding:0}',
+    '#main-form>.dynamic-intro p{font-size:16px;line-height:1.5}',
+    '#main-form>.dynamic-intro:after{content:"";position:static;display:block;width:48px;height:4px;border-radius:2px;margin-top:16px;background:var(--accent)}',
+    '.section{margin:0 0 24px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:none;overflow:hidden}',
+    '.section>.component{margin-top:0!important;padding:16px;position:relative}',
+    '.section>.component-heading:first-child{padding:16px;background:none;border-radius:0}',
+    '.section>.component-heading:first-child h1,.section>.component-heading:first-child h2,.section>.component-heading:first-child h4{color:var(--ink)}',
     '.section>.component:after{left:16px;right:16px;background:var(--line)}',
     '.component-text p{margin:0;font-size:14px;line-height:1.5;color:var(--muted);overflow-wrap:break-word;word-wrap:break-word}',
     'label{min-height:28px;padding:0;gap:14px;color:var(--ink);font-size:16px;line-height:1.4}',
@@ -51,7 +54,9 @@ module.exports = function() {
     '.color-box.selectable:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}',
     '.component-toggle .graphic .slide{background:var(--track)}',
     '.component-toggle .graphic .marker{box-shadow:0 1px 3px #0003}',
-    '.component-toggle input:checked+.graphic .slide,.component-toggle input:checked+.graphic .marker{background:#145ca3}',
+    '.component-toggle input:checked+.graphic .slide{background:var(--accent)}',
+    '#main-form .component-toggle input:checked+.graphic .marker{background:var(--on-accent);border-color:var(--on-accent)}',
+    '.component-toggle .graphic .slide,.component-toggle .graphic .marker{transition:background-color 144ms ease-out,left 144ms ease-out,transform 144ms ease-out}',
     '.component-color .value{flex-shrink:0;border:1px solid #8886;box-shadow:none}',
     '.component-color .picker-wrap .picker{max-width:416px;background:var(--card);border:1px solid var(--line);border-radius:14px}',
     '.component-input label{display:block}',
@@ -64,12 +69,12 @@ module.exports = function() {
     '.component-select .value:after{right:12px;border-top-color:var(--accent)}',
     '.dynamic-choice select{display:block;width:100%;margin-top:9px;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-choice select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}',
-    '.dynamic-section-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}',
+    '.dynamic-section-nav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px}',
     '.dynamic-section-nav button{flex:1 1 auto;min-width:0;min-height:44px;width:auto;max-width:100%;margin:0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);box-shadow:none;font:600 13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0;white-space:normal;overflow-wrap:normal;word-break:normal}',
     '.dynamic-section-target:focus{outline:2px solid var(--accent);outline-offset:3px}',
     '.dynamic-preview-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 16px}',
     '.dynamic-preview-tabs button{min-width:0;width:100%;margin:0;text-transform:none;letter-spacing:0;box-shadow:none;min-height:44px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:normal;overflow-wrap:anywhere}',
-    '.dynamic-preview-tabs button[aria-selected=true]{background:#145ca3;border-color:#145ca3;color:#fff}',
+    '.dynamic-preview-tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}',
     '.dynamic-preview-stage{width:212px;max-width:100%;margin:0 auto 14px;border:6px solid #101216;border-radius:12px;overflow:hidden;background:#fff;line-height:0}',
     '.dynamic-preview-stage canvas{display:block;width:200px;height:228px;max-width:100%;image-rendering:pixelated}',
     '.dynamic-preview-note{margin:7px 0 0!important;font-size:12px!important}',
@@ -77,8 +82,8 @@ module.exports = function() {
     '.dynamic-preview-palette{display:block;margin:0 0 14px}',
     '.dynamic-preview-palette>.description{display:block;margin-top:7px}',
     '.dynamic-example-disabled{padding:7px 9px;border-radius:7px;background:var(--field);color:var(--muted)}',
-    '.dynamic-save-state{padding:0 0 7px!important;margin:0;color:var(--muted);font-size:14px;line-height:1.4}',
-    '.dynamic-save-state p{margin:0;font-size:14px;line-height:1.4}',
+    '.dynamic-save-state{padding:0 0 8px!important;margin:0;color:var(--muted);font-size:14px;line-height:1.4;text-align:left}',
+    '.dynamic-save-state p{margin:0;font-size:14px;line-height:1.4;text-align:left}',
     '.dynamic-save-state:after{display:none!important}',
     '.dynamic-palette-code label{display:block;margin-bottom:7px}',
     '.dynamic-palette-details summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--ink);font-size:15px}',
@@ -91,7 +96,7 @@ module.exports = function() {
     '.dynamic-app-entry{display:flex;gap:7px;align-items:stretch}',
     '.dynamic-app-entry input{flex:1;min-width:0;width:0;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-app-entry button,.dynamic-app-chip button{width:auto;margin:0;min-width:0;box-shadow:none;text-transform:none;letter-spacing:0;font:inherit}',
-    '.dynamic-app-entry button{min-height:44px;padding:9px 13px;border:0;border-radius:8px;background:#145ca3;color:white}',
+    '.dynamic-app-entry button{min-height:44px;padding:9px 13px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent)}',
     '.dynamic-app-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none}',
     '.dynamic-app-chip{display:flex;align-items:center;max-width:100%;padding:3px 3px 3px 10px;border:1px solid var(--line);border-radius:9px;background:var(--field);font-size:13px}',
     '.dynamic-app-chip span{min-width:0;overflow-wrap:anywhere}',
@@ -129,7 +134,7 @@ module.exports = function() {
     '.component-submit{position:fixed;left:0;right:0;bottom:0;max-width:512px;margin:0 auto;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;background:var(--page);border-top:1px solid var(--line);box-shadow:0 -6px 18px #00000008}',
     'body.dynamic-picker-open .component-submit{visibility:hidden}',
     '.component-input input,.dynamic-app-entry input,select{scroll-margin-bottom:calc(var(--dynamic-save-height,108px) + 16px)}',
-    '.component-submit button{display:block;width:100%;min-width:0;min-height:48px;margin:0;padding:12px 16px;border:0;border-radius:8px;background:#145ca3;color:#fff;font:700 16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
+    '.component-submit button{display:block;width:100%;min-width:0;min-height:48px;margin:0;padding:12px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:700 16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-transform:none;letter-spacing:0}',
     '.component-submit button:disabled{opacity:.65}',
     '@media(max-height:420px){.component-submit{position:static;max-width:none;margin:16px 0 0;padding:12px 0;box-shadow:none}body{padding-bottom:24px}}',
     'body.dynamic-actions-flow{padding-bottom:24px}.dynamic-actions-flow .component-submit{position:static;max-width:none;margin:16px 0 0;padding:12px 0;box-shadow:none}',
@@ -137,9 +142,14 @@ module.exports = function() {
     '.dynamic-save-buttons{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}',
     '.component-submit .dynamic-discard{border:1px solid var(--line);background:var(--field);color:var(--ink);font-weight:600}',
     '[hidden]{display:none!important}',
+    'button,summary{transition:background-color 144ms ease-out,border-color 144ms ease-out,color 144ms ease-out}',
+    'details[open]>:not(summary){animation:dynamic-disclose 160ms ease-out both}',
+    '@keyframes dynamic-disclose{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}',
+    '#main-form input,#main-form select,.component-select .value,.dynamic-preview-title,.dynamic-activity-name{font-size:16px}',
+    '#main-form .dynamic-preview-note,#main-form .dynamic-health-help,.dynamic-details p,.dynamic-state,.dynamic-reading small,.dynamic-health small,.dynamic-activity-name small,.dynamic-activity-announcement{font-size:14px!important}',
     'a{color:var(--accent)}',
     '@media(max-width:340px){body{padding-left:12px;padding-right:12px}.section>.component{padding-left:12px;padding-right:12px}.dynamic-reading-grid{gap:6px}.dynamic-reading{padding:9px}.component-submit{padding-left:12px;padding-right:12px}}',
-    '@media(prefers-reduced-motion:reduce){*{transition:none!important}}'
+    '@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}'
   ].join('\n');
   document.head.appendChild(style);
   var viewport = document.querySelector('meta[name=viewport]');
@@ -168,6 +178,7 @@ module.exports = function() {
     var words = transport('dynamic-settings-strings');
     if (typeof data.language === 'string') { document.documentElement.lang = data.language; }
     var assets = transport('dynamic-preview-assets');
+    var intro=node(item('dynamic-intro'));if(intro)intro.className+=' dynamic-intro';
     function t(key,params) {
       var text = typeof words[key] === 'string' ? words[key] : key;
       return text.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g,function(match,name) { return params && params[name] !== undefined ? String(params[name]) : match; });

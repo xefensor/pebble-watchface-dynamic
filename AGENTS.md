@@ -249,3 +249,14 @@ After new native captures, use an incremental SDK build and package-release to
 rebundle previews without changing the captured native payload; a clean SDK
 rebuild requires new native provenance. Run the exact package/font audit and
 both settings browser checks, including the actual archived config/plugin/PKJS.
+
+## Unpublished 0.18.0 design branch
+
+`design/pebble-native-redesign` is an aesthetic trial for review. Read
+[REDESIGN.md](docs/REDESIGN.md) and the updated handoff before changing it. Native
+Gothic utility/date roles, stronger semantic icons and a 3px incoming settle are
+deliberate; Fredoka, fixed activity geometry, exact activity-body metrics and all
+data/lifecycle contracts remain. Preserve 0.17.0 artifacts, store kit and evidence.
+Fresh native/package checks pass; Chromium exits 133 with crashpad EPERM, so
+fresh browser/device verification is still pending. Do not present historical
+0.17.0 browser results as checks of this trial. Do not publish this branch.

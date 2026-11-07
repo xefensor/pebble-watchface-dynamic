@@ -130,6 +130,15 @@ int main(void){
   s_native->activity_plan.cache.valid_until=(uint32_t)now+300;
   s_native->activity_plan.cache.ticking=true;
   prv_update_clock();assert(dirty_context==3);
+  /* Stable identity/visual updates do not replay incoming motion. A new media
+   * item crosses its target, remains active through the settle, then stops. */
+  prv_apply_unobstructed_layout();assert(!s_slide_active);
+  ++card.visual_token[0];prv_apply_unobstructed_layout();assert(s_slide_active);
+  millis=s_slide_started+225;prv_motion_frame(NULL);
+  assert(s_slide_active&&s_slide_amount>1&&s_slide_amount<=1.0151f);
+  millis=s_slide_started+280;prv_motion_frame(NULL);
+  assert(!s_slide_active&&s_slide_amount==1);
+  prv_apply_unobstructed_layout();assert(!s_slide_active);
   /* Expiry/promotion back to idle still updates geometry on a minute boundary. */
   selected=NULL;prv_update_clock();assert(s_pose_target.context==0&&geometry);
   /* Failed decorative timer allocation settles immediately, including the

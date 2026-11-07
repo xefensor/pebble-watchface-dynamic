@@ -3133,6 +3133,32 @@ var PHONE_SAVE = {
 var PHONE_SAVE_KEYS = ['phoneSaved','phoneNoChanges','phoneSaveFailed','phoneSaveUncertain','phoneLoadFailed','phoneRetry','phoneReload','phoneDiscard','phoneLoading','save'];
 Object.keys(PHONE_SAVE).forEach(function(language){PHONE_SAVE_KEYS.forEach(function(key,index){MESSAGES[language][key]=PHONE_SAVE[language][index];});});
 LITERALS.Save = 'save';
+// The product name stays the same in every locale; introductory copy explains
+// this page without repeating a translated "Settings" suffix in its title.
+var PHONE_INTRO = {
+  en:'Choose colours and what appears on your watch.',
+  cs:'Vyberte barvy a obsah zobrazený na hodinkách.',
+  sk:'Vyberte farby a obsah zobrazený na hodinkách.',
+  de:'Wähle Farben und Inhalte für deine Uhr.',
+  fr:'Choisissez les couleurs et le contenu de votre montre.',
+  es:'Elige los colores y el contenido de tu reloj.',
+  it:'Scegli i colori e i contenuti del tuo orologio.',
+  pt:'Escolha as cores e o conteúdo do seu relógio.',
+  nl:'Kies de kleuren en inhoud van je horloge.',
+  pl:'Wybierz kolory i treści na zegarku.',
+  da:'Vælg farver og indhold på dit ur.',
+  sv:'Välj färger och innehåll på din klocka.',
+  no:'Velg farger og innhold på klokken.',
+  fi:'Valitse kellosi värit ja sisältö.',
+  hu:'Válassza ki az óra színeit és megjelenő tartalmát.',
+  ro:'Alegeți culorile și conținutul afișat pe ceas.',
+  tr:'Saatinizin renklerini ve gösterilecek içeriği seçin.'
+};
+Object.keys(PHONE_INTRO).forEach(function(language){
+  MESSAGES[language].title='Dynamic';MESSAGES[language].phoneIntro=PHONE_INTRO[language];
+});
+LITERALS.Dynamic='title';
+LITERALS[PHONE_INTRO.en]='phoneIntro';
 function settingsStrings(language) {
   language = resolveLanguage(language);
   var strings = {};

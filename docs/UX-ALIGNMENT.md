@@ -1,19 +1,28 @@
 # Dynamic UI/UX implementation
 
-Local candidate: **0.17.0**, 6 November 2026. Published 0.16.2 remains frozen.
+Local design trial: **0.18.0**, 7 November 2026, on
+`design/pebble-native-redesign`. Published 0.16.2 remains frozen. The tested
+0.17.0 shared-UI baseline remains available unchanged.
 
 The canonical standard lives in the local `xoce` checkout at
 `src/pages/docs/design/pebble-ui-system.md`, available in its local preview at
 [the shared Pebble UI/UX standard](http://127.0.0.1:4321/docs/design/pebble-ui-system/).
-The website and this candidate have not been published.
+The website and this candidate have not been published. This branch is an
+alternative for aesthetic review, not a replacement for that canonical standard.
+See [the trial rationale and sources](REDESIGN.md).
 
 ## Implemented behaviour
 
 The phone settings use neutral light/dark surfaces, a blue accent, readable
-labels, 44px controls, and the existing Appearance, Content & priority, and
+labels, an app-name heading and brief localized introduction, one short identity
+line, neutral section headings, 16px body/14px hints, 16px card insets and 24px
+section spacing, 44px controls, and the existing Appearance, Content & priority, and
 Connection & help sections. Section links wrap by available content width.
 Activity order remains local to Dynamic, with visible move controls as well
 as keyboard, touch and desktop dragging. All 17 language dictionaries remain.
+Primary controls use the page accent with contrasting text; footer feedback is
+left aligned. Short 144ms control/160ms disclosure motion respects reduced motion.
+Saved never gets a repeating animation.
 
 The bundled `config.html` waits for a confirmed saved snapshot before creating
 editable controls. Save stays open: Saving… becomes persistent ✓ Saved after
@@ -33,10 +42,16 @@ Existing arbitrary RGB values survive unrelated saves even when Clay's palette
 picker displays a nearest available colour. An explicit picker change still
 saves normally. Edits made during an in-flight save stay dirty after its receipt.
 
-The native watchface layout is unchanged: configurable colours, Fredoka clock,
+The native watchface layout is preserved: configurable colours, Fredoka clock,
 bottom-aligned primary activity and contextual footer, dedicated media layout,
 and one static secondary row above it. Either role may contain any supported
-activity. No marquee, new native polling, shared theme service or library/API
+activity. Native Gothic 14 Bold reading labels and Gothic 18 Bold date provide
+compact utility roles; activity text keeps its exact custom-font metrics. Semantic
+symbols use 2px strokes with filled hourglass/music details. The existing 280ms
+incoming replacement moves from the right and settles back from a bounded 3px
+overshoot. The 520ms layout morph remains. Ordinary ticks, metadata/art corrections,
+animation-off and covered-view lifecycle gates remain unchanged.
+No marquee, new native polling, shared theme service or library/API
 redesign was introduced. Preview appearance remains independent of saved watch
 colours and notification privacy.
 
@@ -60,7 +75,15 @@ colours and notification privacy.
 
 ## Validation and limits
 
-[0.17.0 validation](qa/0.17.0/VALIDATION.md) links the exact artifact audit,
+[0.18.0 validation](qa/0.18.0/VALIDATION.md) links passing portable/native tests,
+the exact artifact audit, 24 fresh Emery captures and actual replacement-motion
+frames. Its standalone phone preview uses the actual generated Clay page with a
+clearly labelled local mock bridge. A fresh Chromium run exits 133 at crashpad
+`setsockopt: Operation not permitted`, so the two packaged browser checks have
+not been rerun for this trial. New spacing/motion therefore still needs browser
+and real-phone review.
+
+Historical [0.17.0 validation](qa/0.17.0/VALIDATION.md) links its exact artifact audit,
 actual archived config/plugin/PKJS browser checks, legacy compatibility checks,
 and 24 native Emery preview captures. Tests cover repeated Save, closing,
 reopening, runtime restart and separate Android DOM/native storage snapshots;

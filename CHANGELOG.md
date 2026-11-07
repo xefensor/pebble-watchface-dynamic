@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.18.0
+
+- Unpublished design-branch alternative for visual review. Keep Fredoka time,
+  the fixed reading/activity homes, contextual footer and one static secondary.
+- Use native Gothic Bold for date and compact reading labels; preserve exact
+  Roboto metrics for multi-line activity fitting. Give semantic icons consistent
+  2px strokes and filled timer/music silhouettes.
+- Keep the 520ms layout morph and bounded 280ms incoming-only replacement;
+  add a small 3px settle without replaying on ticks or metadata corrections.
+- Align the 17-language phone pages around an app-name title, brief intro,
+  neutral headings, 16/24px spacing, accent-filled buttons and left-aligned save
+  status. Respect reduced motion for short control/disclosure transitions.
+- Preserve confirmed-load/save receipts, persistent Saved, local Discard,
+  arbitrary RGB palettes, legacy close fallback and all source/privacy contracts.
+- Fresh native captures, actual motion frames, portable tests and exact packaged
+  audit pass. Fresh browser QA is blocked by Chromium sandbox restrictions;
+  prior browser evidence remains historical. No store/public release is prepared.
+
 ## 0.17.0
 
 - Adopt the shared neutral/blue phone settings presentation, including readable

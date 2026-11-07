@@ -36,7 +36,7 @@ for(const language of languages)test(language+' translates every active control 
   assert.ok(english.length>25);
   translated.forEach((value,index)=>{
     assert.ok(value.length>0,english[index]);
-    const sharedWord=language==='fr'&&['Complications','Animations','Notifications'].includes(english[index]);
+    const sharedWord=english[index]==='Dynamic'||language==='fr'&&['Complications','Animations','Notifications'].includes(english[index]);
     if(language!=='en'&&!sharedWord)assert.notEqual(value,english[index],english[index]);
     assert.doesNotMatch(value,/Halftone|halftone/);
   });
