@@ -65,7 +65,7 @@ LEGACY_ENDPOINTS = (
     "api.open-meteo.com", "api.openweathermap.org", "forecast.weather.gov",
 )
 RESOURCE_TABLE_BYTES = 256 * 16
-BODY_SIZES = (11, 14, 16, 20, 24, 26, 28, 32)
+BODY_SIZES = (11, 14, 16, 20, 22, 24, 26, 32)
 CLOCK_CHARACTERS = "0123456789:.-+,/%°CF"
 # These are the reviewed three-codepoint prefixes from the original 17
 # language arrays. Norwegian shares Danish storage without losing a locale.
@@ -753,7 +753,7 @@ def audit_preview_identity(root, version, binary, resources):
 def audit(pbw, root=ROOT, sdk_font_header=None):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
-    require(package["version"] == "0.18.1", "Review this auditor for a different release version")
+    require(package["version"] == "0.18.2", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
     require(settings["targetPlatforms"] == ["emery"] and

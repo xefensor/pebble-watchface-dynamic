@@ -7,7 +7,7 @@ existing AppMessage key numbers. Append new keys; never reuse retired ones.
 
 - ACT3 activities use the agreed notification-style composition: primary content
   above contextual footer, secondary above primary in exactly one static row.
-  The footer ends at y216. Media has title plus optional 40px cover/artist footer;
+  The footer ends at y216. Media has title plus optional 28px cover and one larger artist line;
   other activities use instance context, falling back to provider identity.
 - Keep the complete primary block bottom-aligned directly above its footer,
   with an 8px gap when a footer is present. Move standard value labels, headline,
@@ -250,25 +250,42 @@ rebundle previews without changing the captured native payload; a clean SDK
 rebuild requires new native provenance. Run the exact package/font audit and
 both settings browser checks, including the actual archived config/plugin/PKJS.
 
-## Unpublished 0.18.0 design branch
+## Historical 0.18.0 design branch
 
 `design/pebble-native-redesign` is an aesthetic trial for review. Read
 [REDESIGN.md](docs/REDESIGN.md) and the updated handoff before changing it. Native
-Gothic utility/date roles, stronger semantic icons and a 3px incoming settle are
-deliberate; Fredoka, fixed activity geometry, exact activity-body metrics and all
-data/lifecycle contracts remain. Preserve 0.17.0 artifacts, store kit and evidence.
+The first trial used Gothic utility/date roles, stronger semantic icons and a
+3px incoming settle. The current 0.18.2 hierarchy and geometry below supersede
+its type/layout choices; data/lifecycle contracts remain. Preserve 0.17.0 artifacts, store kit and evidence.
 Fresh native/package checks pass; Chromium exits 133 with crashpad EPERM, so
 fresh browser/device verification is still pending. Do not present historical
 0.17.0 browser results as checks of this trial. Do not publish this branch.
 
-## Readability correction — unpublished 0.18.1
+## Historical readability correction — 0.18.1
 
 Xef rejected shrinking top time/date and icons sitting above adjacent text.
-Readability wins over matching small Pebble utility text. Keep the larger
-Gothic 28 Bold date, enlarged compact Fredoka clock and Gothic 18 Bold reading
-labels. Center caption/icon groups by actual visible ascent/descent; preserve
-fixed footer bounds and the bottom-aligned primary composition. Native previews
-must cover long date/time and generic/notification layouts. Phone controls use
+Readability wins over matching small Pebble utility text. That revision used a
+larger Gothic date/labels and compact clock; Xef rejected the remaining size
+imbalance. The coherent 0.18.2 proposal below supersedes these sizes. Actual ink
+centering, fixed footer boundary and bottom-aligned primary intent still apply.
+Native previews must cover long date/time and generic/notification layouts. Phone controls use
 centered labels/chevrons and readable text; retain all existing storage/locale
 contracts. See [REDESIGN.md](docs/REDESIGN.md). Preserve 0.18.0 artifacts as the
 rejected trial, not as current verification.
+
+## Coherent readability redesign — unpublished 0.18.2
+
+Xef rejected a larger header paired with tiny body text. The current proposal
+redesigns all type roles/bands together: Roboto Condensed Bold date 26, labels 20,
+secondary 22 and captions 24; Fredoka clock/values remain dominant. Use actual ink
+metrics and at least 3px between adjacent lines, with separate group breathing
+room. Do not restore tiny normal-case fit fonts. Idle/Peek retain weekday/date;
+compact keeps the numeric date. Media uses 28px art and one artist line.
+Paused state and structured detail lead the footer before optional identity;
+essential values/units cannot be ellipsized to make room for a name. Ordinary
+Paused/Workout/Navigation/Message pairs retain the secondary. An exceptional
+primary may claim extra space, but actual presentation confirmation must omit
+a secondary that was not painted. Folded clock details must still tick.
+Preserve source validity, privacy, identity, one static secondary and all phone
+contracts. Refresh preview artwork preservation rectangles with any geometry
+change. Preserve 0.18.1/earlier artifacts and do not publish this review branch.

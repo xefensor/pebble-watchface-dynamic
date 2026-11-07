@@ -59,7 +59,7 @@ int main(void) {
   assert(body_text_descent("", 20) == 0);
   assert(body_text_descent("Justice", 18) == 0); // Unsupported resource size.
   assert(body_text_descent("Tame Impala", 20) > body_text_descent("Justice", 20));
-  assert(body_text_descent("gypq", 28) > 0);
+  assert(body_text_descent("gypq", 22) > 0);
   assert(body_text_ascent(NULL, 20) == 0);
   assert(body_text_ascent("", 20) == 0);
   assert(body_text_ascent(" ", 26) == 0);

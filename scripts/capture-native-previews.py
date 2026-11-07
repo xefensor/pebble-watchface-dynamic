@@ -243,7 +243,7 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
                 # ACT2 may have clocks in both item and activity positions.
                 # Compare only the settled OS clock/date/readings region;
                 # the entire activity area is allowed to change locally.
-                stable=pixels[:200*92*3]
+                stable=pixels[:200*106*3]
                 if previous==stable:break
                 previous=stable;time.sleep(.15)
             else:raise RuntimeError('Activity header/readings did not settle: '+preset['name'])
@@ -267,7 +267,7 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
             if preset.get('verifyClockTick') and verify_ticks:
                 time.sleep(1.15)
                 later=b''.join(Screenshot(pebble).grab_image())
-                if pixels[200*92*3:]==later[200*92*3:]:raise RuntimeError('Visible native clock did not advance: '+preset['name'])
+                if pixels[200*106*3:]==later[200*106*3:]:raise RuntimeError('Visible native clock did not advance: '+preset['name'])
                 tick_path=output/(preset['name']+'-tick.png')
                 Image.frombytes('RGB',(200,228),later).save(tick_path)
                 captured['clock_tick']={'file':tick_path.name,'sha256':sha256(tick_path.read_bytes()),

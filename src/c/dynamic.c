@@ -98,13 +98,13 @@ static AppTimer *s_context_timer, *s_startup_timer, *s_motion_timer,*s_activity_
 // Three UTF-8 weekday scalars + separator + DD.MM. + NUL fit in24 bytes.
 static char s_compact_date_buffer[24], s_time_buffer[6];
 static char s_weekday_buffer[13], s_numeric_date_buffer[8];
-static const uint8_t s_body_points[] = {11,14,16,20,24,26,28,32};
+static const uint8_t s_body_points[] = {11,14,16,20,22,24,26,32};
 #define BODY_FONT_COUNT (sizeof(s_body_points)/sizeof(s_body_points[0]))
 static GFont s_body_fonts[BODY_FONT_COUNT];
 static bool s_body_loaded[BODY_FONT_COUNT];
 static const uint32_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_11,RESOURCE_ID_FONT_BODY_14,
-  RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_24,
-  RESOURCE_ID_FONT_BODY_26,RESOURCE_ID_FONT_BODY_28,RESOURCE_ID_FONT_BODY_32};
+  RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_22,
+  RESOURCE_ID_FONT_BODY_24,RESOURCE_ID_FONT_BODY_26,RESOURCE_ID_FONT_BODY_32};
 static WatchPose s_pose, s_pose_from, s_pose_target;
 static bool s_pose_ready, s_layout_active, s_slide_active, s_peek_transition;
 static uint32_t s_layout_started, s_slide_started;
@@ -644,23 +644,16 @@ static bool prv_draw_number(GContext *ctx,const ReadingParts *parts,float center
   return true;
 }
 static int prv_label_width(const void *context,const char *text) {
-  (void)context;
-  return graphics_text_layout_get_content_size(text,fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
+  (void)context;return prv_measure(text,20).w;
 }
-// Native Gothic belongs to compact utility roles. The activity renderer keeps
-// its exact per-glyph metrics and Fredoka keeps the numeric/clock hierarchy.
 static void prv_utility_text(GContext *ctx,const char *text,bool date,int x,int baseline,
     int width,GColor color,GTextAlignment alignment) {
-  const int height=date?28:18;
-  graphics_context_set_text_color(ctx,color);
-  graphics_draw_text(ctx,text,fonts_get_system_font(date?FONT_KEY_GOTHIC_28_BOLD:FONT_KEY_GOTHIC_18_BOLD),
-      GRect(x,baseline-height,width,height+8),GTextOverflowModeFill,alignment,NULL);
+  prv_text(ctx,text,date?26:20,x,baseline,width,color,alignment);
 }
 static void prv_reading_label(GContext *ctx,const ComplicationSlot *slot,unsigned kind,
                                unsigned index,WatchPose p) {
   const int center=index?150:50;
-  const int point=14;
+  const int point=20;
   char label[COMPLICATION_MAX_LABEL_BYTES+16];
   watch_layout_copy_utf8(reading_label(slot,kind,index,i18n_get_system_locale()),label,sizeof(label));
   reading_label_ellipsize(label,sizeof(label),reading_is_aged(slot,time(NULL))?76:88,prv_label_width,&point);
@@ -684,20 +677,12 @@ static void prv_age_mark(GContext *ctx,const ComplicationSlot *slot,unsigned ind
 static bool prv_reading_text(GContext *ctx,const char *text,int center,int baseline,int width,
                               WatchPose p,bool state) {
   const bool compact=p.icon_x<0;
-  int point=state?(compact?14:16):(compact?16:24);
-  if(p.context>0.5f&&body_text_ascent(text,point)>16)point=14;
+  const int point=20;
   MusicLines lines;
-  music_wrap(text,point,width,state&&compact?1:2,false,prv_music_measure,NULL,&lines);
-  if(compact&&lines.count>1&&point>14) {
-    point=14;music_wrap(text,point,width,2,false,prv_music_measure,NULL,&lines);
-  }
+  /* Keep long single words on one ellipsized line, not an orphan final glyph. */
+  music_wrap(text,point,width,compact||!strchr(text,' ')?1:2,false,prv_music_measure,NULL,&lines);
   int offsets[MUSIC_MAX_LINES];
-  int height=music_line_offsets(&lines,point,prv_music_measure,NULL,offsets);
-  if(p.context>0.5f&&height>30) {
-    point=14;music_wrap(text,point,width,1,false,prv_music_measure,NULL,&lines);
-    music_line_offsets(&lines,point,prv_music_measure,NULL,offsets);
-  }
-  if(lines.count>1)baseline=compact?prv_round(p.row_y+18):baseline+3;
+  music_line_offsets(&lines,point,prv_music_measure,NULL,offsets);
   if(s_window_layer&&baseline>layer_get_unobstructed_bounds(s_window_layer).size.h-4)
     baseline=layer_get_unobstructed_bounds(s_window_layer).size.h-4;
   const int bottom=lines.count?offsets[lines.count-1]+body_text_descent(lines.text[lines.count-1],point):0;
@@ -711,10 +696,8 @@ static void prv_draw_reading(GContext *ctx,unsigned index,WatchPose p) {
   const ReadingState state=reading_state(slot,time(NULL));
   const bool fresh=state==READING_VALUE;
   if(!fresh) {
-    if(p.icon_x==0&&slot->semantic_kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&
-        slot->semantic_kind<=COMPLICATION_SEMANTIC_UV)
-      prv_draw_symbol(ctx,slot,index?150:50,prv_round(p.row_y+p.icon_y),
-          prv_round(p.icon_radius),prv_round(p.icon_size),slot->semantic_kind,-1);
+    /* Unknown readings use the value area for readable status text, rather
+     * than retaining a fresh-looking semantic illustration above tiny words. */
     const bool two=prv_reading_text(ctx,reading_state_label(state,i18n_get_system_locale()),
         index?150:50,prv_round(p.row_y+p.value_y),88,p,true);
     if(!two)prv_reading_label(ctx,slot,slot->semantic_kind,index,p);
@@ -735,7 +718,7 @@ static void prv_draw_reading(GContext *ctx,unsigned index,WatchPose p) {
       kind==COMPLICATION_SEMANTIC_UV||range>=0;
   const float center=index?150:50;
   const float inline_amount=watch_clamp(-p.icon_x/25);
-  if(inline_amount>0.5f&&!numeric&&has_text&&prv_measure(text,16).w>60)symbol=false;
+  if(inline_amount>0.5f&&!numeric&&has_text&&prv_measure(text,20).w>54)symbol=false;
   if(bitmap&&!has_text) {
     const int size=prv_round(watch_lerp(40,22,inline_amount));
     prv_draw_bitmap(ctx,slot,prv_round(center-size/2.0f),
@@ -744,12 +727,20 @@ static void prv_draw_reading(GContext *ctx,unsigned index,WatchPose p) {
     prv_age_mark(ctx,slot,index,p,true);
     return;
   }
+  if(symbol&&!bitmap&&numeric&&inline_amount>0.5f) {
+    const float number_width=prv_vector_width(parts.number,p.number_size);
+    float unit_width=prv_vector_width(parts.unit,p.unit_size);
+    if(unit_width<0)unit_width=prv_measure(parts.unit,prv_point(prv_round(p.unit_size))).w;
+    /* Wide values keep their normal type size; the optional semantic icon
+     * yields before the number is squeezed into an unreadable inline slot. */
+    if(number_width>0&&number_width+unit_width>54)symbol=false;
+  }
   if(symbol) {
     prv_draw_symbol(ctx,slot,prv_round(center+p.icon_x),prv_round(p.row_y+p.icon_y),
         prv_round(p.icon_radius),prv_round(p.icon_size),kind,range);
   }
   const float value_center=center+(symbol?p.value_x:0);
-  const float value_width=(symbol?88-28*inline_amount:88)-(reading_is_aged(slot,time(NULL))?8:0);
+  const float value_width=(symbol?88-34*inline_amount:88)-(reading_is_aged(slot,time(NULL))?8:0);
   const float baseline=p.row_y+p.value_y;
   bool text_takes_label=false;
   if(has_text) {
@@ -795,19 +786,15 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
   const float vertical=watch_clamp(split*2);
   // Separate the baselines before converging the two text runs horizontally.
   const float lateral=watch_smooth((split-0.25f)/0.75f);
-  const GFont date_font=fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
-  const float whole_width=graphics_text_layout_get_content_size(s_compact_date_buffer,date_font,
-      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
-  const float week_width=graphics_text_layout_get_content_size(s_weekday_buffer,date_font,
-      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
-  const float date_width=graphics_text_layout_get_content_size(s_numeric_date_buffer,date_font,
-      GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
+  const float whole_width=prv_measure(s_compact_date_buffer,26).w;
+  const float week_width=prv_measure(s_weekday_buffer,26).w;
+  const float date_width=prv_measure(s_numeric_date_buffer,26).w;
   const float week_center=p.date_x+(week_width-whole_width)/2*(1-lateral);
   const float date_center=p.date_x+(whole_width-date_width)/2*(1-lateral);
   prv_utility_text(ctx,s_weekday_buffer,true,prv_round(week_center-38),
-      prv_round(p.date_y-8*vertical),76,s_text_color,GTextAlignmentCenter);
+      prv_round(p.date_y),76,prv_faded_text(1-vertical),GTextAlignmentCenter);
   prv_utility_text(ctx,s_numeric_date_buffer,true,prv_round(date_center-38),
-      prv_round(p.date_y+16*vertical),76,s_text_color,GTextAlignmentCenter);
+      prv_round(p.date_y),76,s_text_color,GTextAlignmentCenter);
   if(vertical<0.99f) {
     const float center=p.date_x+(week_width-date_width)/2*(1-lateral);
     prv_utility_text(ctx,"·",true,prv_round(center-38),prv_round(p.date_y),76,
@@ -885,7 +872,7 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
   if(!pav_format_item(card,datum,now,s_phone_connected,text,capacity))return false;
   const bool essential=datum->type!=PAV_TEXT;
   if(essential&&state&&state[0])prv_activity_append(text,capacity,state);
-  if(essential&&prv_measure(text,16).w>width)return false;
+  if(essential&&prv_measure(text,22).w>width)return false;
   const char *label=activity_role(card,datum);
   if(label[0]) {
     if(datum->type==PAV_TEXT) {
@@ -904,17 +891,17 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
     char value[ACTIVITY_LINE_BYTES];
     if(!pav_format_item(card,datum,now,s_phone_connected,value,sizeof(value)))return false;
     if(state&&state[0])prv_activity_append(value,sizeof(value),state);
-    const int value_width=prv_measure(value,16).w;
-    if(prv_measure(text,16).w>width) {
+    const int value_width=prv_measure(value,22).w;
+    if(prv_measure(text,22).w>width) {
       const size_t n=strlen(value);char suffix[ACTIVITY_LINE_BYTES];
       watch_layout_copy_utf8(text+n,suffix,sizeof(suffix));
-      if(width-value_width<prv_measure(" · …",16).w)suffix[0]=0;
-      else prv_ellipsize(suffix,sizeof(suffix),16,width-value_width);
+      if(width-value_width<prv_measure(" · …",22).w)suffix[0]=0;
+      else prv_ellipsize(suffix,sizeof(suffix),22,width-value_width);
       watch_layout_copy_utf8(value,text,capacity);
       watch_layout_copy_utf8(suffix,text+strlen(text),capacity-strlen(text));
     }
-  } else prv_ellipsize(text,capacity,16,width);
-  return prv_measure(text,16).w<=width;
+  } else prv_ellipsize(text,capacity,22,width);
+  return prv_measure(text,22).w<=width;
 }
 static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *out) {
   const ReadingLanguage *language=reading_language(i18n_get_system_locale());
@@ -927,7 +914,7 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
       watch_layout_copy_utf8(reading_language(i18n_get_system_locale())->paused,out->role,sizeof(out->role));
       prv_activity_append(out->role,sizeof(out->role),activity_role(card,&card->main));
     } else watch_layout_copy_utf8(activity_role(card,&card->main),out->role,sizeof(out->role));
-    prv_ellipsize(out->role,sizeof(out->role),14,180);
+    prv_ellipsize(out->role,sizeof(out->role),20,180);
     if(pav_datum_visible(card,&card->support,now,s_phone_connected)&&
         !prv_activity_line(card,&card->support,now,card->support.type==PAV_TEXT?2048:180,
             NULL,NULL,out->support,sizeof(out->support)))out->support[0]=0;
@@ -939,7 +926,7 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
     const bool glyph=out->alternate->directions[selected]||out->alternate->identity_symbol||
         ((out->alternate->flags&PAV_HAS_IMAGE)&&out->alternate->presentation!=PAV_PRESENTATION_MEDIA);
     if(!pav_datum_visible(out->alternate,datum,now,s_phone_connected)||
-        !prv_activity_line(out->alternate,datum,now,glyph?158:180,
+        !prv_activity_line(out->alternate,datum,now,glyph?148:180,
             out->alternate->source_state==PAV_PAUSED?reading_language(i18n_get_system_locale())->paused:NULL,
             pav_qualifier(out->alternate),out->secondary,sizeof(out->secondary)))out->alternate=NULL;
   }
@@ -949,16 +936,50 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
   const bool vector=card->main.type==PAV_CLOCK;
   const char *footer=media?activity_media_footer(card,now,s_phone_connected,
       language->paused,out->support,sizeof(out->support)):activity_identity(card);
-  activity_layout_build(out->main,out->role,out->support,footer,media,vector,scalar,
+  const char *layout_role=out->role,*layout_support=out->support;
+  bool footer_symbol=true;int footer_point=24;
+  const bool fold_support=!media&&out->support[0]&&card->main.type!=PAV_TEXT;
+  if(!media&&(out->role[0]||fold_support)) {
+    char caption[sizeof(out->support)];caption[0]=0;
+    const char *paused=card->source_state==PAV_PAUSED?language->paused:"";
+    if(paused[0])watch_layout_copy_utf8(paused,caption,sizeof(caption));
+    if(fold_support) {
+      if(caption[0])prv_activity_append(caption,sizeof(caption),out->support);
+      else watch_layout_copy_utf8(out->support,caption,sizeof(caption));
+    }
+    /* Required state/datum goes first. Optional identity is what ellipsizes. */
+    if(prv_measure(caption,24).w>144)footer_symbol=false;
+    if(prv_measure(caption,24).w>180&&paused[0]&&fold_support) {
+      /* The formatter admitted the atomic detail at22pt. A forced second
+       * line must retain that fit, rather than ellipsizing its final unit. */
+      if(prv_measure(out->support,24).w>180)footer_point=22;
+      watch_layout_copy_utf8(paused,caption,sizeof(caption));
+      const size_t at=strlen(caption);
+      if(at+1<sizeof(caption)){caption[at]='\n';caption[at+1]=0;watch_layout_copy_utf8(out->support,caption+at+1,sizeof(caption)-at-1);}
+      footer_symbol=false;
+    } else if(prv_measure(caption,24).w>180&&prv_measure(caption,22).w<=180) {
+      footer_point=22;footer_symbol=false;
+    }
+    const char *label=activity_role(card,&card->main);
+    activity_footer_optional(caption,sizeof(caption),label,footer_point,footer_symbol?144:180,prv_music_measure,NULL);
+    activity_footer_optional(caption,sizeof(caption),activity_identity(card),footer_point,footer_symbol?144:180,prv_music_measure,NULL);
+    if(fold_support||!out->support[0]) {
+      watch_layout_copy_utf8(caption,out->support,sizeof(out->support));footer=out->support;layout_support="";
+    } else {
+      watch_layout_copy_utf8(caption,out->role,sizeof(out->role));footer=out->role;
+    }
+    layout_role="";
+  }
+  activity_layout_build(out->main,layout_role,layout_support,footer,media,vector,scalar,
       out->alternate!=NULL,(card->flags&PAV_HAS_IMAGE)!=0,
-      pav_meter_visible(card,now,s_phone_connected),
-      card->main.type==PAV_TEXT&&card->support.type==PAV_TEXT?20:16,ACTIVITY_CONTENT_TOP,prv_music_measure,
+      pav_meter_visible(card,now,s_phone_connected),footer_symbol,footer_point,
+      card->main.type==PAV_TEXT&&card->support.type==PAV_TEXT?20:22,ACTIVITY_CONTENT_TOP,prv_music_measure,
       vector?prv_activity_clock_measure:scalar?prv_activity_value_measure:prv_music_measure,out,&out->layout);
   out->layout.secondary_baseline=activity_centered_baseline(ACTIVITY_SECONDARY_TOP,
-      ACTIVITY_SECONDARY_ICON,prv_music_measure(NULL,out->secondary,16));
+      ACTIVITY_SECONDARY_HEIGHT,prv_music_measure(NULL,out->secondary,22));
   if(scalar&&card->directions[0]){out->layout.left=50;out->layout.width=140;}
   out->needs_tick=out->layout.main.count&&activity_view_needs_tick(card,
-      out->layout.support.count>0,out->alternate,out->layout.secondary,now,s_phone_connected);
+      out->layout.support.count>0||(fold_support&&out->layout.footer.count>0),out->alternate,out->layout.secondary,now,s_phone_connected);
   // Preserve a single plan; a clock changes once per displayed second, while
   // static layouts survive animation frames and route heartbeats. Even hidden
   // datums participate in the expiry key so promotion/compact fit is rechecked.
@@ -1083,16 +1104,16 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
     prv_activity_symbol(ctx,0,card->directions[0],x+10,
         y+layout->main_baseline[0]+(ink.descent-ink.ascent-32)/2,32);
   }
-  if(layout->role_baseline)prv_text(ctx,plan->role,14,x+10,y+layout->role_baseline,180,
+  if(layout->role_baseline)prv_text(ctx,plan->role,20,x+10,y+layout->role_baseline,180,
       prv_muted_text(1),GTextAlignmentLeft);
   for(int i=0;i<layout->support.count;++i)prv_text(ctx,layout->support.text[i],layout->support_point,x+10,
       y+layout->support_baseline[i],180,s_text_color,GTextAlignmentLeft);
   for(int i=0;i<layout->footer.count;++i)prv_text(ctx,layout->footer.text[i],layout->footer_point,
       x+layout->footer_left,y+layout->footer_baseline[i],layout->footer_width,
       prv_muted_text(1),GTextAlignmentLeft);
-  if((card->flags&PAV_HAS_IMAGE)&&(layout->media||layout->footer.count))
+  if(layout->icon_size>0&&(card->flags&PAV_HAS_IMAGE)&&(layout->media||layout->footer.count))
     prv_draw_activity_image(ctx,card,x+10,y+layout->icon_top,layout->icon_size);
-  else if(!layout->media&&layout->footer.count)prv_activity_symbol(ctx,card->identity_symbol,0,
+  else if(layout->icon_size>0&&!layout->media&&layout->footer.count)prv_activity_symbol(ctx,card->identity_symbol,0,
       x+10,y+layout->icon_top,layout->icon_size);
   if(layout->meter) {
     graphics_context_set_stroke_color(ctx,prv_muted_text(1));graphics_draw_rect(ctx,GRect(x+10,y+layout->meter_top,180,4));
@@ -1103,15 +1124,15 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
   if(layout->secondary&&plan->alternate) {
     graphics_context_set_stroke_color(ctx,prv_muted_text(1));
     graphics_context_set_stroke_width(ctx,1);
-    graphics_draw_line(ctx,GPoint(10,y+ACTIVITY_SECONDARY_TOP+18),GPoint(190,y+ACTIVITY_SECONDARY_TOP+18));
+    graphics_draw_line(ctx,GPoint(10,y+ACTIVITY_SECONDARY_TOP+28),GPoint(190,y+ACTIVITY_SECONDARY_TOP+28));
     const PavCard *other=plan->alternate;const unsigned selected=other->compact_item?1:0;
     const bool bitmap=(other->flags&PAV_HAS_IMAGE)&&other->presentation!=PAV_PRESENTATION_MEDIA&&!other->directions[selected];
     const bool glyph=bitmap||other->directions[selected]||other->identity_symbol;
-    const int left=glyph?32:10;
-    if(bitmap)prv_draw_activity_image(ctx,other,10,y+ACTIVITY_SECONDARY_TOP,16);
+    const int left=glyph?42:10;
+    if(bitmap)prv_draw_activity_image(ctx,other,10,y+ACTIVITY_SECONDARY_TOP+1,24);
     else if(glyph)prv_activity_symbol(ctx,other->identity_symbol,other->directions[selected],10,
-        y+ACTIVITY_SECONDARY_TOP,16);
-    prv_text(ctx,plan->secondary,16,left,y+layout->secondary_baseline,190-left,
+        y+ACTIVITY_SECONDARY_TOP+1,24);
+    prv_text(ctx,plan->secondary,22,left,y+layout->secondary_baseline,190-left,
         prv_muted_text(1),GTextAlignmentLeft);
   }
 }

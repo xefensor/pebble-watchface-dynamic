@@ -1,6 +1,6 @@
 # Dynamic UI/UX implementation
 
-Local design trial: **0.18.1**, 7 November 2026, on
+Local design trial: **0.18.2**, 7 November 2026, on
 `design/pebble-native-redesign`. Published 0.16.2 remains frozen. The tested
 0.17.0 shared-UI baseline remains available unchanged.
 
@@ -13,11 +13,15 @@ See [the trial rationale and sources](REDESIGN.md).
 
 ## Xef’s readability correction
 
-Small Pebble-style utility text is not a goal. The revised branch enlarges the
-date and compact clock, uses larger reading labels, and centers adjacent caption
-ink within its fixed icon frame. Existing composition anchors remain; internal
-centering and breathing room take priority over copying OS font sizes.
-See [the correction and fresh evidence](REDESIGN.md).
+Xef requires every normal text role to be easy to read, with icons aligned to
+actual text ink and comfortable internal clearance. The rejected 0.18.1 fix
+made the header larger without balancing the rest. This revision redesigns
+Idle, compact activity and Peek together: Roboto Condensed utility text,
+Fredoka time/values, larger labels/captions/secondary, and newly allocated bands.
+Compact views show a prominent numeric date; Idle and Peek retain the weekday.
+A smaller media cover and one artist line reserve room for larger text. State
+and structured detail lead non-media footers; optional identity truncates first.
+See [the separate requirements and review proposals](REDESIGN.md).
 
 ## Implemented behaviour
 
@@ -50,18 +54,18 @@ Existing arbitrary RGB values survive unrelated saves even when Clay's palette
 picker displays a nearest available colour. An explicit picker change still
 saves normally. Edits made during an in-flight save stay dirty after its receipt.
 
-The native watchface layout is preserved: configurable colours, Fredoka clock,
-bottom-aligned primary activity and contextual footer, dedicated media layout,
-and one static secondary row above it. Either role may contain any supported
-activity. Native Gothic 14 Bold reading labels and Gothic 18 Bold date provide
-compact utility roles; activity text keeps its exact custom-font metrics. Semantic
-symbols use 2px strokes with filled hourglass/music details. The existing 280ms
-incoming replacement moves from the right and settles back from a bounded 3px
-overshoot. The 520ms layout morph remains. Ordinary ticks, metadata/art corrections,
-animation-off and covered-view lifecycle gates remain unchanged.
-No marquee, new native polling, shared theme service or library/API
-redesign was introduced. Preview appearance remains independent of saved watch
-colours and notification privacy.
+The native identity remains a rounded Fredoka clock, two stable reading homes,
+a bottom-aligned primary activity/footer and one static secondary above it.
+Roboto Condensed utility roles now use 26pt date, 20pt reading labels/hints,
+22pt secondary and 24pt primary/media captions. Actual glyph metrics determine
+line spacing and optical centering. The static secondary occupies y106–132;
+primary content uses the remaining band above the footer ending at y216.
+Standard paused/workout/navigation/message pairs retain both roles. Optional
+identity yields before required state/value/detail; an exceptional essential
+value may take the primary space and the receipt then exports no secondary.
+The 280ms incoming replacement and 520ms layout morph retain their lifecycle
+gates. There is no marquee, new polling or shared theme service. Preview
+appearance remains independent of saved watch colours and notification privacy.
 
 ## Storage and implementation boundaries
 
@@ -83,12 +87,12 @@ colours and notification privacy.
 
 ## Validation and limits
 
-[0.18.0 validation](qa/0.18.0/VALIDATION.md) links passing portable/native tests,
+[0.18.2 validation](qa/0.18.2/VALIDATION.md) links passing portable/native tests,
 the exact artifact audit, 24 fresh Emery captures and actual replacement-motion
 frames. Its standalone phone preview uses the actual generated Clay page with a
-clearly labelled local mock bridge. A fresh Chromium run exits 133 at crashpad
-`setsockopt: Operation not permitted`, so the two packaged browser checks have
-not been rerun for this trial. New spacing/motion therefore still needs browser
+clearly labelled local mock bridge. The earlier Chromium start attempt exited 133 at crashpad
+`setsockopt: Operation not permitted`; the two packaged browser checks have
+not been rerun for this revision. New spacing/motion therefore still needs browser
 and real-phone review.
 
 Historical [0.17.0 validation](qa/0.17.0/VALIDATION.md) links its exact artifact audit,

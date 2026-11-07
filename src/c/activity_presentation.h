@@ -5,9 +5,9 @@
 #include <pebble-activities/pebble-activity-view.h>
 
 /* The host has two positions, not two different source contracts. */
-enum { ACTIVITY_SECONDARY_TOP=96, ACTIVITY_SECONDARY_LEFT=32,
-       ACTIVITY_SECONDARY_WIDTH=158, ACTIVITY_SECONDARY_ICON=16,
-       ACTIVITY_CONTENT_TOP=92, ACTIVITY_CONTENT_BOTTOM=216 };
+enum { ACTIVITY_SECONDARY_TOP=106, ACTIVITY_SECONDARY_LEFT=42,
+       ACTIVITY_SECONDARY_WIDTH=148, ACTIVITY_SECONDARY_ICON=24, ACTIVITY_SECONDARY_HEIGHT=26,
+       ACTIVITY_CONTENT_TOP=106, ACTIVITY_CONTENT_BOTTOM=216 };
 
 static inline const char *activity_identity(const PavCard *card) {
   return pav_caption(card);
@@ -76,34 +76,43 @@ static inline int activity_centered_baseline(int top,int height,MusicTextMetrics
   return top+(height+ink.ascent-ink.descent)/2;
 }
 
+/* Optional identity may ellipsize; it must not make a required state/value lose
+ * its final unit just to reserve the ellipsis. Only the last explicit line grows. */
+static inline void activity_footer_optional(char *caption,size_t capacity,const char *value,
+    int point,int width,MusicMeasure measure,void *context) {
+  if(!value||!value[0])return;
+  const char *line=strrchr(caption,'\n');line=line?line+1:caption;
+  if(line[0]&&measure(context,line,point).width+measure(context," · …",point).width>width)return;
+  const size_t length=strlen(caption);
+  if(!length){watch_layout_copy_utf8(value,caption,capacity);return;}
+  if(length+4>=capacity)return;
+  watch_layout_copy_utf8(" · ",caption+length,capacity-length);
+  watch_layout_copy_utf8(value,caption+strlen(caption),capacity-strlen(caption));
+}
+
 /* All wrapping starts at byte zero. The last available line ellipsizes; no
  * continuation state or timer exists. A bounded plan is reused by draw/ticks. */
 static inline void activity_layout_build(const char *main,const char *role,
     const char *support,const char *footer,bool media,bool vector,bool scalar,
-    bool secondary,bool image,bool meter,int support_point,int top,MusicMeasure measure,
+    bool secondary,bool image,bool meter,bool footer_symbol,int footer_point,int support_point,int top,MusicMeasure measure,
     MusicMeasure scalar_measure,void *context,ActivityLayout *out) {
+layout_again:
   memset(out,0,sizeof(*out));out->media=media;out->secondary=secondary;
   out->vector=vector;out->scalar=scalar;out->left=10;out->width=180;
-  int content_top=top+(secondary?26:4);out->support_point=support_point;
-  out->secondary_baseline=top+4+measure(context,"Ag",16).ascent;
-  out->icon_size=media?40:scalar||vector?24:16;
-  out->icon_top=MUSIC_BOTTOM-out->icon_size;
-  out->footer_left=media?(image?60:10):footer[0]?10+out->icon_size+10:10;
-  out->footer_width=190-out->footer_left;out->footer_point=media?20:scalar||vector?20:16;
-  music_wrap(footer,out->footer_point,out->footer_width,media?2:1,media,measure,context,&out->footer);
+  int content_top=top+(secondary?32:4);out->support_point=support_point;
+  out->secondary_baseline=top+4+measure(context,"Ag",22).ascent;
+  out->icon_size=footer_symbol&&(image||!media)?28:0;
+  out->footer_left=out->icon_size?46:10;
+  out->footer_width=190-out->footer_left;out->footer_point=footer_point;
+  const int footer_lines=strchr(footer,'\n')?2:1;
+  music_wrap(footer,out->footer_point,out->footer_width,footer_lines,false,measure,context,&out->footer);
   const int footer_height=music_line_offsets(&out->footer,out->footer_point,
       measure,context,out->footer_baseline);
-  for(int i=0;i<out->footer.count;++i)out->footer_baseline[i]+=MUSIC_BOTTOM-footer_height;
-  if(!media&&out->footer.count) {
-    const MusicTextMetrics ink=measure(context,out->footer.text[0],out->footer_point);
-    int baseline=activity_centered_baseline(out->icon_top,out->icon_size,ink);
-    if(baseline+ink.descent>MUSIC_BOTTOM)baseline=MUSIC_BOTTOM-ink.descent;
-    out->footer_baseline[0]=baseline;
-  }
-  int footer_top=MUSIC_BOTTOM-footer_height;
-  if((media&&image)||(!media&&footer[0])) {
-    if(footer_top>out->icon_top)footer_top=out->icon_top;
-  }
+  const int footer_box=out->footer.count?(out->footer.count>1?footer_height+6:28):out->icon_size;
+  out->icon_top=MUSIC_BOTTOM-footer_box+(footer_box-out->icon_size)/2;
+  for(int i=0;i<out->footer.count;++i)
+    out->footer_baseline[i]+=MUSIC_BOTTOM-footer_box+(footer_box-footer_height)/2;
+  const int footer_top=MUSIC_BOTTOM-footer_box;
   const int limit=footer_top-(footer_top<MUSIC_BOTTOM?8:0);
   if(content_top>=limit){out->secondary=false;return;}
   if(media) {
@@ -118,14 +127,17 @@ static inline void activity_layout_build(const char *main,const char *role,
     }
     out->main.count=0;out->secondary=false;return;
   }
-  const int role_height=role[0]?measure(context,role,14).ascent+measure(context,role,14).descent+4:0;
-  if(role[0]){out->role_baseline=content_top+measure(context,role,14).ascent;content_top+=role_height;}
+  const int role_height=role[0]?measure(context,role,20).ascent+measure(context,role,20).descent+4:0;
+  if(role[0]){out->role_baseline=content_top+measure(context,role,20).ascent;content_top+=role_height;}
   int support_height=0;
   if(support[0]) {
-    music_wrap(support,support_point,180,vector||scalar?1:2,false,measure,context,&out->support);
-    support_height=music_line_offsets(&out->support,support_point,measure,context,out->support_baseline)+6;
+    music_wrap(support,support_point,180,secondary||vector||scalar?1:2,false,measure,context,&out->support);
+    support_height=music_line_offsets(&out->support,support_point,measure,context,out->support_baseline)+4;
   }
   int main_limit=limit-support_height-(meter?8:0);
+  if(secondary&&out->support.count&&main_limit-content_top<(vector||scalar?26:measure(context,main,24).ascent+measure(context,main,24).descent)) {
+    secondary=false;goto layout_again;
+  }
   if(main_limit-content_top<18){out->support.count=0;support_height=0;main_limit=limit-(meter?8:0);}
   int main_bottom=content_top;
   if(vector||scalar) {
@@ -143,6 +155,9 @@ static inline void activity_layout_build(const char *main,const char *role,
     }
     if(!value.width||value.width>180||value.ascent+value.descent>main_limit-content_top) {
       out->main.count=0;out->secondary=false;return;
+    }
+    if(secondary&&out->point<32&&scalar_measure(context,main,32).width<=180) {
+      secondary=false;goto layout_again;
     }
     watch_layout_copy_utf8(main,out->main.text[0],MUSIC_TEXT_BYTES);
     out->main.count=1;out->main.complete=true;
@@ -163,7 +178,7 @@ static inline void activity_layout_build(const char *main,const char *role,
     if(!out->main.count){out->secondary=false;return;}
   }
   if(out->support.count) {
-    for(int i=0;i<out->support.count;++i)out->support_baseline[i]+=main_bottom+6;
+    for(int i=0;i<out->support.count;++i)out->support_baseline[i]+=main_bottom+4;
     const int last=out->support.count-1;
     main_bottom=out->support_baseline[last]+measure(context,out->support.text[last],support_point).descent;
   }

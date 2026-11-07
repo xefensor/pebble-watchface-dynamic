@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.18.2
+
+- Redesign all native type roles and vertical bands together after Xef rejected
+  the header-only correction: readable Roboto utility text, Fredoka values,
+  larger reading labels, static secondary and proportionate 24–28px icons.
+- Keep the numeric date in compact views; retain weekday/date on Idle and Peek.
+  Use a 28px media cover and one larger artist line alongside readable titles.
+- Fold paused state and structured detail into the contextual footer before
+  optional identity; keep ordinary paused, workout, navigation and message
+  layouts alongside the static secondary. Protect complete essential values.
+- Keep the secondary receipt/navigation gate tied to actual layout visibility
+  when an exceptional value needs the extra space. Preserve local clock ticks.
+- Refresh actual native phone previews and their artwork-preservation geometry.
+  Local review only; preserve all earlier artifacts and published releases.
+
 ## 0.18.1
 
 - Apply Xef’s readability correction: larger date, compact time and reading labels.

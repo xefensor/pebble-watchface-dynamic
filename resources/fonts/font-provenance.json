@@ -119,7 +119,7 @@
   },
   "generatedBodyMetrics": {
     "header": "src/c/generated_body_metrics.h",
-    "sha256": "aa1be2872036905cfef9c419f2c5067f33b77b0bf8a14d711a478f1bfdbcc4c1",
+    "sha256": "b42cdaad10b83f580278fddfa3f429f2eeba66179d964000394c87e931393017",
     "generator": "scripts/generate-body-metrics.py",
     "verificationCommand": "python3 scripts/generate-body-metrics.py --check --json (requires freetype-py; the SDK Python environment provides it)",
     "fontSha256": "6e949e8aa3f6e0b4db88aacafccf0c0e55e708c4564c8f3d145792adbbf80ef6",
@@ -130,9 +130,9 @@
       14,
       16,
       20,
+      22,
       24,
       26,
-      28,
       32
     ],
     "freeTypeVersion": [
@@ -150,15 +150,14 @@
     "minimumBitmapAscentPx": -2,
     "maximumBitmapAscentPx": 34,
     "blankGlyphAscentPx": 0,
-    "ascentTable": "body_metric_ascent_rows[149][8]",
-    "ascentTableBytes": 1192,
+    "ascentTable": "body_metric_ascent_rows[147][8]",
+    "ascentTableBytes": 1176,
     "ascentDefinition": "FreeType bitmap_top for glyphs with actual bitmap ink; zero for blank glyphs. SDK PFO equivalent is font pixel size minus glyph top offset, with blank-bitmaps normalized to zero.",
     "ascentHelper": "body_text_ascent(const char *utf8, int point)",
-    "descentsUnchangedFrom031": true,
     "ascentIndexTable": "body_metric_ascent_index[920]",
     "ascentIndexBytes": 920,
-    "descentTable": "body_metric_descent_rows[88][8]",
-    "descentTableBytes": 704,
+    "descentTable": "body_metric_descent_rows[90][8]",
+    "descentTableBytes": 720,
     "descentIndexTable": "body_metric_descent_index[920]",
     "descentIndexBytes": 920,
     "compressedMetricBytes": 3736,
@@ -198,6 +197,13 @@
       },
       {
         "type": "font",
+        "name": "FONT_BODY_22",
+        "file": "fonts/RobotoCondensed-Bold.ttf",
+        "extended": true,
+        "characterRegex": "[\\u0020-\\uFFFF]"
+      },
+      {
+        "type": "font",
         "name": "FONT_BODY_24",
         "file": "fonts/RobotoCondensed-Bold.ttf",
         "extended": true,
@@ -206,13 +212,6 @@
       {
         "type": "font",
         "name": "FONT_BODY_26",
-        "file": "fonts/RobotoCondensed-Bold.ttf",
-        "extended": true,
-        "characterRegex": "[\\u0020-\\uFFFF]"
-      },
-      {
-        "type": "font",
-        "name": "FONT_BODY_28",
         "file": "fonts/RobotoCondensed-Bold.ttf",
         "extended": true,
         "characterRegex": "[\\u0020-\\uFFFF]"
@@ -230,53 +229,61 @@
         "point": 11,
         "bytes": 16052,
         "lookupCodepoints": 920,
-        "sha256": "80e7c4e762bd7cf596484ab38e3746067b4f1645ca33c1e4d1e4a633429cf441"
+        "sha256": "80e7c4e762bd7cf596484ab38e3746067b4f1645ca33c1e4d1e4a633429cf441",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 14,
         "bytes": 18824,
         "lookupCodepoints": 920,
-        "sha256": "da95d55e3e497141d114936e05d5a7c766413f04b450650cd3bc5c28cc5fa0b7"
+        "sha256": "da95d55e3e497141d114936e05d5a7c766413f04b450650cd3bc5c28cc5fa0b7",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 16,
         "bytes": 20844,
         "lookupCodepoints": 920,
-        "sha256": "31851269c422c7191deb59d2fb4545d8404a40c2173071c8dd5b4bd0d7ac023e"
+        "sha256": "31851269c422c7191deb59d2fb4545d8404a40c2173071c8dd5b4bd0d7ac023e",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 20,
         "bytes": 26148,
         "lookupCodepoints": 920,
-        "sha256": "46dab7aa0b7561c1fedc2ab7bf42c373fa8e1208bc72ce8783524ebe872f89ea"
+        "sha256": "46dab7aa0b7561c1fedc2ab7bf42c373fa8e1208bc72ce8783524ebe872f89ea",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
+      },
+      {
+        "point": 22,
+        "bytes": 29568,
+        "lookupCodepoints": 920,
+        "sha256": "591944781d933ea0df3de9678423ebd131559f3d9eb9546f2ee7c8e35f2cb8b8",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 24,
         "bytes": 33072,
         "lookupCodepoints": 920,
-        "sha256": "1cf3bfdfeedcad17485d2ce5ececef2620ab876b26bfce80a3f567f560029f96"
+        "sha256": "1cf3bfdfeedcad17485d2ce5ececef2620ab876b26bfce80a3f567f560029f96",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 26,
         "bytes": 37088,
         "lookupCodepoints": 920,
-        "sha256": "30f77c6c6c299b3c6fe9725117446f46c516b303322e0f775c74f106bad37b8f"
-      },
-      {
-        "point": 28,
-        "bytes": 40848,
-        "lookupCodepoints": 920,
-        "sha256": "122ab2faea4dd055d1f7aeb1bfbf9039b26f8bb2285a1159017fa31798e6723b"
+        "sha256": "30f77c6c6c299b3c6fe9725117446f46c516b303322e0f775c74f106bad37b8f",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
         "point": 32,
         "bytes": 49944,
         "lookupCodepoints": 920,
-        "sha256": "1f982067b36a6a7bd344835ae2c4ecce1cb6e9b343c334cadbd06dd8c4e9f4de"
+        "sha256": "1f982067b36a6a7bd344835ae2c4ecce1cb6e9b343c334cadbd06dd8c4e9f4de",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       }
     ],
-    "totalStandalonePfoBytes": 242820,
-    "note": "Standalone exactSDKfontgen proof; finalappresourceball bytes and runtime font loading are verified by package/nativeQA."
+    "totalStandalonePfoBytes": 231540,
+    "note": "Reviewed exact SDK fontgen bytes for coherent role scales. New22px replaces unused28px, keeping resource budget below256KB; every glyph is checked against source/metrics."
   },
   "bodyCoverage": {
     "codepointCount": 919,

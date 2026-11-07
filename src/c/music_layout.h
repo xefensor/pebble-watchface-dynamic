@@ -134,9 +134,7 @@ static int music_line_offsets(const MusicLines *lines, int point, MusicMeasure m
   offsets[0] = previous.ascent;
   for (int i = 1; i < lines->count; ++i) {
     const MusicTextMetrics next = measure(context, lines->text[i], point);
-    int advance = point + 2;
-    if (advance < previous.descent + next.ascent + 2)
-      advance = previous.descent + next.ascent + 2;
+    int advance = previous.descent + next.ascent + 3;
     offsets[i] = offsets[i - 1] + advance;
     previous = next;
   }

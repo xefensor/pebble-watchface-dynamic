@@ -1,0 +1,83 @@
+{
+  "version": "0.18.2",
+  "nativePayloadSha256": {
+    "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+    "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+    "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+  },
+  "captures": [
+    {
+      "file": "incoming-00.png",
+      "elapsedMs": 133,
+      "sha256": "5758b476fe2caea86c6d498c6a191f3800230cd1999e709f8e7eedef1f0fed49",
+      "rgbSha256": "fd9fd6ca7df685d4d30d6081a49f9975fb7b73c3797e8845aba8720ee82b92a2"
+    },
+    {
+      "file": "incoming-01.png",
+      "elapsedMs": 256,
+      "sha256": "7d4238680c2b660259acdbca808b7df732c13c483d738217194aa0bcc4c78f06",
+      "rgbSha256": "f77d7a1577c5d5fef854e775e96a5800a227ad15353cf5ea1568d5e6543603ac"
+    },
+    {
+      "file": "incoming-02.png",
+      "elapsedMs": 402,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-03.png",
+      "elapsedMs": 517,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-04.png",
+      "elapsedMs": 626,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-05.png",
+      "elapsedMs": 740,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-06.png",
+      "elapsedMs": 850,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-07.png",
+      "elapsedMs": 960,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-08.png",
+      "elapsedMs": 1074,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-09.png",
+      "elapsedMs": 1191,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-10.png",
+      "elapsedMs": 1307,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    },
+    {
+      "file": "incoming-11.png",
+      "elapsedMs": 1421,
+      "sha256": "ec4d65ad7ccf1740eb7aa51a9aee683417d461f8ba44e790f8bce0b6fe8fad4e",
+      "rgbSha256": "ceb8e22eaebb63676b52898f82ba3cb50443f0699d878f0186dc1173176c1a83"
+    }
+  ],
+  "scope": "Actual native Screenshot-service frames with synthetic Music/notification fixtures. GIF uses only these frames; no interpolation. Host acquisition timing is not physical-watch latency."
+}

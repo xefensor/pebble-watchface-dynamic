@@ -100,7 +100,7 @@ function fixtures(options) {
     const dark=theme==='dark';
     presets.push({name:`${state}-${format}-${theme}`,state,format,theme,fixtureNow:now,
       preserve:state==='music'?
-        [{x:10,y:176,width:40,height:40}]:
+        [{x:10,y:188,width:28,height:28}]:
         state==='timeline'?[{x:0,y:171,width:200,height:57}]:[],
       integers:{BACKGROUND_COLOR:dark?0:0xffffff,TEXT_COLOR:dark?0xffffff:0,
         ACCENT_COLOR:0x55aaff,ANIMATIONS:0,CLOCK_FORMAT:format,SHOW_STATUS:1,
@@ -142,6 +142,8 @@ function summaryPresets(options){
     {name:'delivery-text',records:[delivery,{id:'garage',type:'standard',name:'Garage',headline:{type:'text',text:'Door open'}}]},
     {name:'local-promotion',records:[timer(2),music],captureDelaySeconds:3,expireFirst:true},
     {name:'compact-detail-clock',records:[music,{id:'match',type:'standard',name:'Match',icon:'workout',headline:{type:'value',value:'2–1'},detail:{type:'clock',mode:'elapsed',since:now-2800},summary:'detail'}],verifyClockTick:true},
+    {name:'primary-detail-clock',records:[{id:'match',type:'standard',name:'Match',icon:'workout',headline:{type:'value',value:'2–1'},detail:{type:'clock',mode:'elapsed',since:now-2800}},music],verifyClockTick:true},
+    {name:'paused-primary-wide-detail',records:[{...timer(),state:'paused',headline:{type:'clock',mode:'countdown',seconds:151},detail:{type:'value',value:'1111111111111',unit:'km'}},music]},
     {name:'secondary-long-clock',records:[music,{id:'long',type:'standard',name:'Session',headline:{type:'clock',mode:'elapsed',seconds:4294967295}}]},
     {name:'secondary-unfit-value',records:[music,{id:'unfit',type:'standard',name:'Counter',headline:{type:'value',value:'9'.repeat(64),unit:'km'}}]},
     {name:'direction-long-value',records:[{id:'long-route',type:'standard',name:'Maps',icon:'navigation',headline:{type:'value',value:'1234567890123',unit:'mi',symbol:'turn-left'}}]},

@@ -18,7 +18,7 @@ import freetype
 ROOT = Path(__file__).resolve().parents[1]
 FONT = ROOT / "resources/fonts/RobotoCondensed-Bold.ttf"
 HEADER = ROOT / "src/c/generated_body_metrics.h"
-POINTS = (11, 14, 16, 20, 24, 26, 28, 32)
+POINTS = (11, 14, 16, 20, 22, 24, 26, 32)
 WILDCARD = 0x25AF
 
 

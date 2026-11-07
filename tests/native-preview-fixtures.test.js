@@ -32,7 +32,7 @@ test('twenty-four native settings states use production ACT3 encoders and retain
   }
 });
 test('approved normal and compact activity combinations have light and dark native fixtures',()=>{
-  const plan=fixtures.summaryPresets({now:N,session:S});assert.equal(plan.presets.length,64);
+  const plan=fixtures.summaryPresets({now:N,session:S});assert.equal(plan.presets.length,68);
   const names=['timer-media','media-timer','workout-timer','navigation-media','recording-delivery','download-recording','message-timer','media-alone','timer-alone','long-timer','long-artist','delivery-text'];
   for(const name of names)for(const theme of ['light','dark'])assert.ok(plan.presets.some(x=>x.name===name+'-'+theme));
   for(const preset of plan.presets){assert.equal(records(preset.bytes.ACTIVITY_DATA).length,preset.activities.length);assert.ok(preset.activities.length<=2);}
@@ -40,6 +40,8 @@ test('approved normal and compact activity combinations have light and dark nati
   assert.deepEqual(find('timer-media').map(x=>x.presentation),[3,2]);assert.deepEqual(find('media-timer').map(x=>x.presentation),[2,3]);
   assert.equal(find('navigation-media')[0].directions&7,2);assert.equal(find('download-recording')[0].presentation,5);
   assert.equal(find('compact-detail-clock')[1].compact,1);assert.equal(find('compact-detail-clock')[1].supportType,3);
+  assert.equal(find('primary-detail-clock')[0].supportType,3);
+  assert.equal(find('paused-primary-wide-detail')[0].support,'1111111111111 km');
   assert.equal(find('paused-timer-media')[0].state,2);assert.equal(find('media-paused-timer')[1].state,2);
   assert.equal(find('local-promotion')[0].validUntil,N+2);assert.equal(find('secondary-unfit-value')[1].mainType,2);assert.equal(find('media-alone')[0].caption,'The Midnight');
   assert.deepEqual(find('notification-media').map(x=>x.presentation),[1,2]);

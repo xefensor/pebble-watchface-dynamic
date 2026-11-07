@@ -27,26 +27,22 @@ int main(void) {
     assert(watch_context_visibility(summary)==1&&watch_context_visibility(peek)==0);
     assert(watch_context_visibility(active)==1&&watch_context_visibility(notice)==1);
     assert(watch_context_visibility(watch_pose_at_height(summary,171))==0);
-    assert(active.row_y+active.label_y+3<92);
-    assert(active.icon_size>=14&&peek.icon_size>=16);
-    assert(active.number_size==22&&idle.number_size==36);
-    assert(idle.value_y==48&&idle.label_y==64);
-    assert(50+active.icon_x+active.icon_radius<50+active.value_x-60/2);
-    assert(50+peek.icon_x+peek.icon_radius<50+peek.value_x-60/2);
+    /* Readable value/label bands fit before the independent secondary row. */
+    assert(active.row_y+active.label_y+5<=101);
+    assert(active.icon_radius>=12&&peek.icon_radius>=12);
+    assert(active.number_size>=28&&idle.number_size>=34);
+    assert(idle.label_y-idle.value_y>=20);
+    assert(50+active.icon_x+active.icon_radius+3<=50+active.value_x-54/2);
+    assert(50+peek.icon_x+peek.icon_radius+3<=50+peek.value_x-54/2);
     assert(watch_date_split(idle.context)==0 && watch_date_split(peek.context)==0);
     assert(watch_date_split(active.context)==1);
-    assert(active.date_y-8==27 && active.date_y+16==51);
-    assert(active.clock_size>=46);
-    /* Gothic 28 accent ink can begin 4px below its text frame. */
-    assert(idle.date_y-28+4>=3&&active.date_y-8-28+4>=3);
-    /* Full accented 28px weekday ink ends before the numeric date begins. */
-    assert(active.date_y-8-28+31+2<active.date_y+16-28+10);
-    /* Larger 18px reading labels clear values even with a 2px accent bearing. */
-    assert(active.label_y-18+2>active.value_y);
-    assert(peek.label_y-18+2>peek.value_y);
+    /* Idle weekday accents fit; compact numeric date shares a clock row. */
+    assert(idle.date_y-25>=4&&active.date_y-19>=10);
+    assert(active.label_y-18>=active.value_y+3);
+    assert(peek.label_y-18>=peek.value_y+3);
     assert(watch_date_split(0.55f)==0 && watch_date_split(0.8f)>0);
-    assert(idle.clock_x==100 && idle.clock_y==108 && idle.context==0);
-    assert(active.clock_x==60 && active.context==1 && active.music==1);
+    assert(idle.clock_x==100 && idle.clock_y==110 && idle.context==0);
+    assert(active.clock_x==58 && active.context==1 && active.music==1);
     assert(notice.notice==1 && notice.row_y==active.row_y);
     for (int height=160;height<=228;++height) {
       WatchPose p=watch_pose_at_height(active,height);

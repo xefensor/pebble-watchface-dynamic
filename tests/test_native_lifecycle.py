@@ -162,5 +162,65 @@ int main(void){
             subprocess.run([str(output)], check=True)
 
 
+    def test_actual_presentation_gate_never_exports_a_yielded_secondary(self):
+        source = (ROOT / 'src/c/dynamic.c').read_text()
+        body = callback(source, 'prv_note_presentation')
+        harness = r'''
+#include <assert.h>
+#include <time.h>
+#include "activity_navigation.h"
+typedef struct { unsigned type;uint32_t valid_until; } PavDatum;
+typedef struct { uint32_t source_valid_until;PavDatum main,support; } PavCard;
+typedef struct { struct { struct {int count;}main;bool secondary;}layout;const PavCard *alternate;}ActivityPlan;
+typedef struct { ActivityPlan activity_plan;ActivityNavigation navigation;}Native;
+typedef struct {int unused;}AppTimer;
+static Native store,*s_native=&store;
+static struct {struct {PavCard items[2];uint32_t view_sequence;}snapshot;}s_activities;
+static struct {uint32_t token;}s_session={7};
+static AppTimer timer,*s_presentation_timer;
+static uint8_t sent[ACTIVITY_NAV_BYTES];
+static unsigned sends;
+static const PavDatum *activity_compact_datum(const PavCard *card){return &card->main;}
+static void app_timer_cancel(AppTimer *value){assert(value==&timer);}
+static void prv_presentation_refresh(void *context){(void)context;}
+static AppTimer *app_timer_register(unsigned delay,void(*callback)(void *),void *context){
+ assert(delay==30000&&callback==prv_presentation_refresh&&!context);return &timer;
+}
+static void prv_send_presentation(void){++sends;activity_navigation_encode(&store.navigation,sent);}
+''' + body + r'''
+int main(void){
+ const uint32_t now=(uint32_t)time(NULL);
+ s_activities.snapshot.view_sequence=11;
+ s_activities.snapshot.items[0]=(PavCard){.source_valid_until=now+120,.main={1,now+90}};
+ s_activities.snapshot.items[1]=(PavCard){.source_valid_until=now+60,.main={1,now+30}};
+ store.activity_plan.layout.main.count=1;
+ store.activity_plan.alternate=&s_activities.snapshot.items[1];
+ /* A fitted-out row can still have its candidate pointer; it must remain absent
+  * from both the actual receipt and the Open Activity navigation wire. */
+ store.activity_plan.layout.secondary=false;
+ prv_note_presentation(&s_activities.snapshot.items[0],true);
+ assert(sends==1&&sent[1]==0&&sent[2]==ACTIVITY_NAV_ABSENT);
+ assert(store.navigation.expires_at==now+90);
+ store.activity_plan.layout.secondary=true;
+ prv_note_presentation(&s_activities.snapshot.items[0],true);
+ assert(sends==2&&sent[1]==0&&sent[2]==1&&store.navigation.expires_at==now+30);
+ store.activity_plan.layout.secondary=false;
+ prv_note_presentation(&s_activities.snapshot.items[0],true);
+ assert(sends==3&&sent[2]==ACTIVITY_NAV_ABSENT&&store.navigation.expires_at==now+90);
+ prv_note_presentation(&s_activities.snapshot.items[0],false);
+ assert(sends==4&&sent[1]==ACTIVITY_NAV_ABSENT&&sent[2]==ACTIVITY_NAV_ABSENT);
+ assert(!s_presentation_timer);
+ return 0;
+}
+'''
+        with tempfile.TemporaryDirectory(prefix='dynamic-presentation-fit-') as tmp:
+            path = Path(tmp) / 'presentation.c'
+            path.write_text(harness)
+            output = Path(tmp) / 'presentation'
+            subprocess.run([os.environ.get('CC', 'cc'), '-std=c99', '-Wall', '-Wextra', '-Werror',
+                            '-I' + str(ROOT / 'src/c'), str(path), '-o', str(output)], check=True)
+            subprocess.run([str(output)], check=True)
+
+
 if __name__ == '__main__':
     unittest.main()

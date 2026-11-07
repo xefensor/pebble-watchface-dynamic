@@ -1,3 +1,3 @@
-0d360c3681642a146834d41526d19c25baa2eeac076bb6ba663e942dca2d5562  Dynamic-0.18.1.pbw
-a1de99b5d5a7f9ca8dd0622ebd0dac9231b246c6fd60e57ed1b8cec73eef9cf3  Dynamic-0.18.1-source.zip
-698d8e2b091dee267d54e530dafd26fb78f2f3be89ae5e6e3c2aedc6c4bf749d  Dynamic-0.18.1-debug.zip
+8b9409490cceb7a3fb40fafbcda52cdb6687941f900cbb3bcd6bc1b17fda3a36  Dynamic-0.18.2.pbw
+ef5c71d88f8dc284f8361e73a5d6935c752bd27ecabbca8693ea06e2bb879921  Dynamic-0.18.2-source.zip
+803d67dd125280c42ea1eeea88fad0c37c414e456c44fcb91c49b412ca83ac30  Dynamic-0.18.2-debug.zip

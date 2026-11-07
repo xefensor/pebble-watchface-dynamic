@@ -1,0 +1,75 @@
+{
+  "result": "PASS",
+  "finalPbwSha256": "8b9409490cceb7a3fb40fafbcda52cdb6687941f900cbb3bcd6bc1b17fda3a36",
+  "finalNativePayloadSha256": {
+    "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+    "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+    "emery/manifest.json": "541967b582d3694abe6db9f1f09cb2a6285439ada53568b3ec9728c84a6ef351"
+  },
+  "reports": {
+    "native-previews/previews.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-activities/activities.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-long-date/previews.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-motion/motion.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-reading-states/report.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-clock-proof/report.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    },
+    "native-folded-clock-proof/report.json": {
+      "nativeExecutableAndResourcesMatch": true,
+      "originalNativePayloadSha256": {
+        "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+        "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+        "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+      },
+      "manifestMatchesExceptSdkGenerationTimestamps": true
+    }
+  },
+  "scope": "Exact executable/resources identity after native preview rebundling. Manifest differences are independently limited to generatedAt and application/resources timestamp. Original capture metadata remains unchanged; no browser/phone or physical-watch inference."
+}

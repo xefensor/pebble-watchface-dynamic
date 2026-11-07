@@ -1,6 +1,6 @@
 # Dynamic
 
-Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.1.
+Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.2.
 [Design choices and review evidence](docs/REDESIGN.md).
 
 A Pebble Time 2 watchface with rounded time, two horizontal readings and
@@ -16,26 +16,27 @@ identity, package names and published release files.
 
 ## Local Pebble-native design trial
 
-**0.18.1 is built locally on `design/pebble-native-redesign` and has not been
-published.** Native Gothic utility labels/date, stronger semantic icons and a
-small incoming-content settle sit alongside the existing Fredoka clock and
-activity composition. Its bundled phone page uses the shared neutral/blue style,
-a short introduction, neutral headings and 16/24px spacing in all 17 languages. Save
-stays open with a confirmed **✓ Saved** indicator; Discard restores the latest
-confirmed draft without a write. Existing custom RGB colours survive unrelated
-saves. The activity/source/privacy contracts and fixed layout remain intact.
+**0.18.2 is built locally on `design/pebble-native-redesign` and has not been
+published.** Xef asked for every text role and its spacing to be redesigned
+together for readability. Roboto Condensed utility text now forms one hierarchy
+with the Fredoka clock/values: prominent date, larger reading labels, readable
+static secondary and larger primary captions. The vertical bands are repartitioned
+as a whole. Compact activity views keep the numeric date; Idle and Peek also keep
+the weekday. Media uses a 28px cover and one larger artist line so the main title
+retains two readable lines. State and structured detail lead non-media footers;
+optional identity truncates first. These density choices are explicit review
+proposals, documented with actual native captures in [the design notes](docs/REDESIGN.md).
 
-The packaged `config.html` uses Pebble's configuration bridge. The older
-`showConfiguration` return-URL fallback still saves and closes; it does not
-pretend to provide in-page confirmation. Phone storage and watch delivery are
-reported separately. See [the implementation handoff](docs/UX-ALIGNMENT.md) and
-[design trial notes](docs/REDESIGN.md) and
-[0.18.0 validation](docs/qa/0.18.1/VALIDATION.md). Fresh native captures and the
-artifact audit pass; fresh Chromium checks are blocked by this environment.
+The bundled 17-language phone page retains the shared neutral/blue style,
+confirmed **✓ Saved**, local Discard, exact custom RGB values and the legacy
+Save-and-close fallback. Phone storage and watch delivery remain separate.
+See [the implementation handoff](docs/UX-ALIGNMENT.md) and
+[0.18.2 validation](docs/qa/0.18.2/VALIDATION.md). Fresh browser execution remains
+blocked by this environment; native emulator checks are separate from a physical watch.
 
-Local installable file: [Dynamic-0.18.0.pbw](dist/Dynamic-0.18.0.pbw).
-Review [the phone page](docs/qa/0.18.0/phone-preview.html) with its labelled
-sample-only bridge and [actual native motion](docs/qa/0.18.0/native-motion/incoming.gif).
+Local installable file: [Dynamic-0.18.2.pbw](dist/Dynamic-0.18.2.pbw).
+Review [the phone page](docs/qa/0.18.2/phone-preview.html) with its labelled
+sample-only bridge and [actual native motion](docs/qa/0.18.2/native-motion/incoming.gif).
 The published downloads below retain their original versions and bytes.
 
 ## Download
@@ -211,8 +212,8 @@ make that claim. Detailed receipt and observation ages remain separate in
 settings. Timeline events remain native rather than being duplicated inside
 the face.
 
-The compact activity header stacks the weekday above the date.
-Idle and Timeline Peek use a single-line date. All Music sources use the shared
+The compact activity header pairs the time with a prominent numeric date.
+Idle and Timeline Peek retain weekday and numeric date on one line. All Music sources use the shared
 activity renderer after phone-side adaptation.
 
 Rain-probability percentages can use a 0–100% gauge when the source identifies
@@ -224,17 +225,20 @@ One unified layout gives every installation the same readable hierarchy:
 | Element | Idle | Music or message context | Timeline Peek |
 | --- | --- | --- | --- |
 | Rounded clock | 80px | 42px | 68px |
-| Reading values | 36px | 22px | 26px |
-| Reading symbols | 22px | 14px | 16px |
+| Reading values | 34px | 28px | 28px |
+| Reading icon circle | 34px | 24px | 24px |
 
-The idle date uses 20px text and reading labels use 14px. Idle reading values
-and labels sit 4px and 6px closer to their symbols, respectively. Music titles stay at
-24px. Media artists use 20px text, with up to two lines. Titles use up to three
-measured lines when alone and two beside a secondary; overflow ends with an
-ellipsis. The title sits immediately above the artwork/artist footer, leaving
-an 8px gap. Artwork is optional and shares its bottom anchor at y216 with the
-artist. Short titles leave the unused space above the primary group. No title
-continuation or paging timer runs.
+These are drawing sizes, not visible-ink heights. Utility text uses Roboto
+Condensed Bold: date 26, reading labels/status 20, static secondary 22 and primary
+captions 24. Exact packaged capital/digit ink is 19/14/16/17px respectively.
+Music titles use up to three measured 24pt lines alone and two beside a secondary.
+The media footer has a 28px optional cover and one 24pt artist line; overflow ends
+with an ellipsis. All caption/icon groups center by actual visible ink. The full
+primary block sits above its contextual footer with an 8px gap; the footer ends
+at y216. Short titles leave unused space above the primary group. No title
+continuation or paging timer runs. Paused state and structured detail lead other
+footers before optional identity; optional names truncate first. See the
+[explicit density choices](docs/REDESIGN.md).
 
 Notifications use this same activity composition with or without message text.
 As primary they show the sender/title and optional body above app context. As
@@ -357,8 +361,8 @@ without the phone.
 The built-in Music adapter retains up to 128 UTF-8 bytes per title and artist
 before layout. Only the fitting prefix is shown; omitted source bytes cannot
 be recovered by the renderer.
-Artwork is optional; the core requests the displayed 40px target, with actual detail
-depending on the source. Obsolete waiting source snapshots are replaced by the
+Artwork is optional; the core still requests a 40px source target, drawn into
+the current 28px footer. Actual detail depends on the source. Obsolete waiting source snapshots are replaced by the
 latest update; settings retain ordered delivery. Music is an information
 panel: use Pebble's Music app for play/pause and track controls. The current
 source does not supply playback position/duration, so there is no invented

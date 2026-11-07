@@ -1,5 +1,13 @@
 # Dynamic validation
 
+## 0.18.2 whole-screen readability redesign
+
+Xef rejected the header-only correction because the remaining text and spacing
+were out of proportion. [Current evidence](qa/0.18.2/VALIDATION.md) covers the
+coherent font/band redesign, explicit compact-date/media-footer density choices,
+actual native compositions, protected essential values and secondary receipt
+gating. Earlier trials retain their original artifacts and evidence.
+
 ## 0.18.1 readability correction
 
 Xef rejected shrinking top date/time and high icons. Larger native date and

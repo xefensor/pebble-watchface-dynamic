@@ -1,0 +1,1143 @@
+{
+  "version": "0.18.2",
+  "session": 2,
+  "source": {
+    "capturedFromCandidatePbwSha256": "7a4f2ae7d7a7dbdad00077103500b248e19209187e16e39f8af3391733e28eea",
+    "candidateSourcePbwSha256": "4b2b96b0fd959c87691919e585fb5d1482df171dc3fa5b915a4c0650eb826ac3",
+    "nativePayloadSha256": {
+      "emery/pebble-app.bin": "bf08579949c500a3a82c7ebed3f9ae3a9e50c7a038743c5822fcd598916e0054",
+      "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+      "emery/manifest.json": "ad60af79c38892fe8bcfc26312fe4cdf3e6e48aeb5569ea95778cda811effed1"
+    },
+    "timelineSample": "Actual native unobstructed geometry; reserved OS panel, no event payload."
+  },
+  "phone_javascript_executed": false,
+  "candidate_install_unchanged": true,
+  "fixture_encoder": {
+    "core": "0.5.1",
+    "activities": "0.4.4",
+    "core_wire_version": 4,
+    "activity_wire_version": 3
+  },
+  "captures": [
+    {
+      "name": "timer-media-light",
+      "file": "timer-media-light.png",
+      "sha256": "18e0139dfa3aa3f92eac1ae6591af20f97a27b855bb75c4967bb173b0e6fe6e4",
+      "rgb_sha256": "6ae339a29c9f5e824306f8313d8b9c4a7af86178af6ef59a359c0f204116e1c5",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-timer-light",
+      "file": "media-timer-light.png",
+      "sha256": "34899f9cf8400441e89b3f827edbd64fa381358221652c92b43b85c704256c0e",
+      "rgb_sha256": "864486938203aed67c109782f5ad4befc021104b22651c73406b547b06e16d76",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "workout-timer-light",
+      "file": "workout-timer-light.png",
+      "sha256": "d24952183d28eaccc5d87adf828a541f48964d7df062250b51bb44c367ee0a39",
+      "rgb_sha256": "5148b543408dbb49ca043952b858d2865853b188177d317cf3639a84eb718628",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "navigation-media-light",
+      "file": "navigation-media-light.png",
+      "sha256": "6fc5e74ed048df9c6a31bcb63eeb7da5143acc331c1cb9e520a41f8a5760bdad",
+      "rgb_sha256": "c2ccda18b31c3d3c6601532b5c25b04bbeccf7109c1ca6a424b082719de6f756",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "recording-delivery-light",
+      "file": "recording-delivery-light.png",
+      "sha256": "a49ed3037e3855af5c40d80c85d2e70f807704c30736ec7074f4e9134ac8e5a9",
+      "rgb_sha256": "80c13fefd260217ff3e295898ec7f4261dfec7b729a5b642565d4965e8b81053",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "download-recording-light",
+      "file": "download-recording-light.png",
+      "sha256": "bb76f22abf6f9d2cb14f22bd5daf7c0e14d974d7036d0fa4cdf511cdad0baba7",
+      "rgb_sha256": "e218a1de44d95ab7b3aae8a75775047aa281f1c309ee9c28be2df667787fc582",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "message-timer-light",
+      "file": "message-timer-light.png",
+      "sha256": "e4e9556bafd55979ff6ad549c609c65cbe2136f36a128373d2d63792aa7a7b13",
+      "rgb_sha256": "7f06674a677da26b2c002abdee9ac64912642b485192a37ff220d1b34f4b1dd1",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-alone-light",
+      "file": "media-alone-light.png",
+      "sha256": "1b172e96b3ec63b9d216b775bfbc73ab0f125667620729aef192e7f8d0d5016a",
+      "rgb_sha256": "1104c442b0e949c6fc12958ee13a1e9ff87ad0860a5363cc371562d4d6b1555e",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "timer-alone-light",
+      "file": "timer-alone-light.png",
+      "sha256": "676b77ac93a423686e9c25e7bb1523d147e90c8a551560773178c6b06cb99177",
+      "rgb_sha256": "4906565e658f1e4f828ea9b2b1fe1eb349bd639d86fee8acdb9184e871e52937",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "paused-timer-media-light",
+      "file": "paused-timer-media-light.png",
+      "sha256": "499492936ee5a0a6ec547f593887473b5923a72ec6231a0e95a860e14e0cdbcf",
+      "rgb_sha256": "cc527fafa6fc6eae1f3b4bce1e8c884410e639e1ed63ee03c04601c318a7532f",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "media-paused-timer-light",
+      "file": "media-paused-timer-light.png",
+      "sha256": "79e7d2cc60a4c11d8d12d123685f99ba4339f4bff203c9912c390295efcf376f",
+      "rgb_sha256": "d1e335aa099d028c558125bc999506f827fd8a8366fd525b1809e3b0ad298b04",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-clock-light",
+      "file": "paused-long-clock-light.png",
+      "sha256": "1b172e96b3ec63b9d216b775bfbc73ab0f125667620729aef192e7f8d0d5016a",
+      "rgb_sha256": "1104c442b0e949c6fc12958ee13a1e9ff87ad0860a5363cc371562d4d6b1555e",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-label-light",
+      "file": "paused-long-label-light.png",
+      "sha256": "79e7d2cc60a4c11d8d12d123685f99ba4339f4bff203c9912c390295efcf376f",
+      "rgb_sha256": "d1e335aa099d028c558125bc999506f827fd8a8366fd525b1809e3b0ad298b04",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-primary-light",
+      "file": "paused-long-primary-light.png",
+      "sha256": "844bcec5548c234c9c7ac392b5c070512523f5f376f3a45992110cd8a6a6c666",
+      "rgb_sha256": "0f1de81a642a5389a3098b3bc719400adefc36a1dc41b29b987f2a94de0af884",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "long-timer-light",
+      "file": "long-timer-light.png",
+      "sha256": "2dbb62a16d43709a50f1e5dd639b1a1e4d672962a5b7a6751a748e3b8a564f24",
+      "rgb_sha256": "8120829c9353ee2be3c1bccd5c198af86809a79f08e9a9aef37c99aec12b737b",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "long-artist-light",
+      "file": "long-artist-light.png",
+      "sha256": "7c5379b3d366a2ef47132604cfe41dfb05abb5bdb5761f1814fdd778f3879f7e",
+      "rgb_sha256": "dba170b9eff0aec5d5f95dbeef11ec63b13d8154b9a62d530d0eaa27202aef83",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "delivery-text-light",
+      "file": "delivery-text-light.png",
+      "sha256": "ec38f0487a781890728fab7acdf4a96165ef20159df7ee6713fc146b14614016",
+      "rgb_sha256": "8342788652e72da18d6a35429b6f45968730be235b2ab9b7f9e95277cbf41e0a",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "local-promotion-light",
+      "file": "local-promotion-light.png",
+      "sha256": "1b172e96b3ec63b9d216b775bfbc73ab0f125667620729aef192e7f8d0d5016a",
+      "rgb_sha256": "1104c442b0e949c6fc12958ee13a1e9ff87ad0860a5363cc371562d4d6b1555e",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 3,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "compact-detail-clock-light",
+      "file": "compact-detail-clock-light.png",
+      "sha256": "72a10efeb14332ec3a2a4e1c44ec2948798ecc1672f7d7a36381dd271fdd1cbb",
+      "rgb_sha256": "cba7dc5a5da547d6b1f7dc1500f539ad8b516d6b9b9cf9bea17b5579d8c9353c",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "primary-detail-clock-light",
+      "file": "primary-detail-clock-light.png",
+      "sha256": "9dd5fc72f7a5cdfce215d9c871bc14fee5655cbf75b023c73d30d7208b1c0688",
+      "rgb_sha256": "619d0812549f548bca3b7030070710b69a34c87ebd5ad3a726ecfdfc85052f54",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "paused-primary-wide-detail-light",
+      "file": "paused-primary-wide-detail-light.png",
+      "sha256": "56ecd41b7da560984e899db4d5e16a611187aa0a0927e39ac128134c9089f1bc",
+      "rgb_sha256": "6bbaef859acd47b2693fd24c2ad9891387f5acf900159f8a2a8d07ca54781565",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "secondary-long-clock-light",
+      "file": "secondary-long-clock-light.png",
+      "sha256": "ad83b6337ed89596d5c682f14ed0c1ea4bf807149a05256d899a7649ea81d965",
+      "rgb_sha256": "18120247ade89b835edd2851c4ef3e8b08bbc4d2731ae5bf28aee82e2ccaf75a",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "secondary-unfit-value-light",
+      "file": "secondary-unfit-value-light.png",
+      "sha256": "1b172e96b3ec63b9d216b775bfbc73ab0f125667620729aef192e7f8d0d5016a",
+      "rgb_sha256": "1104c442b0e949c6fc12958ee13a1e9ff87ad0860a5363cc371562d4d6b1555e",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "direction-long-value-light",
+      "file": "direction-long-value-light.png",
+      "sha256": "1686569bb5af08d4228fbaf2b026d8f074359f45a6b84d8d99009a1ae46335da",
+      "rgb_sha256": "a60fe1106c5fd21dd72122872be5300e31a62cb4f8c9ba523964da4ae870110b",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "direction-formatted-value-light",
+      "file": "direction-formatted-value-light.png",
+      "sha256": "02331462871ca1b04a6c11e7c4616b32db4cc03407733e5014e2ba9e501b3937",
+      "rgb_sha256": "adbe6bde8161d626c89044c8381cce473a2e43a5b45f8aecbccf379f7047364a",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-value-state-unfit-light",
+      "file": "paused-value-state-unfit-light.png",
+      "sha256": "1b172e96b3ec63b9d216b775bfbc73ab0f125667620729aef192e7f8d0d5016a",
+      "rgb_sha256": "1104c442b0e949c6fc12958ee13a1e9ff87ad0860a5363cc371562d4d6b1555e",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "timer-media-dark",
+      "file": "timer-media-dark.png",
+      "sha256": "59bdcd6b52194fe0303d7a8a4d6aae9c91cdf265fb68d580696b5b7fd7c90cc4",
+      "rgb_sha256": "36a351259044c03421805ce5baa41c8297658ad01199ad793dfe413e3242cbb5",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-timer-dark",
+      "file": "media-timer-dark.png",
+      "sha256": "079b8238d2fccb6208f72d9f67ad3769274ccec341c74b8701acba101f428036",
+      "rgb_sha256": "ae583a6c48a6ecae466125a105186dbc9bb2b9844fb896c10e296432f87828a2",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "workout-timer-dark",
+      "file": "workout-timer-dark.png",
+      "sha256": "e9f32f37b2a5a632e03ef18819084960bdaf6532809d170aaa7eaa896f24e4dd",
+      "rgb_sha256": "dd8da67c1cfd82cf81e41f956a24bfb6b11b182c155df05f3349200cd5ed3bc1",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "navigation-media-dark",
+      "file": "navigation-media-dark.png",
+      "sha256": "284e10701b24de83746a9576a0cac0ae64ef61f490ef248b8e316e7a8a3eae68",
+      "rgb_sha256": "48fb93fdfa642a8d089711656cbcafce21c09fa635bfdd1fbef9d30bc116745a",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "recording-delivery-dark",
+      "file": "recording-delivery-dark.png",
+      "sha256": "52377505991baf5f3a4137a4cf9d712aaf8d8f22851ca9a48a9ce513c86f7e5b",
+      "rgb_sha256": "2ee96d4315f72974549557ab446da3b9b5cae2fc8a7232b674366cd09609f12c",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "download-recording-dark",
+      "file": "download-recording-dark.png",
+      "sha256": "532ddcbf5419bcc2e11fad6b1cd1188a9d40ccdd9edc7145116ff57e96b333a4",
+      "rgb_sha256": "0f85e7b0b8fc8f20be730f7d066f81d5eb8c9666318a2bd3c7759f1b3c2b8024",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "message-timer-dark",
+      "file": "message-timer-dark.png",
+      "sha256": "2304882cffdcf464a2c034ccd51c3423c909d1338201c8955b9df80948a6f2e4",
+      "rgb_sha256": "3c0fb2ec7d9c743ae46c1e4f795dc03b052216abb772e7130d91b7c8a5384f54",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-alone-dark",
+      "file": "media-alone-dark.png",
+      "sha256": "1dda42705e464880ad87349209b70d0b0857370bd03fcd432d113a55d7ef986b",
+      "rgb_sha256": "9d2f39b124c52697eb2d722993bc51a6cf244b4a2b805aa35f23a47e50e8f6ad",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "timer-alone-dark",
+      "file": "timer-alone-dark.png",
+      "sha256": "ee9d84243dd5a1ca13de61fc1f407e6c6ffdefdc9a1ddc15fd7299f42c318561",
+      "rgb_sha256": "89cb8ec2482896aa74e9408c07ed4e03b2bc547fe953e13fedb8add99e58107b",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "paused-timer-media-dark",
+      "file": "paused-timer-media-dark.png",
+      "sha256": "461171b8a3038ba2ed98643ee7a2fdd37c3b321af870ce6d662aa679be300cde",
+      "rgb_sha256": "bde790da3046cadee00e673fb752653eeda807e2811f3eca16517372199346ab",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "media-paused-timer-dark",
+      "file": "media-paused-timer-dark.png",
+      "sha256": "4f8c7261c9b111308927af6b27522867250fcfb0f68a572ab9a154f75367bc36",
+      "rgb_sha256": "f73945e9804092e62872809c9586cda4c79f0e7be3bd361774c960abaf3a7465",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-clock-dark",
+      "file": "paused-long-clock-dark.png",
+      "sha256": "1dda42705e464880ad87349209b70d0b0857370bd03fcd432d113a55d7ef986b",
+      "rgb_sha256": "9d2f39b124c52697eb2d722993bc51a6cf244b4a2b805aa35f23a47e50e8f6ad",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-label-dark",
+      "file": "paused-long-label-dark.png",
+      "sha256": "4f8c7261c9b111308927af6b27522867250fcfb0f68a572ab9a154f75367bc36",
+      "rgb_sha256": "f73945e9804092e62872809c9586cda4c79f0e7be3bd361774c960abaf3a7465",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-long-primary-dark",
+      "file": "paused-long-primary-dark.png",
+      "sha256": "59510b262237e4b48cf12f97c5501ba6b45fdf36a4e42c57c3da639dd784b266",
+      "rgb_sha256": "85080d1e4e3a3c7f573bfd04881ca7902d148f4f126bd24064687ca3c2957f12",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "long-timer-dark",
+      "file": "long-timer-dark.png",
+      "sha256": "e15638268a776baab87ebe7470faf584560285b316ac33a8ebef85fddaca5dfa",
+      "rgb_sha256": "25b3aa2315ec33c8415cf45f1e18d8b76f7d41948ce45e9efd9be7136063b373",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "long-artist-dark",
+      "file": "long-artist-dark.png",
+      "sha256": "a8063612a2dcf34c4757344d336f641e273c902228d781ee3275a4f2aa0e1a93",
+      "rgb_sha256": "859ed4b68e2123abed5ea56327ea5bb04a2cd8eabfc251f6ba52ca9524c4c288",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "delivery-text-dark",
+      "file": "delivery-text-dark.png",
+      "sha256": "6d7025ae6f74f4005088887afd12077bf15087dd0e3722510dfb4dcff1a6115f",
+      "rgb_sha256": "11f115b47a5c9932a6912cfcb7180f8685ebdd2cf6dab72e7d2619ae7d3859c6",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "local-promotion-dark",
+      "file": "local-promotion-dark.png",
+      "sha256": "1dda42705e464880ad87349209b70d0b0857370bd03fcd432d113a55d7ef986b",
+      "rgb_sha256": "9d2f39b124c52697eb2d722993bc51a6cf244b4a2b805aa35f23a47e50e8f6ad",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 3,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "compact-detail-clock-dark",
+      "file": "compact-detail-clock-dark.png",
+      "sha256": "a61b048fbf73ac0c402f47eacb91569640ddd281526fb2e33791b90b3d8f39d8",
+      "rgb_sha256": "5a57cc8d51e0e543ee0c8a18e0b66db8100f3083795c6f88cfab45f587f61da7",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "primary-detail-clock-dark",
+      "file": "primary-detail-clock-dark.png",
+      "sha256": "ca100f6e6b86712965f5bf399fffca51d5812f1c246acef113ca2190a5539faa",
+      "rgb_sha256": "7fa0db2a36e1ff3c9d7884754a9e35ad0eb2231e10eb8aa7093d03717e2159a7",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "paused-primary-wide-detail-dark",
+      "file": "paused-primary-wide-detail-dark.png",
+      "sha256": "75c98bfbe34e18277df238ab6564dcf92a8d40ee0f2f9d88c74d350a34cea123",
+      "rgb_sha256": "91347245b9ea133b25433fbb3dfee9a9dbfd0789192517ad3471390e49c21a9f",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "secondary-long-clock-dark",
+      "file": "secondary-long-clock-dark.png",
+      "sha256": "802895c17704d533a7185910767854020e3ae8d68572995bcb11e6b5574ceb67",
+      "rgb_sha256": "984b949321eadbf57c7f5ad62ebbc0873d2f5c4d94fd3c7823b8143c81dadf82",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "secondary-unfit-value-dark",
+      "file": "secondary-unfit-value-dark.png",
+      "sha256": "1dda42705e464880ad87349209b70d0b0857370bd03fcd432d113a55d7ef986b",
+      "rgb_sha256": "9d2f39b124c52697eb2d722993bc51a6cf244b4a2b805aa35f23a47e50e8f6ad",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "direction-long-value-dark",
+      "file": "direction-long-value-dark.png",
+      "sha256": "8060de107a9b9aa64f1f8da3a03492f4dfa2b7880d5c0fcb61c8bcd2ced45b81",
+      "rgb_sha256": "a615cd9ce22a8a54e170eacd26b79f118c62906b5fa7487d5bfa60b040caac4a",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "direction-formatted-value-dark",
+      "file": "direction-formatted-value-dark.png",
+      "sha256": "20fb31d61ab0bd7b56e9e9c34a2b2a974652296973c6c57d757deefce4ace7a3",
+      "rgb_sha256": "ec0fb73721e7068005761aa66e2bf48a833edcd7fb7ca88bbe2466027d924fde",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "paused-value-state-unfit-dark",
+      "file": "paused-value-state-unfit-dark.png",
+      "sha256": "1dda42705e464880ad87349209b70d0b0857370bd03fcd432d113a55d7ef986b",
+      "rgb_sha256": "9d2f39b124c52697eb2d722993bc51a6cf244b4a2b805aa35f23a47e50e8f6ad",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-media-light",
+      "file": "notification-media-light.png",
+      "sha256": "89824434b93ae4ef2055f5d91ca09d5c4e263b5f1e6cfeae6eca17dcbdfd8436",
+      "rgb_sha256": "97407f47d6e4382df572576d8498337a17451e67237b0355cfb9fb1b0e357ef1",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "timer-notification-light",
+      "file": "timer-notification-light.png",
+      "sha256": "3aefd18ef692354b2d95b344f7c80e65f7e20ea0c139726373451d749820377a",
+      "rgb_sha256": "deccbc9cdbda2424075a3b02556245ac02b5bdbb29f26add78a7be501f6b591c",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "notification-summary-media-light",
+      "file": "notification-summary-media-light.png",
+      "sha256": "4d31ac4cd87d75b72cc3905015a389635aee517ef471813e069fc33bca3b00c3",
+      "rgb_sha256": "4f901407d5495d4270e06ecc068903a3a1cdc1bb3c068c8633e7947230eb94cc",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-app-only-light",
+      "file": "notification-app-only-light.png",
+      "sha256": "9010430c30528791e28645f84291fa41e232a19bfbe1c3d9e0eac6d4dbe76980",
+      "rgb_sha256": "f275b250479b50226b9bc72fdc0da36ccb3208d5b5d59c14aca1c6d3130f09e0",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-no-icon-light",
+      "file": "notification-no-icon-light.png",
+      "sha256": "1ca397fd4d260f07477d5a33b9f2a5e7b4a81a3ea221cc4fd0aae23a805ae5af",
+      "rgb_sha256": "dd9a1300ef16ed0269131ac92ba296c35e20505fd964a7dbf0336daac6238773",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-long-message-light",
+      "file": "notification-long-message-light.png",
+      "sha256": "cbedc80f8f97ad391f3b4f1de33b21609995a5389e8876d0d894d6cbd2af6f1d",
+      "rgb_sha256": "d08dfe586a800332ef4f5b55d3515558cc3416207456dc705c8f11ac5ffc65ca",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-promotes-timer-light",
+      "file": "notification-promotes-timer-light.png",
+      "sha256": "465bc33399a5779e2920d92f61c1aa702e330500544545e3b86e4c58f993d25f",
+      "rgb_sha256": "903f7a9d4d97299412734a9ef1206303b147af3be4e46c94e5d5eb28cce1b517",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 3,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-notification-light",
+      "file": "media-notification-light.png",
+      "sha256": "0fb31d48311cc8966ffdd0e8ba26cbcec031ddeb143a36bdf596c88782c8a43f",
+      "rgb_sha256": "2d068d2656e89d7e79ba548995b5916c4ad8e911cd75066d7770964dcffc1531",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-media-dark",
+      "file": "notification-media-dark.png",
+      "sha256": "8c106408cb6b61db11ae525a4c6c3a201e81595bfd5e49c5d677fd4a22c08a4f",
+      "rgb_sha256": "a40a40d73ca940044fad60ecd0e0f965f168656a160a487f85a2647cc8a93b25",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "timer-notification-dark",
+      "file": "timer-notification-dark.png",
+      "sha256": "acabec3377d3c50b15a3c4f5bf60f2fa00b975030f08924ce285b5b32478309e",
+      "rgb_sha256": "45dce112ca3d05a34872051a83426381b7862cc358c5b068f8c24bf6e767d8fc",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "notification-summary-media-dark",
+      "file": "notification-summary-media-dark.png",
+      "sha256": "97cf26afed63a9a67d30eb719b3901e36d5b82f384cea6011f116f65120c2a17",
+      "rgb_sha256": "f772221707d0ad734bf1143524e69f1267d3c523646004d5111cffb42b6b9c14",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-app-only-dark",
+      "file": "notification-app-only-dark.png",
+      "sha256": "69c9de02169ad785b126a52f3866eabe7961c0c9c602aa47194d93929a58de7a",
+      "rgb_sha256": "45a932a9298a2d52a7706ece78eff4af28cca7c99e7566df024df8c2edb59979",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-no-icon-dark",
+      "file": "notification-no-icon-dark.png",
+      "sha256": "ac6fe2357fd969d231600f9cbf29c275834494ad8235d7dd9b1a0f277e0f6ec3",
+      "rgb_sha256": "36fcd133924250ea8f68c5d70336b05c6b61c2d6e60cfbb30cfca484777da86b",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-long-message-dark",
+      "file": "notification-long-message-dark.png",
+      "sha256": "2bedac34bffab6ccb74a4cea22d7423fc31233980cc8341d070f8ba6b2de37ec",
+      "rgb_sha256": "9270e711bd1d38ea427f42ca0bc8250027a51e8fd1f4a36bf05e353aa661a1eb",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    },
+    {
+      "name": "notification-promotes-timer-dark",
+      "file": "notification-promotes-timer-dark.png",
+      "sha256": "c168118f7dd28599bff76a55d974cb90e54dad1f8ffe78901984a419d7374e83",
+      "rgb_sha256": "7bbe9080e5305b5e4c20dfd87ac8a93cd1549cb838b24d3bf20a0357c6a9d661",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 3,
+      "two_configured_readings": true,
+      "region_checks": [],
+      "clock_tick_check": "Not run: this is a layout-only capture"
+    },
+    {
+      "name": "media-notification-dark",
+      "file": "media-notification-dark.png",
+      "sha256": "52e32a5460cd54ac1ae0af55dfb1c4060330623f6335cc488f3cf6861e2ede5e",
+      "rgb_sha256": "32572af83f5c56e6e0afe1e468ef09bfb2781cc525ab027755e04cf626571eea",
+      "pixels": [
+        200,
+        228
+      ],
+      "native_pixels_modified": false,
+      "settled_header_readings_rgb_equal": true,
+      "running_clock_changes_allowed": true,
+      "capture_delay_seconds": 0,
+      "two_configured_readings": true,
+      "region_checks": []
+    }
+  ],
+  "scope": "68 actual activity compositions with two configured sample readings and timed expiry. All source data is synthetic; elapsed workout is not native Workout integration.",
+  "local_clock_checks_requested": false,
+  "visual_review": {
+    "reviewed": false
+  }
+}
