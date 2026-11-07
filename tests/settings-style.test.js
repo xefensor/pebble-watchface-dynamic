@@ -2,6 +2,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
+const {execFileSync} = require('node:child_process');
 const vm = require('node:vm');
 const settingsStyle = require('pebble-xoce-ui/settings-style');
 const custom = require('../src/pkjs/settings-page');
@@ -11,7 +13,12 @@ function clayHtml() {
   const box = {module:{exports:{}}, exports:{}, require:name => {
     assert.equal(name, 'message_keys'); return {};
   }, Pebble:{platform:'test', addEventListener(){}}, localStorage:{getItem:()=>null}, console};
-  vm.runInNewContext(fs.readFileSync(require.resolve('@rebble/clay/dist/js/index.js'), 'utf8'), box);
+  // Clean npm installs keep the bundle in dist.zip; the Pebble SDK expands it.
+  const archive = path.join(path.dirname(require.resolve('@rebble/clay/package.json')), 'dist.zip');
+  const source = execFileSync('python3', ['-c',
+    'import sys, zipfile; sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read("js/index.js"))',
+    archive], {encoding:'utf8'});
+  vm.runInNewContext(source, box);
   const clay = new box.module.exports([], custom, {autoHandleEvents:false, userData:{settingsStyle}});
   // Dynamic creates Clay after ready, so the public metadata needs seeding too.
   clay.meta.userData.settingsStyle = settingsStyle;
