@@ -1,9 +1,9 @@
 # Developing Dynamic
 
-## Setup and normal work
-
-Use Node 22+, Python3 and the Pebble SDK 4.33.1 on PATH for SDK builds.
-Portable tests do not need an SDK, a phone or a watch.
+Use Node 22, Python 3.12 and a C99 compiler (`cc`, or set `CC`). Portable tests do not need a
+phone, watch or Pebble SDK. For native SDK builds install [Pebble SDK
+4.33.1](https://developer.repebble.com/sdk/) and make `pebble` available on PATH. This
+repository builds independently from its own committed dependencies.
 
 ```sh
 npm ci --ignore-scripts
@@ -12,54 +12,39 @@ npm run build
 npm run check:artifact
 ```
 
-Development outputs live under `build/candidate/`; QA output defaults to `build/qa/`. Frozen files under `dist/`, `releases/` and library root `dist.zip` are release snapshots.
+`npm test` runs source/native, workflow, release-fixture and documentation checks. CI uses Node
+22 and Python 3.12; it does not claim SDK, emulator or physical-device coverage.
 
-| Task | What to read/check |
-| --- | --- |
-| Everyday source change | Run relevant source/native tests; use npm test for the complete portable suite. |
-| Implementation boundaries | Read docs/MAINTENANCE.md for the affected ownership, compatibility or privacy boundary. |
-| UI change | Read docs/UI.md; build a candidate and inspect the affected real native compositions. |
-| Release/publication | Read docs/RELEASING.md. Release preparation is explicit; it is not part of every edit. |
+`src/c` owns the render plan, layout and motion; `src/pkjs` owns readings, activity delivery and
+privacy; `src/plugin` exposes recently presented destinations. Core, Activities and UI are
+pinned under `vendor/`.
 
-## What counts as done
+## Outputs and evidence
 
-Make the requested coherent change, run relevant required checks, and report the
-result and material gaps. Broaden verification for an actual failure or unresolved
-risk; do not automatically repeat every historical QA suite. SDK/native changes
-need a current packaged build; visual work needs actual inspection. Do not claim
-fresh browser/device evidence from source checks or an old report.
+Active source lives in the directories above. Generated SDK and PBW/debug candidates live in
+ignored `build/candidate/`. Disposable QA belongs in `build/qa/`. Candidate checks reject
+changed source or altered build outputs. Frozen `dist/`, `releases/` belong to their original
+release tags. Existing `docs/qa/` records and images are historical evidence; do not overwrite
+or relabel them.
 
-## Output and commit policy
+Read [maintenance contracts](docs/MAINTENANCE.md) before changing ownership, privacy or
+compatibility. For visual changes, inspect the consuming app in the emulator; portable tests
+establish no visual/device claim. Report source tests, packaged audits, emulator runs and
+real-device tests separately.
 
-Ordinary work does not bump a version, produce source/debug release archives or
-publish anything. A candidate contains the installable runtime and notices and
-can be inspected independently of frozen artifacts. Candidate fingerprints reject
-stale source or modified bundles. Finish a coherent authorized change in a local
-commit when appropriate; do not push, tag, upload or deploy without explicit scope.
+## Release commands
 
-## Explicit QA inputs
+`npm run release:prepare` validates committed frozen inputs and writes `build/release/`. It
+never builds or publishes. `npm run release:publish` is restricted to the manually dispatched
+GitHub release workflow on main. See [RELEASING](docs/RELEASING.md) for freezing a new version
+and safe reruns. Finish authorized work in reviewable local commits; pushing or publication
+needs explicit scope.
 
-Python/app checks use `PEBBLE_PBW` to select a particular PBW. Set
-`PEBBLE_QA_OUTPUT_ROOT` to choose an evidence root; ordinary captures otherwise
-stay under build/qa. Tools with --pbw/--output retain those explicit arguments.
-To examine frozen artifacts, use their recorded source commit rather than
-pretending current source is their original snapshot.
+[History index](docs/history/index.md).
 
-## Repository map
-
-src/c/dynamic.c integrates the SDK; activity_presentation/watch_layout/music_layout define bounded rendering. src/pkjs owns host integration; src/common/settings-state.js owns atomic phone settings. vendor/ records independently pinned Core and Activities packages.
-
-[Current maintenance contracts](docs/MAINTENANCE.md) · [Release boundary](docs/RELEASING.md) ·
-[Historical maintainer notes](docs/history/maintainer-notes-before-rework.md)
-
-Historical review reports and source archives are tied to the UI merge commit,
-not later maintenance commits. docs/UI.md records that snapshot.
-
-Native preview capture writes settings-preview.js beside its disposable PNGs.
-Updating embedded phone previews is explicit: pass --preview src/pkjs/settings-preview.js,
-then rebuild and audit the resulting candidate. Development audits allow only the
-SDK resource timestamp to differ from the embedded preview renderer; code and
-resource bytes must otherwise match exactly. This is not fresh browser evidence.
-
-[Repository maintenance validation](docs/qa/repository-rework-2026-11-07/validation.json)
-records the preserved baseline and this pass’s checks.
+Development native audits compare the candidate with its captured renderer while allowing
+only the SDK timestamp and ELF GNU build ID plus its verified derived CRC to differ.
+Different checkout paths affect debug information and therefore the build ID; code, data,
+resources and capture provenance still match exactly. Strict release checks are unchanged.
+See [GNU linker build-ID semantics](https://sourceware.org/binutils/docs/ld/Options.html#index-_002d_002dbuild_002did)
+and the SDK 4.33.1 `inject_metadata.py` process-info layout (CRC at 0x14, timestamp at 0x7c).

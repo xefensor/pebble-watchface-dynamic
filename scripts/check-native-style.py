@@ -754,7 +754,50 @@ def read_dependency(root, specification, active_modules):
             "installedAndSdkStagingMatch": True}, sources
 
 
-def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp=False):
+def sdk_app_crc(content):
+    """SDK 4.33.1 STM32 CRC, over the loaded image after process-info."""
+    crc = 0xffffffff
+    for offset in range(0, len(content), 4):
+        word = content[offset:offset + 4]
+        crc ^= int.from_bytes(word, 'little' if len(word) == 4 else 'big')
+        for _ in range(32):
+            crc = ((crc << 1) ^ (0x04c11db7 if crc & 0x80000000 else 0)) & 0xffffffff
+    return crc
+
+
+def same_renderer_with_sdk_metadata(root, content, reference):
+    """Permit a verified GNU build ID, its derived CRC and SDK timestamp only."""
+    elf = (root / 'build/emery/pebble-app.elf').read_bytes()
+    note = read_elf_sections(elf).get('.note.gnu.build-id', {})
+    require(note.get('type') == 7 and note.get('flags') == 2 and
+            36 <= note.get('size', 0) <= 39,
+            'Expected the SDK GNU SHA1 build-ID note')
+    section_address = note['address']
+    address = (section_address + 3) & ~3
+    padding = address - section_address
+    offset = note['offset'] + padding
+    require(note['size'] == padding + 36 and section_address >= PROCESS_INFO_BYTES and
+            len(content) == len(reference) and address + 36 <= len(content), 'Invalid SDK build-ID extent')
+    signature = struct.pack('<III', 4, 20, 3) + b'GNU\0'
+    require(content[address:address + 16] == reference[address:address + 16] == signature and
+            content[address:address + 36] == elf[offset:offset + 36],
+            'SDK build ID differs from the linked ELF or frozen note layout')
+    normalized = []
+    for binary in (content, reference):
+        load_size = struct.unpack_from('<H', binary, 14)[0]
+        require(address + 36 <= load_size <= len(binary) and
+                struct.unpack_from('<I', binary, 20)[0] ==
+                sdk_app_crc(binary[PROCESS_INFO_BYTES:load_size]), 'Invalid SDK native CRC')
+        value = bytearray(binary)
+        value[20:24] = b'\0' * 4
+        value[124:128] = b'\0' * 4
+        value[address + 16:address + 36] = b'\0' * 20
+        normalized.append(value)
+    require(normalized[0] == normalized[1],
+            'Native preview renderer differs beyond verified SDK build metadata')
+
+
+def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp=False, allow_sdk_build_id=False):
     source = (root / "src/pkjs/settings-preview.js").read_text(encoding="utf-8")
     exported = re.search(r"module\.exports\s*=\s*(\{.*\})\s*;\s*$", source, re.S)
     require(exported, "Native preview asset export is missing")
@@ -762,6 +805,7 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
     require(preview["version"] == version and len(preview["frames"]) == 24,
             "Native preview assets belong to a different release")
     timestamp_only = False
+    build_metadata_only = False
     for name, content in (("emery/pebble-app.bin", binary),
                           ("emery/app_resources.pbpack", resources)):
         if preview["source"]["nativePayloadSha256"][name] == sha256(content):
@@ -771,7 +815,16 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
         # SDK 4.33.1 inject_metadata.py RESOURCE_TIMESTAMP_ADDR: a four-byte
         # bundle timestamp at 0x7c. Compare every other byte, including CRCs.
         normalized = preview["source"].get("normalizedNativeBinarySha256")
-        if normalized is not None:
+        if allow_sdk_build_id:
+            # A different checkout changes the ELF debug paths and GNU build ID.
+            # Prove all code/data/resources against the original capture first.
+            with zipfile.ZipFile(root / "dist" / ("Dynamic-" + version + ".pbw")) as frozen:
+                reference = frozen.read(name)
+            require(sha256(reference) == preview["source"]["nativePayloadSha256"][name],
+                    "Frozen renderer does not match embedded preview provenance")
+            same_renderer_with_sdk_metadata(root, content, reference)
+            build_metadata_only = True
+        elif normalized is not None:
             require(isinstance(normalized, str) and re.fullmatch(r"[0-9a-f]{64}", normalized)
                     and len(content) >= 128 and
                     sha256(content[:124] + b'\0' * 4 + content[128:]) == normalized,
@@ -789,11 +842,12 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
                     "Native preview renderer differs beyond the SDK resource timestamp")
         timestamp_only = True
     return {"samples": 24, "nativeBinaryAndResourcesMatch": not timestamp_only,
-            "rendererMatchesExceptSdkResourceTimestamp": timestamp_only,
+            "rendererMatchesExceptSdkResourceTimestamp": timestamp_only and not build_metadata_only,
+            "rendererMatchesExceptSdkBuildMetadata": build_metadata_only,
             "freshCaptureClaimed": False}
 
 
-def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
+def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow_sdk_build_id=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
     require(package["version"] == "0.18.3", "Review this auditor for a different release version")
@@ -896,7 +950,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
     require(len(source_map["sources"]) == len(source_map["sourcesContent"]),
             "Invalid source map")
     sdk_additions = audit_sdk_additions(root, source_map)
-    preview_identity = audit_preview_identity(root, package["version"], binary, resources, allow_sdk_timestamp)
+    preview_identity = audit_preview_identity(root, package["version"], binary, resources, allow_sdk_timestamp, allow_sdk_build_id)
     require(len(source_map["sources"]) == len(set(source_map["sources"])),
             "Source map has duplicate modules")
     hosts, modules, activity_modules, ui_modules, xhr, bundled_keys = set(), set(), set(), set(), [], None
@@ -993,10 +1047,13 @@ def main():
                         help="Optional selected SDK pebble_fonts.h catalog")
     parser.add_argument("--allow-sdk-timestamp", action="store_true",
                         help="Development rebuild: permit only SDK resource timestamp drift from captured previews")
+    parser.add_argument("--allow-sdk-build-id", action="store_true",
+                        help="Development rebuild: verify GNU build ID/derived CRC drift against frozen renderer")
     args = parser.parse_args()
     try:
         result = audit(args.pbw, sdk_font_header=args.sdk_font_header,
-                       allow_sdk_timestamp=args.allow_sdk_timestamp)
+                       allow_sdk_timestamp=args.allow_sdk_timestamp,
+                       allow_sdk_build_id=args.allow_sdk_build_id)
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, struct.error,
             IndexError, re.error, subprocess.SubprocessError, tarfile.TarError, zipfile.BadZipFile) as error:
         parser.exit(1, "Dynamic native-style audit failed: " + str(error) + "\n")

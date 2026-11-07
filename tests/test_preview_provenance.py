@@ -5,6 +5,8 @@ import importlib.util
 import json
 import sys
 import tempfile
+import struct
+from unittest.mock import patch
 import unittest
 import zipfile
 
@@ -16,6 +18,44 @@ spec.loader.exec_module(audit)
 
 
 class PreviewProvenanceTests(unittest.TestCase):
+
+    def test_checkout_build_id_drift_preserves_code_resources_and_native_crc(self):
+        reference = bytearray(range(200))
+        struct.pack_into('<H', reference, 14, len(reference))
+        signature = struct.pack('<III', 4, 20, 3) + b'GNU\0'
+        reference[132:168] = signature + b'A' * 20
+        struct.pack_into('<I', reference, 20, audit.sdk_app_crc(reference[130:]))
+        rebuilt = bytearray(reference)
+        rebuilt[124:128] = b'new!'
+        rebuilt[148:168] = b'B' * 20
+        struct.pack_into('<I', rebuilt, 20, audit.sdk_app_crc(rebuilt[130:]))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            elf_path = root / 'build/emery/pebble-app.elf'
+            elf_path.parent.mkdir(parents=True)
+            elf_path.write_bytes(b'ELF fixture' + rebuilt[130:168])
+            note = {'.note.gnu.build-id': {'type': 7, 'flags': 2, 'size': 38,
+                    'address': 130, 'offset': len(b'ELF fixture')}}
+            with patch.object(audit, 'read_elf_sections', return_value=note):
+                audit.same_renderer_with_sdk_metadata(root, rebuilt, reference)
+                corrupted = bytearray(rebuilt)
+                corrupted[20] ^= 1
+                with self.assertRaisesRegex(ValueError, 'native CRC'):
+                    audit.same_renderer_with_sdk_metadata(root, corrupted, reference)
+                changed_code = bytearray(rebuilt)
+                changed_code[180] ^= 1
+                struct.pack_into('<I', changed_code, 20, audit.sdk_app_crc(changed_code[130:]))
+                with self.assertRaisesRegex(ValueError, 'renderer differs'):
+                    audit.same_renderer_with_sdk_metadata(root, changed_code, reference)
+                changed_note = bytearray(rebuilt)
+                changed_note[148] ^= 1
+                struct.pack_into('<I', changed_note, 20, audit.sdk_app_crc(changed_note[130:]))
+                with self.assertRaisesRegex(ValueError, 'linked ELF'):
+                    audit.same_renderer_with_sdk_metadata(root, changed_note, reference)
+            with patch.object(audit, 'read_elf_sections', return_value={}):
+                with self.assertRaisesRegex(ValueError, 'GNU SHA1'):
+                    audit.same_renderer_with_sdk_metadata(root, rebuilt, reference)
+
     def test_current_capture_provenance_needs_no_frozen_release(self):
         binary = bytes(range(160))
         resources = b'font and image resources'
