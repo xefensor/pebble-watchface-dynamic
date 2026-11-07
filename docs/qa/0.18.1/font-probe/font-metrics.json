@@ -1,0 +1,26 @@
+[
+  {
+    "font": "GOTHIC_18_BOLD",
+    "sample": "Agpqy09",
+    "top": 7,
+    "bottom": 20,
+    "left": 1,
+    "right": 55
+  },
+  {
+    "font": "GOTHIC_24_BOLD",
+    "sample": "Agpqy09",
+    "top": 10,
+    "bottom": 27,
+    "left": 1,
+    "right": 64
+  },
+  {
+    "font": "GOTHIC_28_BOLD",
+    "sample": "Agpqy09",
+    "top": 10,
+    "bottom": 31,
+    "left": 1,
+    "right": 77
+  }
+]

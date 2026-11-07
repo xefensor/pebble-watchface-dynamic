@@ -57,19 +57,19 @@ static inline float watch_date_split(float context) {
 }
 
 static inline WatchPose watch_pose_idle(void) {
-  return (WatchPose){100,108,80,100,23,
+  return (WatchPose){100,108,80,100,29,
     145,0,0,16,22,0,48,36,16,64,1,0,0,0,0};
 }
 
 static inline WatchPose watch_pose_context(bool notice) {
-  return (WatchPose){58,43,42,158,24,
-    66,-30,-2,10,14,12,4,22,12,19,1,
+  return (WatchPose){60,43,46,158,35,
+    66,-30,-2,10,14,12,4,22,12,22,1,
     1,notice ? 0 : 1,notice ? 1 : 0,0};
 }
 
 static inline WatchPose watch_pose_peek(void) {
-  return (WatchPose){100,89,68,100,23,
-    135,-30,-2,11,16,12,6,26,13,22,1,0,0,0,1};
+  return (WatchPose){100,89,68,100,29,
+    135,-30,-2,11,16,12,6,26,13,25,1,0,0,0,1};
 }
 
 static inline WatchPose watch_pose_summary(void) {

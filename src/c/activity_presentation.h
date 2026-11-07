@@ -71,6 +71,11 @@ typedef struct {
   bool vector,scalar,secondary,meter,media;
 } ActivityLayout;
 
+/* Center visible glyph ink, not the point-size box, next to a fixed icon. */
+static inline int activity_centered_baseline(int top,int height,MusicTextMetrics ink) {
+  return top+(height+ink.ascent-ink.descent)/2;
+}
+
 /* All wrapping starts at byte zero. The last available line ellipsizes; no
  * continuation state or timer exists. A bounded plan is reused by draw/ticks. */
 static inline void activity_layout_build(const char *main,const char *role,
@@ -89,6 +94,12 @@ static inline void activity_layout_build(const char *main,const char *role,
   const int footer_height=music_line_offsets(&out->footer,out->footer_point,
       measure,context,out->footer_baseline);
   for(int i=0;i<out->footer.count;++i)out->footer_baseline[i]+=MUSIC_BOTTOM-footer_height;
+  if(!media&&out->footer.count) {
+    const MusicTextMetrics ink=measure(context,out->footer.text[0],out->footer_point);
+    int baseline=activity_centered_baseline(out->icon_top,out->icon_size,ink);
+    if(baseline+ink.descent>MUSIC_BOTTOM)baseline=MUSIC_BOTTOM-ink.descent;
+    out->footer_baseline[0]=baseline;
+  }
   int footer_top=MUSIC_BOTTOM-footer_height;
   if((media&&image)||(!media&&footer[0])) {
     if(footer_top>out->icon_top)footer_top=out->icon_top;

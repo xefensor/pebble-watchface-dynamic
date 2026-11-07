@@ -645,16 +645,16 @@ static bool prv_draw_number(GContext *ctx,const ReadingParts *parts,float center
 }
 static int prv_label_width(const void *context,const char *text) {
   (void)context;
-  return graphics_text_layout_get_content_size(text,fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
+  return graphics_text_layout_get_content_size(text,fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
       GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
 }
 // Native Gothic belongs to compact utility roles. The activity renderer keeps
 // its exact per-glyph metrics and Fredoka keeps the numeric/clock hierarchy.
 static void prv_utility_text(GContext *ctx,const char *text,bool date,int x,int baseline,
     int width,GColor color,GTextAlignment alignment) {
-  const int height=date?18:14;
+  const int height=date?28:18;
   graphics_context_set_text_color(ctx,color);
-  graphics_draw_text(ctx,text,fonts_get_system_font(date?FONT_KEY_GOTHIC_18_BOLD:FONT_KEY_GOTHIC_14_BOLD),
+  graphics_draw_text(ctx,text,fonts_get_system_font(date?FONT_KEY_GOTHIC_28_BOLD:FONT_KEY_GOTHIC_18_BOLD),
       GRect(x,baseline-height,width,height+8),GTextOverflowModeFill,alignment,NULL);
 }
 static void prv_reading_label(GContext *ctx,const ComplicationSlot *slot,unsigned kind,
@@ -795,7 +795,7 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
   const float vertical=watch_clamp(split*2);
   // Separate the baselines before converging the two text runs horizontally.
   const float lateral=watch_smooth((split-0.25f)/0.75f);
-  const GFont date_font=fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  const GFont date_font=fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
   const float whole_width=graphics_text_layout_get_content_size(s_compact_date_buffer,date_font,
       GRect(0,0,2048,32),GTextOverflowModeFill,GTextAlignmentLeft).w;
   const float week_width=graphics_text_layout_get_content_size(s_weekday_buffer,date_font,
@@ -805,7 +805,7 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
   const float week_center=p.date_x+(week_width-whole_width)/2*(1-lateral);
   const float date_center=p.date_x+(whole_width-date_width)/2*(1-lateral);
   prv_utility_text(ctx,s_weekday_buffer,true,prv_round(week_center-38),
-      prv_round(p.date_y-5*vertical),76,s_text_color,GTextAlignmentCenter);
+      prv_round(p.date_y-8*vertical),76,s_text_color,GTextAlignmentCenter);
   prv_utility_text(ctx,s_numeric_date_buffer,true,prv_round(date_center-38),
       prv_round(p.date_y+16*vertical),76,s_text_color,GTextAlignmentCenter);
   if(vertical<0.99f) {
@@ -820,7 +820,7 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   graphics_context_set_antialiased(ctx,true);
   const WatchPose p=prv_current_pose();
   float point=p.clock_size,width=prv_vector_width(s_time_buffer,point);
-  const float available=watch_lerp(184,100,watch_clamp(p.context));
+  const float available=watch_lerp(184,108,watch_clamp(p.context));
   if(width>available){point*=available/width;width=available;}
   prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
   prv_draw_date(ctx,p);
@@ -954,6 +954,8 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
       pav_meter_visible(card,now,s_phone_connected),
       card->main.type==PAV_TEXT&&card->support.type==PAV_TEXT?20:16,ACTIVITY_CONTENT_TOP,prv_music_measure,
       vector?prv_activity_clock_measure:scalar?prv_activity_value_measure:prv_music_measure,out,&out->layout);
+  out->layout.secondary_baseline=activity_centered_baseline(ACTIVITY_SECONDARY_TOP,
+      ACTIVITY_SECONDARY_ICON,prv_music_measure(NULL,out->secondary,16));
   if(scalar&&card->directions[0]){out->layout.left=50;out->layout.width=140;}
   out->needs_tick=out->layout.main.count&&activity_view_needs_tick(card,
       out->layout.support.count>0,out->alternate,out->layout.secondary,now,s_phone_connected);
@@ -1076,8 +1078,11 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
     } else prv_text(ctx,layout->main.text[i],layout->point,x+layout->left,
         y+layout->main_baseline[i],layout->width,s_text_color,GTextAlignmentLeft);
   }
-  if(card->main.type==PAV_VALUE&&card->directions[0])prv_activity_symbol(ctx,0,card->directions[0],x+10,
-      y+layout->main_baseline[0]-24,32);
+  if(card->main.type==PAV_VALUE&&card->directions[0]) {
+    const MusicTextMetrics ink=prv_activity_value_measure(NULL,layout->main.text[0],layout->point);
+    prv_activity_symbol(ctx,0,card->directions[0],x+10,
+        y+layout->main_baseline[0]+(ink.descent-ink.ascent-32)/2,32);
+  }
   if(layout->role_baseline)prv_text(ctx,plan->role,14,x+10,y+layout->role_baseline,180,
       prv_muted_text(1),GTextAlignmentLeft);
   for(int i=0;i<layout->support.count;++i)prv_text(ctx,layout->support.text[i],layout->support_point,x+10,

@@ -1,9 +1,11 @@
 # Design references and motion
 
-The unpublished 0.18.0 branch trial adds native Gothic Bold utility/date roles,
+The unpublished 0.18.1 correction uses larger Gothic 28 Bold date and Gothic 18
+Bold utility labels after Xef rejected the trial’s small type. Adjacent icons
+and text are centered by visible ink metrics. The original 0.18.0 trial added
 2px/filled semantic symbols and a bounded 3px settle within the existing 280ms
 incoming motion. Fredoka, exact-metric activity body text and established
-geometry remain. [Trial notes](REDESIGN.md) and [fresh evidence](qa/0.18.0/VALIDATION.md)
+geometry remain. [Trial notes](REDESIGN.md) and [fresh evidence](qa/0.18.1/VALIDATION.md)
 describe this alternative. The older version-specific rationale below remains
 historical and does not establish validation of the new binary.
 

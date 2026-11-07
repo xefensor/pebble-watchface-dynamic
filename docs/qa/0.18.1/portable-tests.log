@@ -1,0 +1,168 @@
+
+> dynamic-watchface@0.18.1 test
+> python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py
+
+Pinned pebble-watchface-core 0.5.1: verified
+Pinned pebble-activities 0.4.4: verified
+✔ native presentation confirms exact roles and retains only navigation metadata (3.069901ms)
+✔ promotion follows native indices without reranking or source lookup (0.20364ms)
+✔ missing app destination remains null independently in each role (0.148125ms)
+✔ a source read does not renew observation or validity and expired data is removed (0.308796ms)
+✔ old view, native session, duplicate status and invalid indices cannot publish (0.178332ms)
+✔ new destination mapping clears old hint until that exact view is presented (0.186152ms)
+✔ source lease and native role changing deadline cap the routing lease (0.176357ms)
+✔ delayed reports cannot manufacture another 45 seconds of freshness (0.130097ms)
+✔ absent or non-openable presentation clears the hint (0.181682ms)
+✔ native clearing cannot be undone by an older presentation (0.197428ms)
+✔ invalid saved records never gain source validity (0.224498ms)
+✔ storage failure does not claim acceptance or log contents (0.111022ms)
+✔ Notifications opens from either shared role without a special native status (0.131776ms)
+✔ projection preserves instance context, independent clocks and authoritative metadata (1.880668ms)
+✔ unknown activity has no guessed timer identity or app destination (0.257935ms)
+✔ declared identity symbols retain distinct generated glyphs including calls and messages (2.115427ms)
+✔ media is explicit and preserves artwork and artist without placeholder labels (0.413672ms)
+✔ Music can occupy either role and follows Dynamic preferences (0.61172ms)
+✔ dual-convention media retains exact provider controls and cannot bypass a provider hide (0.321886ms)
+✔ schema4 selects an independent compact detail and preserves both typed datums (0.393967ms)
+✔ a standard activity with a media icon preserves its clock presentation in either role (0.494352ms)
+✔ media visual token changes on an item replacement, not artwork, artist or lease (0.718829ms)
+✔ typed media playback reaches native state in either role without changing track identity or clocks (2.173577ms)
+✔ only verified built-in media and Timer receive host-known app destinations (0.15824ms)
+✔ unconfirmed native Timer predictions keep original leases while unrelated uncertain sources yield (0.146295ms)
+✔ unprojectable earlier sources cannot starve a valid secondary (0.184702ms)
+✔ Notifications use ordinary summary fields and routes with and without message text (0.571795ms)
+✔ notification priority can be secondary, hidden or absent just like other activities (0.731471ms)
+✔ notification adapter duplicates and provider hiding cannot create extra visible content (0.215514ms)
+✔ Dynamic requests display and open-app data without action or entity descriptors (1.658693ms)
+✔ ready and named/numeric complication requests refresh the generic coordinator (1.366388ms)
+✔ native baseline cancels bootstrap retries including an already queued timer callback (0.791407ms)
+✔ obsolete bootstrap waiting behind settings never resets the new native session (4.458476ms)
+✔ another ready event replaces the bootstrap retry generation without duplicate chains (0.710914ms)
+✔ late bootstrap transport failure cannot recreate a retry after native confirmation (0.713818ms)
+✔ the coordinator receives saved clock preference and active-watch language (1.304589ms)
+✔ obsolete layout choices are ignored while unrelated appearance settings survive (1.025113ms)
+✔ one text layout ignores saved and incoming legacy text-size choices (11.43334ms)
+✔ queued legacy text-size settings are inert and cannot leave a false pending-save status (2.622635ms)
+✔ invalid layouts and unsupported fields cannot override unrelated visual settings (1.131791ms)
+✔ obsolete weather/unit controls never reach the new complication-only watch UI (0.814284ms)
+✔ boolean settings preserve explicit off and reject malformed values (1.001307ms)
+✔ cancelled or invalid settings do nothing, empty valid settings reconfigure only (0.720044ms)
+✔ settings show complication counts/errors and no hard-coded weather picker (1.928813ms)
+✔ provider error messages are displayed as literal text in Clay settings (1.441356ms)
+✔ complication controls/status follow the active watch language and rebuild after a language change (2.264283ms)
+✔ disabled plugin status is explicit and locale lookup falls back to the phone (2.82741ms)
+✔ settings delivery retries busy transport, then reconfigures once (0.936957ms)
+✔ settings delivery failure is bounded instead of retrying forever (0.79608ms)
+✔ context source defaults and saved named/numeric settings preserve explicit opt-outs (1.66212ms)
+✔ startup and reconnect context requests rebaseline while ordinary requests preserve notification history (0.62955ms)
+✔ phone-only notification and music choices never enter watch packets and apply before theme retries (0.761902ms)
+✔ dynamic source errors use translated framing and literal HTML-escaped diagnostics (2.006611ms)
+✔ Halftone border effects cannot enter Dynamic watch packets (0.733064ms)
+✔ Dynamic uses the installed core API and its own complication cache namespace (0.623394ms)
+✔ accent colors preserve zero and valid named/numeric values (3.577926ms)
+✔ invalid accent colors are omitted while valid page settings still deliver (6.729804ms)
+✔ existing colors and privacy choices remain untouched when opening the rebuilt face (1.492492ms)
+✔ new appearance keys extend the original wire contract without renumbering existing keys (0.07409ms)
+✔ animations deliver explicit on and off through named and numeric settings (4.460369ms)
+✔ malformed animation settings cannot override other valid settings (10.736248ms)
+✔ opening the face and settings retains saved animation opt-outs (4.280679ms)
+✔ missing or malformed saved animation choices retain the enabled new-install default (6.090324ms)
+✔ clock format follows Pebble for new installs and preserves legacy explicit choices (8.726383ms)
+✔ clock format accepts only the three supported numeric choices (7.500434ms)
+✔ failed settings remain pending for reconnect and clear only after watch acknowledgement (0.740199ms)
+✔ an older settings acknowledgement cannot mark a newer save as delivered (0.689336ms)
+✔ startup reapplies validated saved presentation without sending private source preferences (1.738228ms)
+✔ native baseline requests recover presentation even when a reset reuses a token (0.790143ms)
+✔ presentation recovery carries pending values forward and ignores late ACKs across a newer save (1.403372ms)
+✔ settings metadata keeps per-slot property and per-feature permission states distinct (1.284334ms)
+✔ private selected readings never enter settings examples or provider error diagnostics (1.667116ms)
+✔ native system-format replies are cached independently of an explicit clock override (2.369516ms)
+✔ unknown system-format remains explicit metadata instead of inventing a watch preference (1.39685ms)
+✔ settings group appearance, content and recovery in one three-section page (1.432958ms)
+✔ new night palette and haptic controls deliver validated native preferences only (44.427245ms)
+✔ app-only is a phone privacy preference and saved native choices survive opening settings (2.843895ms)
+✔ generic activity discovery starts with the host and follows native session requests (0.83409ms)
+✔ activity preferences remain phone-only and reconfigure before native settings delivery (1.443897ms)
+✔ generic sources share activity roles while respecting the media opt-out (1.646679ms)
+✔ ongoing generic activities take priority over music without reordering their sources (1.146058ms)
+✔ soonest running deadline is projected even from the eighth timer slot (1.001847ms)
+✔ clock ordering preserves other provider positions and stable equal deadlines (0.689889ms)
+✔ native view selection preserves canonical items, units, artwork and source data across roles (0.940764ms)
+✔ retained source results yield to ongoing activities and music (2.362369ms)
+✔ deadline ordering uses each datum state and its anchor plus base (0.729576ms)
+✔ Dynamic provider preferences reorder Timer and built-in Music in either role and survive restart (2.053664ms)
+✔ installed idle provider metadata and absent provider preferences reach settings without activity contents (1.491635ms)
+✔ malformed activity preferences are bounded and cannot become native settings or save content (0.730122ms)
+✔ phone status does not resend unchanged canonical activities while notification changes reproject (0.787817ms)
+✔ built-in notifications use either shared role, preserve privacy destinations and migrate into editable priority (1.957955ms)
+✔ presented status confirms destination-only navigation metadata for the exact outgoing view (0.714178ms)
+✔ normal activity work defers settings UI and reuses saved preferences (2.010277ms)
+✔ a partial settings storage failure cannot leave the read cache stale (0.670334ms)
+✔ watch language wins, with phone/English fallback and Norwegian aliases (0.147618ms)
+✔ en translates every active control and status (0.576224ms)
+✔ cs translates every active control and status (0.28045ms)
+✔ sk translates every active control and status (0.280601ms)
+✔ de translates every active control and status (0.221734ms)
+✔ fr translates every active control and status (0.22656ms)
+✔ es translates every active control and status (0.227094ms)
+✔ it translates every active control and status (0.227251ms)
+✔ pt translates every active control and status (0.220957ms)
+✔ nl translates every active control and status (0.218605ms)
+✔ pl translates every active control and status (0.279817ms)
+✔ da translates every active control and status (0.236833ms)
+✔ sv translates every active control and status (0.185951ms)
+✔ no translates every active control and status (0.184328ms)
+✔ fi translates every active control and status (0.178652ms)
+✔ hu translates every active control and status (0.223614ms)
+✔ ro translates every active control and status (0.209671ms)
+✔ tr translates every active control and status (0.176634ms)
+✔ translation preserves preference identifiers, defaults and schema while cloning (2.661113ms)
+✔ custom settings strings resolve all supported locales and return isolated dictionaries (7.656529ms)
+✔ translation preserves provider values and API identifiers in settings metadata (0.224911ms)
+✔ all custom controls, source states and save outcomes have complete translations (4.027801ms)
+✔ Timer preview is named in every supported language (1.553024ms)
+✔ borderless settings expose only applicable controls and preserve privacy defaults (0.414759ms)
+✔ chunky-motion appearance controls are translated without stale panel or shadow promises (1.363104ms)
+✔ the full UX pass has explicit translations and keeps privacy and save meanings separate (2.45346ms)
+✔ app-only privacy, quiet alerts and colour sharing are explicit in every locale (1.996118ms)
+✔ notification activity copy shares roles and preserves system notification ownership (1.940357ms)
+✔ settings cleanup removes obsolete copy and translates the shared priority and privacy controls (2.734281ms)
+✔ twenty-four native settings states use production ACT3 encoders and retain header controls (17.38528ms)
+✔ approved normal and compact activity combinations have light and dark native fixtures (32.316383ms)
+✔ offline settings have every native preset and intact 200×228 PNGs (1.830266ms)
+✔ custom preview preserves source artwork and the native Timeline area (0.185681ms)
+✔ settings keys retain the native contract and legacy reads never rewrite storage (0.354013ms)
+✔ one verified save commits phone fields and stable activity preferences atomically and survives a new runtime (0.288759ms)
+✔ saved retired keys survive while new private or unrecognised fields cannot be injected (0.178305ms)
+✔ invalid complete drafts are known not saved, failed or unverified storage remains uncertain (0.154185ms)
+✔ corrupt saved state is not exposed as editable replacement defaults (0.079618ms)
+✔ an active Android runtime must own the save before its restored DOM snapshot is persisted on shutdown (0.122502ms)
+✔ page preparation keeps all seventeen languages, literal source metadata and current watch palettes (6.925855ms)
+ℹ tests 134
+ℹ suites 0
+ℹ pass 134
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 332.627038
+bounded portable state: view 2708, layout 1344, navigation 24 bytes (host ABI)
+covered callbacks: zero decorative registrations/dirty requests; fresh return and static-minute/expiry/locale gates passed
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.060s
+
+OK
+activity-memory.c: PASS
+activity-navigation.c: PASS
+activity-plan-cache.c: PASS
+activity-presentation.c: PASS
+activity-view.c: PASS
+context-effects.c: PASS
+context-session.c: PASS
+font-assets.c: PASS
+font-raster.c: PASS
+music-layout.c: PASS
+native-reading.c: PASS
+native-settings.c: PASS
+watch-layout.c: PASS

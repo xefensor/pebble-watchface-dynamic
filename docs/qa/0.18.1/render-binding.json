@@ -1,0 +1,42 @@
+{
+  "version": "0.18.1",
+  "finalPbwSha256": "0d360c3681642a146834d41526d19c25baa2eeac076bb6ba663e942dca2d5562",
+  "finalNativePayloadSha256": {
+    "emery/pebble-app.bin": "e4b4e85237b21832be769f11110a1a9c661c2f8bd9708ab7dbb588b64dfd3e14",
+    "emery/app_resources.pbpack": "2bf4e3cbeaae59e48d65993ece095cc59364cc91528485a588c8fdd254bb8fbb",
+    "emery/manifest.json": "f5e3d7e26ec7aa3f82b1ffc4f898b20e604a0a2857730c6a86c6cb38ee9a950e"
+  },
+  "captures": [
+    {
+      "originalReport": "native-previews/previews.json",
+      "nativeBinaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "e2b5bf9f8be3d985b8c19733efc8b47a0c57f463a510bd08eaabbbea03ad793b",
+      "originalHashesPreserved": true
+    },
+    {
+      "originalReport": "native-activities/activities.json",
+      "nativeBinaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "e2b5bf9f8be3d985b8c19733efc8b47a0c57f463a510bd08eaabbbea03ad793b",
+      "originalHashesPreserved": true
+    },
+    {
+      "originalReport": "native-long-date/previews.json",
+      "nativeBinaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "e2b5bf9f8be3d985b8c19733efc8b47a0c57f463a510bd08eaabbbea03ad793b",
+      "originalHashesPreserved": true
+    },
+    {
+      "originalReport": "native-motion/motion.json",
+      "nativeBinaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "e2b5bf9f8be3d985b8c19733efc8b47a0c57f463a510bd08eaabbbea03ad793b",
+      "originalHashesPreserved": true
+    },
+    {
+      "originalReport": "tick-comparison/current/report.json",
+      "nativeBinaryAndResourcesMatchFinal": true,
+      "originalManifestSha256": "e2b5bf9f8be3d985b8c19733efc8b47a0c57f463a510bd08eaabbbea03ad793b",
+      "originalHashesPreserved": true
+    }
+  ],
+  "scope": "Exact binary/resources comparisons. Original capture metadata remains unchanged; incremental JS-only preview rebundling can change SDK manifest metadata."
+}

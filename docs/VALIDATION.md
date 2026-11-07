@@ -1,5 +1,12 @@
 # Dynamic validation
 
+## 0.18.1 readability correction
+
+Xef rejected shrinking top date/time and high icons. Larger native date and
+compact time, larger reading labels and ink-centered caption/icon groups are
+implemented on the design branch. See [current evidence](qa/0.18.1/VALIDATION.md);
+prior 0.18.0 below remains the first trial, not current verification.
+
 ## 0.18.0 Pebble-native branch trial — 7 November 2026
 
 [Current trial evidence](qa/0.18.0/VALIDATION.md): all 134 portable JS tests,

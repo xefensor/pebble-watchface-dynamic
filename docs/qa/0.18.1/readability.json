@@ -1,0 +1,211 @@
+{
+  "result": "PASS",
+  "scope": "Pixel measurements of unmodified native emulator captures, not physical-watch readability.",
+  "dateAndClock": {
+    "0.17.0": {
+      "idleDateInk": [
+        55,
+        9,
+        143,
+        22
+      ],
+      "idleDateInkHeight": 14,
+      "compactClockInk": [
+        11,
+        13,
+        103,
+        43
+      ],
+      "compactClockInkHeight": 31
+    },
+    "0.18.0": {
+      "idleDateInk": [
+        65,
+        12,
+        134,
+        22
+      ],
+      "idleDateInkHeight": 11,
+      "compactClockInk": [
+        11,
+        13,
+        103,
+        43
+      ],
+      "compactClockInkHeight": 31
+    },
+    "0.18.1": {
+      "idleDateInk": [
+        54,
+        11,
+        145,
+        28
+      ],
+      "idleDateInkHeight": 18,
+      "compactClockInk": [
+        9,
+        10,
+        110,
+        43
+      ],
+      "compactClockInkHeight": 34
+    }
+  },
+  "iconCaptionGroups": [
+    {
+      "group": "timer",
+      "theme": "light",
+      "iconInk": [
+        14,
+        196,
+        30,
+        212
+      ],
+      "captionInk": [
+        45,
+        197,
+        73,
+        210
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "timer",
+      "theme": "dark",
+      "iconInk": [
+        14,
+        196,
+        30,
+        212
+      ],
+      "captionInk": [
+        45,
+        197,
+        73,
+        210
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "notification",
+      "theme": "light",
+      "iconInk": [
+        10,
+        200,
+        25,
+        215
+      ],
+      "captionInk": [
+        37,
+        200,
+        75,
+        214
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "notification",
+      "theme": "dark",
+      "iconInk": [
+        10,
+        200,
+        25,
+        215
+      ],
+      "captionInk": [
+        37,
+        200,
+        75,
+        214
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "notification-summary",
+      "theme": "light",
+      "iconInk": [
+        10,
+        200,
+        25,
+        215
+      ],
+      "captionInk": [
+        37,
+        200,
+        75,
+        214
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "notification-summary",
+      "theme": "dark",
+      "iconInk": [
+        10,
+        200,
+        25,
+        215
+      ],
+      "captionInk": [
+        37,
+        200,
+        75,
+        214
+      ],
+      "centerDifferencePx": 0.5
+    },
+    {
+      "group": "music",
+      "theme": "light",
+      "iconInk": [
+        10,
+        176,
+        49,
+        215
+      ],
+      "captionInk": [
+        60,
+        176,
+        162,
+        215
+      ],
+      "centerDifferencePx": 0.0
+    },
+    {
+      "group": "music",
+      "theme": "dark",
+      "iconInk": [
+        10,
+        176,
+        49,
+        215
+      ],
+      "captionInk": [
+        60,
+        176,
+        162,
+        215
+      ],
+      "centerDifferencePx": 0.0
+    },
+    {
+      "group": "secondary",
+      "iconInk": [
+        14,
+        96,
+        24,
+        111
+      ],
+      "captionInk": [
+        33,
+        98,
+        185,
+        109
+      ],
+      "centerDifferencePx": 0.0
+    }
+  ],
+  "activityBottomClearancePx": 12,
+  "accentBounds": "Shared native Gothic28 accent probe: top4/bottom31; Dynamic idle/Peek frame y1 and compact weekday frame y-1 leave5/3px top margins. Compact next date begins33 after weekday full ink ends30.",
+  "phoneBrowserPixelsVerified": false
+}

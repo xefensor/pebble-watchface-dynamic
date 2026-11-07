@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.1
+
+- Apply Xef’s readability correction: larger date, compact time and reading labels.
+- Center footer/secondary caption ink and direction symbols with adjacent text
+  using actual glyph metrics, retaining fixed activity/footer bounds.
+- Center phone control labels/chevrons and enlarge section/preview button text.
+- Preserve identity, source/privacy/lifecycle and all 17-language form contracts.
+- Local design review only; main and earlier versioned artifacts stay unchanged.
+
 ## 0.18.0
 
 - Unpublished design-branch alternative for visual review. Keep Fredoka time,

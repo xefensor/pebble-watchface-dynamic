@@ -1,6 +1,6 @@
 # Dynamic UI/UX implementation
 
-Local design trial: **0.18.0**, 7 November 2026, on
+Local design trial: **0.18.1**, 7 November 2026, on
 `design/pebble-native-redesign`. Published 0.16.2 remains frozen. The tested
 0.17.0 shared-UI baseline remains available unchanged.
 
@@ -10,6 +10,14 @@ The canonical standard lives in the local `xoce` checkout at
 The website and this candidate have not been published. This branch is an
 alternative for aesthetic review, not a replacement for that canonical standard.
 See [the trial rationale and sources](REDESIGN.md).
+
+## Xef’s readability correction
+
+Small Pebble-style utility text is not a goal. The revised branch enlarges the
+date and compact clock, uses larger reading labels, and centers adjacent caption
+ink within its fixed icon frame. Existing composition anchors remain; internal
+centering and breathing room take priority over copying OS font sizes.
+See [the correction and fresh evidence](REDESIGN.md).
 
 ## Implemented behaviour
 

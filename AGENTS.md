@@ -260,3 +260,15 @@ data/lifecycle contracts remain. Preserve 0.17.0 artifacts, store kit and eviden
 Fresh native/package checks pass; Chromium exits 133 with crashpad EPERM, so
 fresh browser/device verification is still pending. Do not present historical
 0.17.0 browser results as checks of this trial. Do not publish this branch.
+
+## Readability correction — unpublished 0.18.1
+
+Xef rejected shrinking top time/date and icons sitting above adjacent text.
+Readability wins over matching small Pebble utility text. Keep the larger
+Gothic 28 Bold date, enlarged compact Fredoka clock and Gothic 18 Bold reading
+labels. Center caption/icon groups by actual visible ascent/descent; preserve
+fixed footer bounds and the bottom-aligned primary composition. Native previews
+must cover long date/time and generic/notification layouts. Phone controls use
+centered labels/chevrons and readable text; retain all existing storage/locale
+contracts. See [REDESIGN.md](docs/REDESIGN.md). Preserve 0.18.0 artifacts as the
+rejected trial, not as current verification.

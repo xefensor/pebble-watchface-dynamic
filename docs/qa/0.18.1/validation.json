@@ -1,0 +1,44 @@
+{
+  "version": "0.18.1",
+  "branch": "design/pebble-native-redesign",
+  "publication": "unpublished-readability-correction",
+  "pbwSha256": "0d360c3681642a146834d41526d19c25baa2eeac076bb6ba663e942dca2d5562",
+  "checks": {
+    "javascript": 134,
+    "nativeC": 13,
+    "productionLifecycle": "PASS",
+    "releaseAutomation": 19,
+    "minification": 8,
+    "artifactFontSourceAudit": "PASS",
+    "standardNativeStates": 24,
+    "expandedLayoutStates": 64,
+    "expandedTicksVerified": false,
+    "hardDateTimeStates": 24,
+    "nativeMotion": "PASS",
+    "pixelReadabilityAndCentering": "PASS",
+    "independentRecordingClockAdvance": "PASS current and prior; initial broad1.15s check inconclusive",
+    "nativeRenderBinding": "PASS unchanged binary/resources",
+    "freshBrowser": "NOT RUN: environment already blocks Chromium",
+    "physicalWatch": "NOT RUN",
+    "realPhoneWebView": "NOT RUN"
+  },
+  "nativePayloadSha256": {
+    "emery/pebble-app.bin": "e4b4e85237b21832be769f11110a1a9c661c2f8bd9708ab7dbb588b64dfd3e14",
+    "emery/app_resources.pbpack": "2bf4e3cbeaae59e48d65993ece095cc59364cc91528485a588c8fdd254bb8fbb",
+    "emery/manifest.json": "f5e3d7e26ec7aa3f82b1ffc4f898b20e604a0a2857730c6a86c6cb38ee9a950e"
+  },
+  "nativeSizes": {
+    "fileBytes": 64980,
+    "loadedBytes": 62600,
+    "virtualBytes": 63016,
+    "relocationEntries": 595,
+    "relocationBytes": 2380,
+    "processInfoSizeLimit": 65535,
+    "completeBinaryLimit": 131072,
+    "loadedHeadroomBytes": 2935,
+    "virtualHeadroomBytes": 2519,
+    "linkedElfSectionsMatch": true,
+    "scope": "Loaded image and static extent; this does not measure runtime heap availability."
+  },
+  "historicalStoreKitVersion": "0.17.0"
+}

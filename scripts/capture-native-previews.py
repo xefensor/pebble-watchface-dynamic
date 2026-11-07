@@ -175,7 +175,7 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
         if owned:service.shutdown()
 
 
-def capture_activities(pebble,session,output,appmessage=None):
+def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
     """Capture affected generic layouts on the existing native candidate.
 
     Call after capture() in the same emulator session. This function does not
@@ -188,6 +188,7 @@ def capture_activities(pebble,session,output,appmessage=None):
     from pebble_tool.commands.emucontrol import send_data_to_qemu
     from PIL import Image
 
+    host_rtc=os.environ.get('PEBBLE_QA_HOST_RTC')=='1'
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
     exported=(ROOT/'src/pkjs/settings-preview.js').read_text().split('module.exports = ',1)[1].strip().removesuffix(';')
     preview=json.loads(exported)
@@ -261,7 +262,9 @@ def capture_activities(pebble,session,output,appmessage=None):
                 'settled_header_readings_rgb_equal':True,'running_clock_changes_allowed':True,
                 'capture_delay_seconds':preset.get('captureDelaySeconds',.8),
                 'two_configured_readings':True,'region_checks':region_checks}
-            if preset.get('verifyClockTick'):
+            if preset.get('verifyClockTick') and not verify_ticks:
+                captured['clock_tick_check']='Not run: this is a layout-only capture'
+            if preset.get('verifyClockTick') and verify_ticks:
                 time.sleep(1.15)
                 later=b''.join(Screenshot(pebble).grab_image())
                 if pixels[200*92*3:]==later[200*92*3:]:raise RuntimeError('Visible native clock did not advance: '+preset['name'])
@@ -281,7 +284,8 @@ def capture_activities(pebble,session,output,appmessage=None):
             'phone_javascript_executed':False,'candidate_install_unchanged':True,
             'fixture_encoder':{'core':plan['coreVersion'],'activities':plan['activitiesVersion'],
                 'core_wire_version':4,'activity_wire_version':plan['activityWireVersion']},'captures':captures,
-            'scope':str(len(captures))+' actual ACT2 activity compositions with two configured sample readings, timed expiry and local-clock proofs. All source data is synthetic; elapsed workout is not native Workout integration.',
+            'scope':str(len(captures))+' actual activity compositions with two configured sample readings and timed expiry. All source data is synthetic; elapsed workout is not native Workout integration.',
+            'local_clock_checks_requested':verify_ticks,
             'visual_review':{'reviewed':False}}
         (output/'activities.json').write_text(json.dumps(report,indent=2)+'\n')
         return report

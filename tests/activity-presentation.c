@@ -68,6 +68,10 @@ int main(void) {
   assert(!activity_simple_unit(":12 /km")&&!activity_simple_unit("–1")&&!activity_simple_unit("e+20"));
   build("00:36","","","Tea",false,true,false,true,false,false,92,&layout);
   assert(layout.main.count==1&&layout.vector&&layout.secondary&&layout.point>=40);
+  const MusicTextMetrics caption=measure(NULL,layout.footer.text[0],layout.footer_point);
+  const int caption_center2=2*layout.footer_baseline[0]-caption.ascent+caption.descent;
+  const int icon_center2=2*layout.icon_top+layout.icon_size;
+  assert(caption_center2>=icon_center2-1&&caption_center2<=icon_center2+1);
   assert(layout.footer.count==1&&layout.footer_baseline[0]>layout.main_baseline[0]);
   assert(!strcmp(layout.main.text[0],"00:36"));
   build("00:36","","","Tea",false,true,false,false,false,false,92,&alone);

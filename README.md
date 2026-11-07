@@ -1,6 +1,6 @@
 # Dynamic
 
-Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.0.
+Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.1.
 [Design choices and review evidence](docs/REDESIGN.md).
 
 A Pebble Time 2 watchface with rounded time, two horizontal readings and
@@ -16,7 +16,7 @@ identity, package names and published release files.
 
 ## Local Pebble-native design trial
 
-**0.18.0 is built locally on `design/pebble-native-redesign` and has not been
+**0.18.1 is built locally on `design/pebble-native-redesign` and has not been
 published.** Native Gothic utility labels/date, stronger semantic icons and a
 small incoming-content settle sit alongside the existing Fredoka clock and
 activity composition. Its bundled phone page uses the shared neutral/blue style,
@@ -30,7 +30,7 @@ The packaged `config.html` uses Pebble's configuration bridge. The older
 pretend to provide in-page confirmation. Phone storage and watch delivery are
 reported separately. See [the implementation handoff](docs/UX-ALIGNMENT.md) and
 [design trial notes](docs/REDESIGN.md) and
-[0.18.0 validation](docs/qa/0.18.0/VALIDATION.md). Fresh native captures and the
+[0.18.0 validation](docs/qa/0.18.1/VALIDATION.md). Fresh native captures and the
 artifact audit pass; fresh Chromium checks are blocked by this environment.
 
 Local installable file: [Dynamic-0.18.0.pbw](dist/Dynamic-0.18.0.pbw).
