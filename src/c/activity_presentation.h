@@ -7,7 +7,7 @@
 /* The host has two positions, not two different source contracts. */
 enum { ACTIVITY_SECONDARY_TOP=106, ACTIVITY_SECONDARY_LEFT=42,
        ACTIVITY_SECONDARY_WIDTH=148, ACTIVITY_SECONDARY_ICON=24, ACTIVITY_SECONDARY_HEIGHT=26,
-       ACTIVITY_CONTENT_TOP=106, ACTIVITY_CONTENT_BOTTOM=216 };
+       ACTIVITY_CONTENT_TOP=106, ACTIVITY_EXPANDED_TOP=86, ACTIVITY_CONTENT_BOTTOM=216 };
 
 static inline const char *activity_identity(const PavCard *card) {
   return pav_caption(card);
@@ -66,7 +66,7 @@ typedef struct {
   MusicLines main,support,footer;
   int main_baseline[MUSIC_MAX_LINES],support_baseline[MUSIC_MAX_LINES];
   int footer_baseline[MUSIC_MAX_LINES];
-  int point,left,width,role_baseline,footer_left,footer_width,footer_point,support_point;
+  int top,point,left,width,role_baseline,footer_left,footer_width,footer_point,support_point;
   int icon_top,icon_size,meter_top,secondary_baseline;
   bool vector,scalar,secondary,meter,media;
 } ActivityLayout;
@@ -97,7 +97,7 @@ static inline void activity_layout_build(const char *main,const char *role,
     bool secondary,bool image,bool meter,bool footer_symbol,int footer_point,int support_point,int top,MusicMeasure measure,
     MusicMeasure scalar_measure,void *context,ActivityLayout *out) {
 layout_again:
-  memset(out,0,sizeof(*out));out->media=media;out->secondary=secondary;
+  memset(out,0,sizeof(*out));out->top=top;out->media=media;out->secondary=secondary;
   out->vector=vector;out->scalar=scalar;out->left=10;out->width=180;
   int content_top=top+(secondary?32:4);out->support_point=support_point;
   out->secondary_baseline=top+4+measure(context,"Ag",XOCE_UI_SECONDARY_POINT).ascent;
@@ -117,7 +117,7 @@ layout_again:
   if(content_top>=limit){out->secondary=false;return;}
   if(media) {
     out->point=XOCE_UI_BODY_POINT;
-    for(int count=secondary?2:3;count>=1;--count) {
+    for(int count=secondary&&top>=ACTIVITY_CONTENT_TOP?2:3;count>=1;--count) {
       music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
       const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
       if(content_top+height<=limit) {
@@ -145,7 +145,7 @@ layout_again:
   if(vector||scalar) {
     const int points[]={64,56,48,40,32,26,20,16,14};
     MusicTextMetrics value={0};
-    unsigned first=secondary?1:0;
+    unsigned first=secondary&&top>=ACTIVITY_CONTENT_TOP?1:0;
     for(unsigned pass=0;pass<2;++pass) {
       for(unsigned i=first;i<sizeof(points)/sizeof(points[0]);++i) {
         out->point=points[i];value=scalar_measure(context,main,out->point);
@@ -168,7 +168,7 @@ layout_again:
     main_bottom=out->main_baseline[0]+value.descent;
   } else {
     out->point=XOCE_UI_BODY_POINT;
-    for(int count=secondary?2:3;count>=1;--count) {
+    for(int count=secondary&&top>=ACTIVITY_CONTENT_TOP?2:3;count>=1;--count) {
       music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
       const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
       if(content_top+height<=main_limit) {

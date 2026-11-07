@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define WATCH_LAYOUT_SLOT_COUNT 5
+enum { WATCH_PANEL_ENTRY_MS=132, WATCH_PANEL_ENTRY_DISTANCE=10 };
 
 enum { WATCH_CLOCK_FOLLOW=0, WATCH_CLOCK_12=12, WATCH_CLOCK_24=24, WATCH_CLOCK_QUERY=255 };
 static inline uint8_t watch_clock_format(int stored,int legacy) {
@@ -30,29 +31,13 @@ static inline float watch_lerp(float first, float last, float amount) {
   return first + (last - first) * amount;
 }
 
-static inline float watch_smooth(float value) {
-  value = watch_clamp(value);
-  return value * value * (3 - 2 * value);
-}
-
-static inline float watch_ease(float value) {
-  value = watch_clamp(value) - 1;
-  return 1 + 1.65f * value * value * value + 0.65f * value * value;
-}
-
-// Incoming content travels from the right, then settles back by only three
-// physical pixels. Keep progress separate from displacement: passing the target
-// is part of the motion, not a signal to end it early.
-static inline float watch_incoming(float progress) {
-  progress=watch_clamp(progress);
-  if(progress<0.72f)return watch_lerp(0,1.015f,watch_smooth(progress/0.72f));
-  return watch_lerp(1.015f,1,watch_smooth((progress-0.72f)/0.28f));
-}
-
-// Wait for the large clock to vacate the right column, then unfold the date.
-// Native Peek uses the same context interpolation in the reverse direction.
-static inline float watch_date_split(float context) {
-  return watch_smooth((watch_clamp(context) - 0.55f) / 0.45f);
+/* A Weather-style short vertical entry, with stock quadratic EaseOut and no
+ * overshoot. Header/readings are never part of this presentation offset. */
+static inline int watch_panel_offset(uint32_t elapsed) {
+  if(elapsed>=WATCH_PANEL_ENTRY_MS)return 0;
+  const uint32_t remaining=WATCH_PANEL_ENTRY_MS-elapsed;
+  const uint32_t denominator=WATCH_PANEL_ENTRY_MS*WATCH_PANEL_ENTRY_MS;
+  return (WATCH_PANEL_ENTRY_DISTANCE*remaining*remaining+denominator/2)/denominator;
 }
 
 static inline WatchPose watch_pose_idle(void) {
@@ -80,26 +65,10 @@ static inline float watch_context_visibility(WatchPose pose) {
   return watch_clamp(pose.music+pose.notice);
 }
 
-// Each reading's icon, number, unit and second line share one moving group.
-// No independent lateral paths can cross another slot during a pose change.
-static inline WatchPose watch_pose_between(WatchPose a, WatchPose b, float amount) {
-  WatchPose result;
-#define WATCH_MIX(field) result.field = watch_lerp(a.field,b.field,amount)
-  WATCH_MIX(clock_x); WATCH_MIX(clock_y); WATCH_MIX(clock_size);
-  WATCH_MIX(date_x); WATCH_MIX(date_y); WATCH_MIX(row_y);
-  WATCH_MIX(number_size);
-  WATCH_MIX(label_y); WATCH_MIX(context);
-  WATCH_MIX(music); WATCH_MIX(notice); WATCH_MIX(peek);
-#undef WATCH_MIX
-  return result;
-}
-
-// Native Peek may briefly overshoot its settled 171px height. Do not clamp
-// that animation to its endpoint: the face follows every unobstructed frame.
+// Pebble owns the Peek reveal. Keep one fitted unobstructed composition while
+// its height changes; do not independently sweep the clock/date across it.
 static inline WatchPose watch_pose_at_height(WatchPose full, int height) {
-  if (height >= 228) { return full; }
-  if (height < 160) { height = 160; }
-  return watch_pose_between(full,watch_pose_peek(),(228-height)/57.0f);
+  return height>=228?full:watch_pose_peek();
 }
 
 // Used while fitting text to a pixel width, never as a fixed character limit.

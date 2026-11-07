@@ -26,7 +26,7 @@
     "@rebble/clay": "^1.0.0",
     "pebble-activities": "file:vendor/pebble-activities-0.4.4.tgz",
     "pebble-watchface-core": "file:vendor/pebble-watchface-core-0.5.2-dev.0.tgz",
-    "pebble-xoce-ui": "file:vendor/pebble-xoce-ui-0.1.0.tgz"
+    "pebble-xoce-ui": "file:vendor/pebble-xoce-ui-0.1.1-dev.0.tgz"
   },
   "pebble": {
     "displayName": "Dynamic",

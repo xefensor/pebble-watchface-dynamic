@@ -120,6 +120,13 @@ int main(void) {
   assert(layout.main.count<=2&&!layout.main.complete);
   build("00:36","","","Tea",false,true,false,false,false,false,130,&layout);
   assert(layout.main.count&&layout.point>=26);
+  // The freed reading band is usable content, not extra blank padding.
+  build("02:31","","","Tea",false,true,false,true,false,false,ACTIVITY_CONTENT_TOP,&alone);
+  build("02:31","","","Tea",false,true,false,true,false,false,ACTIVITY_EXPANDED_TOP,&layout);
+  assert(layout.top==ACTIVITY_EXPANDED_TOP&&layout.secondary&&layout.main.complete);
+  assert(layout.point>alone.point);
+  assert(layout.secondary_baseline<alone.secondary_baseline);
+  assert(layout.footer_baseline[0]==alone.footer_baseline[0]);
   assert(ACTIVITY_SECONDARY_ICON==24&&ACTIVITY_SECONDARY_TOP==106);
   return 0;
 }

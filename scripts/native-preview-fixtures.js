@@ -242,7 +242,9 @@ function complicationPresets(options) {
   const image={width:8,height:4,palette:Buffer.from([0xc0,0xff]).toString('base64'),pixels:Buffer.from(Array.from({length:16},(_,i)=>i%2?0x01:0x10)).toString('base64')};
   const specs=[
     {name:'temperature-rain',...ordinary},
+    {name:'custom-accent',...ordinary,accent:0xff5500},
     {name:'rain-100',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(100),...observed})]}},
+    {name:'aged-weather',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(40),observed_at:{timestamp:{value:now-4000}}})]}},
     {name:'long-temperature-value',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(123.4),precipitation:rain(40),...observed})]}},
     {name:'temperature-too-long',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(1234567890),precipitation:rain(40),...observed})]}},
     {name:'first-slot-only',slots:[weather('temperature')],sources:ordinary.sources},
@@ -276,7 +278,7 @@ function complicationPresets(options) {
     presets.push({name:spec.name+'-'+(pose==='timeline'?'peek-':pose==='active'?'active-':'')+theme,state:pose,scenario:spec.name,
       theme,format:24,fixtureNow:result.now,language:spec.language||options.language||'en',
       nativeLocaleFollowsEmulator:true,readingStatus:result.status.slots,selectedReadings:spec.slots,
-      integers:{BACKGROUND_COLOR:dark?0:0xffffff,TEXT_COLOR:dark?0xffffff:0,ACCENT_COLOR:0x55aaff,
+      integers:{BACKGROUND_COLOR:dark?0:0xffffff,TEXT_COLOR:dark?0xffffff:0,ACCENT_COLOR:spec.accent||0x55aaff,
         ANIMATIONS:0,CLOCK_FORMAT:24,SHOW_STATUS:1,NOTIFICATION_VIBRATION:0,NIGHT_PALETTE:0,REQUEST_CONTEXT:session},
       bytes:{COMPLICATION_DATA:result.bytes,CONTEXT_DATA:core.packComplications([],result.now),
         CONTEXT_STATE:[session&255,(session>>>8)&255,(session>>>16)&255,(session>>>24)&255,0,0,0,0,0,0,0,0,0],

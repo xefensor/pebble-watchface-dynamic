@@ -250,10 +250,11 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
                 rows=Screenshot(pebble).grab_image()
                 if len(rows)!=228 or any(len(row)!=600 for row in rows):raise RuntimeError('Expected native 200×228 RGB')
                 pixels=b''.join(rows)
-                # ACT2 may have clocks in both item and activity positions.
+                # ACT3 may have clocks in both item and activity positions.
                 # Compare only the settled OS clock/date/readings region;
-                # the entire activity area is allowed to change locally.
-                stable=pixels[:200*106*3]
+                # plain sample readings end above86px, where activity rows
+                # and their live clocks can now begin.
+                stable=pixels[:200*86*3]
                 if previous==stable:break
                 previous=stable;time.sleep(.15)
             else:raise RuntimeError('Activity header/readings did not settle: '+preset['name'])
@@ -282,7 +283,7 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
                 time.sleep(1.15)
                 while True:
                     later=b''.join(Screenshot(pebble).grab_image())
-                    if pixels[200*106*3:]!=later[200*106*3:]:break
+                    if pixels[200*86*3:]!=later[200*86*3:]:break
                     remaining=3.0-(time.monotonic()-tick_started)
                     if remaining<=0:raise RuntimeError('Visible native clock did not advance within 3s: '+preset['name'])
                     time.sleep(min(.25,remaining))
@@ -417,20 +418,21 @@ def capture_complications(pebble,pbw,output,appmessage=None,names=None,language=
 
 
 def capture_motion(pebble,pbw,output):
-    """Record actual incoming replacement frames; no interpolated artwork.
+    """Observe first-panel entry and passive replacement as actual native frames.
 
-    The sample bridge supplies Music followed by a new notification. Timestamps
-    describe screenshot acquisition on the host, not physical display latency.
+    Serial screenshot transfer can exceed the132ms entry. Two endpoint states
+    are sufficient evidence; missing intermediate observations are reported,
+    never generated. Acquisition times are not physical display latency.
     """
     from libpebble2.services.appmessage import AppMessageService,Uint32,ByteArray
     from libpebble2.services.screenshot import Screenshot
     from libpebble2.protocol.system import TimeMessage,SetUTC
     from libpebble2.protocol.apps import AppRunState,AppRunStateStart
-    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection
+    from libpebble2.communication.transports.qemu.protocol import QemuBluetoothConnection,QemuTimelinePeek,QemuTimeFormat,QemuBattery
     from pebble_tool.commands.emucontrol import send_data_to_qemu
     from pebble_tool.commands.install import ToolAppInstaller
     from PIL import Image
-    output=Path(output);output.mkdir(parents=True,exist_ok=True)
+    output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
     native=output/'native-candidate.pbw';info,payload=native_candidate(pbw,native)
     target=uuid.UUID(info['uuid']);keys=info['messageKeys']
     service=AppMessageService(pebble);condition=threading.Condition();sessions=[];receipts={}
@@ -442,13 +444,60 @@ def capture_motion(pebble,pbw,output):
         if app_uuid==target:
             with condition:receipts[tid]=True;condition.notify_all()
     handles=[service.register_handler('appmessage',receive),service.register_handler('ack',receipt)]
+    captures=[];gifs=[]
+    def grab(name,started):
+        rows=Screenshot(pebble).grab_image()
+        if len(rows)!=228 or any(len(row)!=600 for row in rows):raise RuntimeError('Expected native200x228RGB')
+        pixels=b''.join(rows);image=Image.frombytes('RGB',(200,228),pixels)
+        path=output/(name+'.png');image.save(path)
+        meta={'file':path.name,'elapsedMs':round((time.monotonic()-started)*1000),
+            'sha256':sha256(path.read_bytes()),'rgbSha256':sha256(pixels),'nativePixelsModified':False}
+        captures.append(meta)
+        return image,meta
+    def sequence(prefix,before,preset):
+        started=time.monotonic()
+        frames=[before];metadata=[{'file':prefix+'-before.png','elapsedMs':0,
+            'rgbSha256':sha256(before.tobytes()),'nativePixelsModified':False}]
+        before.save(output/metadata[0]['file']);metadata[0]['sha256']=sha256((output/metadata[0]['file']).read_bytes())
+        captures.append(metadata[0]);send(preset)
+        for index,offset in enumerate([0,.033,.066,.099,.132,.20,.35,.50]):
+            time.sleep(max(0,started+offset-time.monotonic()))
+            image,meta=grab(prefix+'-%02d'%index,started);frames.append(image);metadata.append(meta)
+        if frames[-1].tobytes()!=frames[-2].tobytes():raise RuntimeError(prefix+' did not settle')
+        durations=[max(30,b['elapsedMs']-a['elapsedMs']) for a,b in zip(metadata,metadata[1:])]+[700]
+        gif=output/(prefix+'.gif')
+        frames[0].save(gif,save_all=True,append_images=frames[1:],duration=durations,loop=0,disposal=2)
+        observed={frame.tobytes() for frame in frames}
+        with Image.open(gif) as encoded:
+            for index in range(encoded.n_frames):
+                encoded.seek(index)
+                if encoded.convert('RGB').tobytes() not in observed:
+                    raise RuntimeError(prefix+' GIF differs from its captured native frames')
+            gifs.append({'file':gif.name,'sha256':sha256(gif.read_bytes()),
+                'encodedFrames':encoded.n_frames,'onlyObservedNativeRgb':True})
+        return frames,metadata
     try:
+        host_rtc=os.environ.get('PEBBLE_QA_HOST_RTC')=='1'
+        send_data_to_qemu(pebble.transport,QemuTimelinePeek(enabled=False))
         send_data_to_qemu(pebble.transport,QemuBluetoothConnection(connected=True))
+        send_data_to_qemu(pebble.transport,QemuTimeFormat(is_24_hour=True))
+        send_data_to_qemu(pebble.transport,QemuBattery(percent=100,charging=False))
+        if not host_rtc:
+            # Apply fixed UTC before native startup as well as afterward. A
+            # SetUTC immediately followed by time-bounded AppMessages can leave
+            # one valid but unrelated host-RTC/expired frame in the baseline.
+            pebble.send_packet(TimeMessage(message=SetUTC(unix_time=SAMPLE_TIME,utc_offset=0,tz_name='UTC')))
         ToolAppInstaller(pebble,str(native),quiet=True).install()
         pebble.send_packet(AppRunState(data=AppRunStateStart(uuid=target)))
         with condition:
             if not condition.wait_for(lambda:bool(sessions),timeout=8):raise RuntimeError('No native session')
-        plan=fixture_plan(sessions[-1]);presets={p['name']:p for p in plan['presets']}
+        # Keep both short sequences in one clock minute so a legitimate minute
+        # tick cannot masquerade as an intermediate header composition.
+        remaining=60-time.time()%60
+        if host_rtc and remaining<8:time.sleep(remaining+.1)
+        now=int(time.time()) if host_rtc else SAMPLE_TIME
+        plan=fixture_plan(sessions[-1],now=now);presets={p['name']:p for p in plan['presets']}
+        (output/'fixtures.json').write_text(json.dumps(plan,indent=2)+'\n')
         def send(preset):
             values=dict(preset['integers']);values['ANIMATIONS']=1
             dictionary={keys[name]:Uint32(value) for name,value in values.items()}
@@ -456,37 +505,43 @@ def capture_motion(pebble,pbw,output):
             with condition:
                 tid=service.send_message(target,dictionary)
                 if not condition.wait_for(lambda:tid in receipts,timeout=8):raise RuntimeError('No fixture ACK')
-        pebble.send_packet(TimeMessage(message=SetUTC(unix_time=SAMPLE_TIME,utc_offset=0,tz_name='UTC')))
-        # Let the RTC correction settle before accepting source validity. A
-        # first frame received against the host date would correctly expire.
-        send(presets['idle-24-light']);time.sleep(1.1)
-        send(presets['music-24-light']);time.sleep(1)
-        before=b''.join(Screenshot(pebble).grab_image())
-        Image.frombytes('RGB',(200,228),before).save(output/'before.png')
-        reference=qa_output(ROOT, '')/'native-previews/music-24-light.png'
-        if reference.exists() and Image.open(reference).convert('RGB').tobytes()!=before:
-            raise RuntimeError('Replacement baseline differs from the settled Music preview')
-        frames=[];captures=[]
-        send(presets['notification-24-light']);started=time.monotonic()
-        for index,offset in enumerate([0,.04,.08,.12,.16,.20,.24,.28,.34,.42,.55,.70]):
-            time.sleep(max(0,started+offset-time.monotonic()))
-            rows=Screenshot(pebble).grab_image();pixels=b''.join(rows)
-            image=Image.frombytes('RGB',(200,228),pixels)
-            path=output/('incoming-%02d.png'%index);image.save(path);frames.append(image)
-            captures.append({'file':path.name,'elapsedMs':round((time.monotonic()-started)*1000),
-                'sha256':sha256(path.read_bytes()),'rgbSha256':sha256(pixels)})
-        if len({row['rgbSha256'] for row in captures})<3:raise RuntimeError('No actual intermediate motion frames')
-        if captures[-1]['rgbSha256']!=captures[-2]['rgbSha256']:raise RuntimeError('Motion did not settle')
-        durations=[max(20,round((b['elapsedMs']-a['elapsedMs'])/10)*10) for a,b in zip(captures,captures[1:])]+[700]
-        frames[0].save(output/'incoming.gif',save_all=True,append_images=frames[1:],duration=durations,loop=0,disposal=2)
-        report={'version':info['versionLabel'],'nativePayloadSha256':payload,'captures':captures,
-            'scope':'Actual native Screenshot-service frames with synthetic Music/notification fixtures. GIF uses only these frames; no interpolation. Host acquisition timing is not physical-watch latency.'}
+        if not host_rtc:
+            pebble.send_packet(TimeMessage(message=SetUTC(unix_time=now,utc_offset=0,tz_name='UTC')))
+            time.sleep(.4)
+        send(presets['idle-24-light']);time.sleep(.8)
+        idle,_=grab('idle-before',time.monotonic())
+        entry,entry_meta=sequence('panel-entry',idle,presets['music-24-light'])
+        if entry[0].tobytes()==entry[-1].tobytes():raise RuntimeError('Idle and first Music panel are identical')
+        header=(0,0,200,86)
+        endpoint_headers={entry[0].crop(header).tobytes(),entry[-1].crop(header).tobytes()}
+        if any(frame.crop(header).tobytes() not in endpoint_headers for frame in entry):
+            raise RuntimeError('First panel morphed or swept its header/readings')
+        music=entry[-1]
+        replacement,replacement_meta=sequence('passive-replacement',music,presets['notification-24-light'])
+        endpoints={replacement[0].tobytes(),replacement[-1].tobytes()}
+        if len(endpoints)!=2:raise RuntimeError('Music and Notification endpoints are identical')
+        if any(frame.tobytes() not in endpoints for frame in replacement):
+            raise RuntimeError('Passive replacement translated, morphed or exposed an intermediate frame')
+        if any(frame.crop(header).tobytes() not in endpoint_headers for frame in replacement):
+            raise RuntimeError('Passive replacement changed header geometry')
+        entry_endpoints={entry[0].tobytes(),entry[-1].tobytes()}
+        intermediate=sum(frame.tobytes() not in entry_endpoints for frame in entry[1:-1])
+        report={'version':info['versionLabel'],'candidateSourcePbwSha256':sha256(Path(pbw).read_bytes()),
+            'capturedNativePbwSha256':sha256(native.read_bytes()),'nativePayloadSha256':payload,
+            'fixtureTimeUtc':now,'fixtureTimeMode':'host-rtc' if host_rtc else 'fixed-utc',
+            'captures':captures,'gifs':gifs,'entry':{'gif':'panel-entry.gif','captures':entry_meta,
+                'expectedDistancePx':10,'expectedDurationMs':132,'expectedFrameIntervalMs':33,
+                'headerMatchesRealEndpoints':True,'endpointStatesObserved':2,'intermediateFramesObserved':intermediate,
+                'observation':'Endpoint-only observation is valid when screenshot transfer exceeds132ms; no extra frames are invented.'},
+            'passiveReplacement':{'gif':'passive-replacement.gif','captures':replacement_meta,
+                'allFullFramesMatchRealEndpoints':True,'liveActivityClocks':False},
+            'scope':'Actual native Screenshot-service frames using synthetic idle/Music/notification data. GIFs contain only captured frames with an added final hold; no interpolation. Host acquisition times are not physical-watch latency. No phone runtime or physical device verification.'}
         (output/'motion.json').write_text(json.dumps(report,indent=2)+'\n')
         return report
     finally:
+        send_data_to_qemu(pebble.transport,QemuTimelinePeek(enabled=False))
         for handle in handles:service.unregister_handler(handle)
         service.shutdown()
-
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)

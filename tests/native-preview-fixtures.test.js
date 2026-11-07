@@ -74,7 +74,7 @@ function readings(value) {
   assert.equal(at,bytes.length);return result;
 }
 test('focused complications cover real host values, identity, failures and active/Peek boundaries',()=>{
-  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,120);
+  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,132);
   assert.equal(plan.productionReadingHost,true);assert.equal(plan.dynamicLabelAdapter,true);
   for(const preset of plan.presets) {
     const slots=readings(preset.bytes.COMPLICATION_DATA);
@@ -86,7 +86,11 @@ test('focused complications cover real host values, identity, failures and activ
   assert.deepEqual(slots.slice(0,2).map(slot=>slot.kind),[readingWire.SEMANTIC_KIND.TEMPERATURE,readingWire.SEMANTIC_KIND.PRECIPITATION]);
   assert.deepEqual(slots.slice(0,2).map(slot=>slot.value),[5,40]);assert.equal(slots[0].observedAt,N-90);
   assert.ok(slots.slice(0,2).every(slot=>slot.label!=='Praha'),'one city is not repeated twice');
+  assert.equal(plan.presets.find(preset=>preset.name==='custom-accent-light').integers.ACCENT_COLOR,0xff5500);
   assert.equal(find('rain-100')[1].value,100);assert.equal(find('rain-100')[1].displayKind,1);
+  assert.ok(find('aged-weather').slice(0,2).every(slot=>slot.status===2));
+  assert.equal(find('aged-weather')[0].observedAt,N-4000);
+  assert.equal(find('aged-weather')[1].observedAt,0); // No invented rain observation.
   assert.equal(find('long-temperature-value')[0].text,'123.4°C');
   assert.equal(find('temperature-too-long')[0].text,'1234567890°C');
   assert.deepEqual(find('first-slot-only').slice(0,2).map(slot=>slot.status),[2,0]);
