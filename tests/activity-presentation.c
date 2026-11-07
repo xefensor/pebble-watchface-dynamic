@@ -60,7 +60,8 @@ static void build(const char *main,const char *role,const char *support,const ch
       measure,vector?clock_measure:measure,NULL,layout);check(layout,secondary,top);
   if(role[0]&&!media&&layout->main.count) {
     const MusicTextMetrics ink=(vector?clock_measure:measure)(NULL,layout->main.text[0],layout->point);
-    assert(layout->main_baseline[0]-ink.ascent==layout->role_baseline+measure(NULL,role,20).descent+4);
+    assert(layout->main_baseline[0]-ink.ascent==layout->role_baseline+
+        measure(NULL,role,XOCE_UI_SECONDARY_POINT).descent+4);
   }
 }
 int main(void) {

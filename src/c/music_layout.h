@@ -2,14 +2,15 @@
 
 #include "watch_layout.h"
 #include "complication_data.h"
+#include <pebble-xoce-ui/metrics.h>
 
 // Leave room for a whole UTF-8 ellipsis beyond the core's bounded source text.
 #define MUSIC_TEXT_BYTES (COMPLICATION_MAX_TEXT_BYTES + 5)
 #define MUSIC_MAX_LINES 3
 #define MUSIC_BOTTOM 216
 #define MUSIC_TOP 86
-#define MUSIC_TITLE_POINT 24
-#define MUSIC_ARTIST_POINT 20
+#define MUSIC_TITLE_POINT XOCE_UI_BODY_POINT
+#define MUSIC_ARTIST_POINT XOCE_UI_SECONDARY_POINT
 
 typedef struct { int width, ascent, descent; } MusicTextMetrics;
 typedef MusicTextMetrics (*MusicMeasure)(void *context, const char *text, int point);

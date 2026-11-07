@@ -163,7 +163,7 @@ class PinnedDependenciesTests(unittest.TestCase):
 #define BODY_METRIC_ASCENT_ROW_COUNT 2
 #define BODY_METRIC_WILDCARD_INDEX 3
 #define BODY_FONT_SOURCE_SHA256 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-static const uint8_t body_metric_points[BODY_METRIC_POINT_COUNT] = {11,14,16,20,24,26,28,32};
+static const uint8_t body_metric_points[BODY_METRIC_POINT_COUNT] = {11,14,16,20,22,24,26,32};
 static const uint16_t body_metric_codepoints[BODY_METRIC_COUNT] = {0x0020,0x0021,0x0022,0x25af};
 static const uint8_t body_metric_descent_index[BODY_METRIC_COUNT] = {0,1,0,1};
 static const uint8_t body_metric_ascent_index[BODY_METRIC_COUNT] = {1,0,1,0};

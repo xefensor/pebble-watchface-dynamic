@@ -48,6 +48,7 @@ ACTIVITY_MODULES = {
     "host.js", "wire.js", "view.js", "consumer.js", "selection.js", "activity.js",
     "adapters/legacy/context.js", "adapters/legacy/complication-data.js", "summary.js", "summary-view.js",
 }
+UI_MODULES = {"settings-style.js"}
 ACTIVITY_RELEASE = {
     "version": "0.4.4",
     "sourceCommit": "df4f30f4a66419ce835959eeeec6de7999704fa0",
@@ -694,6 +695,23 @@ def audit_clock_outlines(root, binary, sources):
             "scope": "Source geometry, polygon bounds and exact linked tables; native screenshots verify rasterized appearance."}
 
 
+def read_ui_style(root):
+    """Check the mapped shared stylesheet against the pinned/installed SDK bytes."""
+    pin = json.loads((root / "vendor/UI.json").read_text())
+    require(pin["package"] == "pebble-xoce-ui" and Path(pin["archive"]).name == pin["archive"],
+            "Unexpected UI stylesheet pin")
+    raw = (root / "vendor" / pin["archive"]).read_bytes()
+    require(sha256(raw) == pin["sha256"], "UI archive differs from its committed pin")
+    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as archive:
+        style = archive.extractfile("package/src/js/settings-style.js").read()
+    installed = root / "node_modules/pebble-xoce-ui"
+    require((installed / "src/js/settings-style.js").read_bytes() == style and
+            (installed / "dist/js/settings-style.js").read_bytes() == style,
+            "Installed UI stylesheet differs from its pinned SDK source")
+    return {"version": pin["version"], "archiveSha256": pin["sha256"],
+            "stylesheetSha256": sha256(style)}, {"settings-style.js": style}
+
+
 def read_dependency(root, specification, active_modules):
     pin, files = verify_dependency(root, specification)
     label = pin["package"]
@@ -750,15 +768,25 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
             continue
         require(allow_sdk_timestamp and name == "emery/pebble-app.bin",
                 "Native previews belong to a different renderer: " + name)
-        with zipfile.ZipFile(root / "dist" / ("Dynamic-" + version + ".pbw")) as frozen:
-            reference = frozen.read(name)
-        require(sha256(reference) == preview["source"]["nativePayloadSha256"][name],
-                "Frozen renderer does not match embedded preview provenance")
         # SDK 4.33.1 inject_metadata.py RESOURCE_TIMESTAMP_ADDR: a four-byte
         # bundle timestamp at 0x7c. Compare every other byte, including CRCs.
-        require(content[:124] == reference[:124] and content[128:] == reference[128:]
-                and len(content) == len(reference),
-                "Native preview renderer differs beyond the SDK resource timestamp")
+        normalized = preview["source"].get("normalizedNativeBinarySha256")
+        if normalized is not None:
+            require(isinstance(normalized, str) and re.fullmatch(r"[0-9a-f]{64}", normalized)
+                    and len(content) >= 128 and
+                    sha256(content[:124] + b'\0' * 4 + content[128:]) == normalized,
+                    "Native preview renderer differs beyond the SDK resource timestamp")
+        else:
+            # Legacy preview assets predate the normalized hash. Keep their
+            # original frozen-reference check without requiring that archive
+            # for newly captured development renderers.
+            with zipfile.ZipFile(root / "dist" / ("Dynamic-" + version + ".pbw")) as frozen:
+                reference = frozen.read(name)
+            require(sha256(reference) == preview["source"]["nativePayloadSha256"][name],
+                    "Frozen renderer does not match embedded preview provenance")
+            require(content[:124] == reference[:124] and content[128:] == reference[128:]
+                    and len(content) == len(reference),
+                    "Native preview renderer differs beyond the SDK resource timestamp")
         timestamp_only = True
     return {"samples": 24, "nativeBinaryAndResourcesMatch": not timestamp_only,
             "rendererMatchesExceptSdkResourceTimestamp": timestamp_only,
@@ -790,6 +818,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
             "Generated C keys are stale or duplicated")
     core, core_sources = read_dependency(root, DEPENDENCIES[0], CORE_MODULES)
     activities, activity_sources = read_dependency(root, DEPENDENCIES[1], ACTIVITY_MODULES)
+    ui, ui_sources = read_ui_style(root)
     require(all(activities[key] == value for key, value in ACTIVITY_RELEASE.items()),
             "Reviewed ACT3 dependency provenance differs")
     licenses = license_payloads(root)
@@ -870,7 +899,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
     preview_identity = audit_preview_identity(root, package["version"], binary, resources, allow_sdk_timestamp)
     require(len(source_map["sources"]) == len(set(source_map["sources"])),
             "Source map has duplicate modules")
-    hosts, modules, activity_modules, xhr, bundled_keys = set(), set(), set(), [], None
+    hosts, modules, activity_modules, ui_modules, xhr, bundled_keys = set(), set(), set(), set(), [], None
     for name, content in zip(source_map["sources"], source_map["sourcesContent"]):
         if name.startswith("./src/pkjs/") or name.startswith("./src/common/"):
             relative = name.removeprefix("./")
@@ -886,7 +915,12 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
             require(relative in activity_sources, "Unexpected active activity module: " + relative)
             source_matches(content, activity_sources[relative], name)
             activity_modules.add(relative)
-        elif "pebble-watchface-core/" in name or "pebble-activities/" in name:
+        elif name.startswith("./~/pebble-xoce-ui/dist/js/"):
+            relative = name.removeprefix("./~/pebble-xoce-ui/dist/js/")
+            require(relative in ui_sources, "Unexpected active UI module: " + relative)
+            source_matches(content, ui_sources[relative], name)
+            ui_modules.add(relative)
+        elif any(label in name for label in ("pebble-watchface-core/", "pebble-activities/", "pebble-xoce-ui/")):
             require(False, "Unexpected dependency module path: " + name)
         elif name == "./build/js/message_keys.json":
             exported = re.match(r"^module\.exports\s*=\s*(\{[^\n]+\})", content)
@@ -896,8 +930,8 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
         if "XMLHttpRequest" in content:
             xhr.append(name)
     require(hosts == APP_MODULES and modules == CORE_MODULES and
-            activity_modules == ACTIVITY_MODULES,
-            "The active application/core/activity dependency graph changed")
+            activity_modules == ACTIVITY_MODULES and ui_modules == UI_MODULES,
+            "The active application/core/activity/UI dependency graph changed")
     require(bundled_keys == keys, "Bundled JavaScript key mapping is missing")
     require(xhr == ["./~/@rebble/clay/dist/js/index.js"],
             "Unexpected active HTTP client")
@@ -942,10 +976,10 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
         "sourceSystemFontKeys": font_keys, "nativeSystemFontKeys": linked_keys,
         "sourceFontKeysNotLinked": sorted(set(font_keys) - set(linked_keys)),
         "hostModules": len(hosts),
-        "coreModules": len(modules), "activityModules": len(activity_modules),
+        "coreModules": len(modules), "activityModules": len(activity_modules), "uiModules": len(ui_modules),
         "sourceMapMatchesCurrentSource": True,
         "sourceMapModuleCount": len(source_map["sources"]),
-        "legacyWeatherClientActive": False, "core": core, "activities": activities,
+        "legacyWeatherClientActive": False, "core": core, "activities": activities, "ui": ui,
         "sdkInjectedJavaScript": sdk_additions,
         "pbwSha256": sha256(pbw.read_bytes()), "inventory": inventory,
         "scope": "SDK/package/source identity, generated/linked clock outlines and packaged body glyph coverage. Native screenshots and captured transitions verify appearance, fitting and motion; no physical-device behavior is claimed.",
@@ -958,7 +992,7 @@ def main():
     parser.add_argument("--sdk-font-header", type=Path,
                         help="Optional selected SDK pebble_fonts.h catalog")
     parser.add_argument("--allow-sdk-timestamp", action="store_true",
-                        help="Development rebuild: permit only SDK resource timestamp drift from frozen previews")
+                        help="Development rebuild: permit only SDK resource timestamp drift from captured previews")
     args = parser.parse_args()
     try:
         result = audit(args.pbw, sdk_font_header=args.sdk_font_header,

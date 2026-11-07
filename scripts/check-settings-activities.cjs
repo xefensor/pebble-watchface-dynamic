@@ -11,6 +11,7 @@ const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'dynamic-settings-'));
 fs.mkdirSync(output,{recursive:true});
 const config=require(root+'/src/pkjs/config'),localization=require(root+'/src/pkjs/localization');
 const custom=require(root+'/src/pkjs/settings-page');
+const settingsStyle=require('pebble-xoce-ui/settings-style');
 const candidate=path.resolve(process.env.DYNAMIC_QA_PBW || path.resolve(process.env.PEBBLE_PBW||path.join(root,'build/candidate','Dynamic-'+version+'.pbw')));
 const candidateBytes=fs.existsSync(candidate)?fs.readFileSync(candidate):null;
 if(process.env.DYNAMIC_QA_PBW)assert.ok(candidateBytes,'the requested packaged candidate exists');
@@ -50,6 +51,7 @@ function replayHost(initialStorage={}) {
   vm.runInNewContext(fs.readFileSync(root+'/src/pkjs/index.js','utf8'),{
     require:name=>{
       if(name==='message_keys')return keys;
+      if(name==='pebble-xoce-ui/settings-style')return settingsStyle;
       if(name==='@rebble/clay')return claySandbox.module.exports;
       if(name==='../common/activity-navigation')return require(root+'/src/common/activity-navigation');
       if(name==='../common/settings-state')return require(root+'/src/common/settings-state');
@@ -113,7 +115,8 @@ for(const scenario of ['en','cs','bounded','off-app']){
   vm.runInNewContext(bundle,sandbox);
   const Clay=sandbox.module.exports;
   const wrapped=vm.runInNewContext('(function(){window.__testClay=this;('+custom.toString()+').call(this);})');
-  const clay=new Clay(localization.translateConfig(config,language),wrapped,{autoHandleEvents:false});
+  const clay=new Clay(localization.translateConfig(config,language),wrapped,{autoHandleEvents:false,userData:{settingsStyle}});
+  clay.meta.userData.settingsStyle=settingsStyle;
   const meta={language,slots:[],sources:{},save:{state:'none'},activityProviders:[{uuid:timer,name:'Timer',available:true},{uuid:workout,name:'Workout',available:true},{uuid:evil,name:'<img src=x onerror="window.__xss=true">',available:true}],
     activityPreferences:{order:[timer,'builtin:music','builtin:notifications',workout,absent],hidden:[workout]}};
   if(scenario==='bounded')meta.activityPreferences.order=Array.from({length:64},(_,i)=>`${(i+1).toString(16).padStart(8,'0')}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`);

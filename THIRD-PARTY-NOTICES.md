@@ -29,3 +29,10 @@ are recorded in [SDK component provenance](licenses/sdk-bundled-provenance.json)
 The standalone PBW includes these notices and the full license texts in its
 `licenses/` directory. The source archive includes the same source documents.
 License packaging does not alter the SDK's compiled watch or phone payloads.
+
+## XOCE shared UI
+
+The locally pinned `pebble-xoce-ui` 0.1.0 library supplies shared native drawing
+and phone-settings styles. It is authored by Xef and uses the same PolyForm
+Noncommercial license as this application. Its sources and license are included
+in the committed vendor archive; it is not a separately installed service.

@@ -16,8 +16,8 @@ static MusicTextMetrics measure(void *context, const char *text, int point) {
 static void check(const MusicLayout *layout, bool art) {
   assert(layout->title.count >= 0 && layout->title.count <= 3);
   assert(layout->artist.count >= 0 && layout->artist.count <= 2);
-  assert(layout->title_point == 24);
-  assert(layout->artist_point == 20);
+  assert(layout->title_point == XOCE_UI_BODY_POINT);
+  assert(layout->artist_point == XOCE_UI_SECONDARY_POINT);
   assert(layout->title_top >= MUSIC_TOP && layout->cover_top == 176);
   const bool metadata = art || layout->artist.count;
   assert(layout->metadata_top <= (metadata ? 176 : 216));
@@ -102,7 +102,7 @@ int main(void) {
   assert(short_song.title_point == 24 && short_song.title.count == 1);
   assert(long_song.title.count == 3 && long_song.title_top < short_song.title_top);
   assert(short_song.title_bottom == long_song.title_bottom && long_song.cover_top == short_song.cover_top);
-  assert(short_song.artist_point == 20 && short_song.artist.count == 2);
+  assert(short_song.artist_point == XOCE_UI_SECONDARY_POINT && short_song.artist.count == 2);
   assert(short_song.title_point==long_song.title_point);
   // The source remains one scalar string, even when a band name contains
   // punctuation that offers a useful line break.

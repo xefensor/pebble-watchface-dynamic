@@ -12,8 +12,11 @@ var clay,clayConfig;
 function settingsPage() {
   if(!clay) {
     var Clay=require('@rebble/clay');
+    var settingsStyle=require('pebble-xoce-ui/settings-style');
     clayConfig=require('./config');
-    clay=new Clay(clayConfig,require('./settings-page'),{autoHandleEvents:false});
+    clay=new Clay(clayConfig,require('./settings-page'),{autoHandleEvents:false,userData:{settingsStyle:settingsStyle}});
+    // Lazy creation follows ready; Clay otherwise copies userData only on ready.
+    clay.meta.userData.settingsStyle=settingsStyle;
   }
   return clay;
 }

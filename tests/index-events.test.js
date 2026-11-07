@@ -36,6 +36,7 @@ function fixture(settings = {}, locales = {}) {
     require: name => {
       imports.push(name);
       if (name === 'message_keys') return keys;
+      if (name === 'pebble-xoce-ui/settings-style') return require('pebble-xoce-ui/settings-style');
       if (name === '../common/activity-navigation') return require('../src/common/activity-navigation');
       if (name === '../common/settings-state') return require('../src/common/settings-state');
       if (name === '../common/settings-config') return require('../src/common/settings-config');
@@ -46,8 +47,13 @@ function fixture(settings = {}, locales = {}) {
       if (name === './activity-presentation') return presentationModule.exports;
       if (name === '@rebble/clay') return function(config,_custom,opts) {
         assert.equal(opts.autoHandleEvents,false);
+        assert.equal(opts.userData.settingsStyle,require('pebble-xoce-ui/settings-style'));
+        this.meta={userData:{}};
         this.config=JSON.parse(JSON.stringify(config));
-        this.generateUrl=()=> 'data:text/html,settings';
+        this.generateUrl=()=> {
+          assert.equal(this.meta.userData.settingsStyle,require('pebble-xoce-ui/settings-style'));
+          return 'data:text/html,settings';
+        };
         this.getSettings=response=> {
           const raw=JSON.parse(response);
           const flat=Object.fromEntries(Object.entries(raw).map(([key,value])=>
@@ -845,7 +851,7 @@ test('presented status confirms destination-only navigation metadata for the exa
 test('normal activity work defers settings UI and reuses saved preferences',()=>{
   const f=fixture({SHOW_MUSIC:true});f.handlers.ready();
   for(let i=0;i<100;i++){f.activityOptions.getSettings();f.activityOptions.acceptActivity(activity());f.activityOptions.select([]);}
-  for(const name of ['@rebble/clay','./config','./settings-page','./settings-preview']) assert.ok(!f.imports.includes(name),name);
+  for(const name of ['@rebble/clay','./config','./settings-page','./settings-preview','pebble-xoce-ui/settings-style']) assert.ok(!f.imports.includes(name),name);
   assert.equal(f.storageReads['clay-settings'],1);
   assert.equal(f.storageReads['dynamic-activity-preferences-v1'],1);
   f.handlers.showConfiguration();

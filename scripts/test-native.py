@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='watchface-tests-') as tmp:
         raise SystemExit('No native tests found')
     for source in tests:
         output = Path(tmp) / source.stem
-        command = [os.environ.get('CC', 'cc'), '-std=c99', '-Wall', '-Wextra', '-Werror',
+        command = [os.environ.get('CC', 'cc'), '-std=c99', '-I', str(root / 'node_modules'), '-Wall', '-Wextra', '-Werror',
             '-I' + str(Path(tmp) / 'include'), '-I' + str(core / 'include'),
             '-I' + str(activities / 'include'), str(source),
             *map(str, sorted((core / 'src/c').glob('*.c'))),

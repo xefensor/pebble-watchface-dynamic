@@ -100,7 +100,7 @@ layout_again:
   memset(out,0,sizeof(*out));out->media=media;out->secondary=secondary;
   out->vector=vector;out->scalar=scalar;out->left=10;out->width=180;
   int content_top=top+(secondary?32:4);out->support_point=support_point;
-  out->secondary_baseline=top+4+measure(context,"Ag",22).ascent;
+  out->secondary_baseline=top+4+measure(context,"Ag",XOCE_UI_SECONDARY_POINT).ascent;
   out->icon_size=footer_symbol&&(image||!media)?28:0;
   out->footer_left=out->icon_size?46:10;
   out->footer_width=190-out->footer_left;out->footer_point=footer_point;
@@ -116,10 +116,10 @@ layout_again:
   const int limit=footer_top-(footer_top<MUSIC_BOTTOM?8:0);
   if(content_top>=limit){out->secondary=false;return;}
   if(media) {
-    out->point=24;
+    out->point=XOCE_UI_BODY_POINT;
     for(int count=secondary?2:3;count>=1;--count) {
-      music_wrap(main,24,180,count,false,measure,context,&out->main);
-      const int height=music_line_offsets(&out->main,24,measure,context,out->main_baseline);
+      music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
+      const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
       if(content_top+height<=limit) {
         for(int i=0;i<out->main.count;++i)out->main_baseline[i]+=limit-height;
         return;
@@ -127,15 +127,17 @@ layout_again:
     }
     out->main.count=0;out->secondary=false;return;
   }
-  const int role_height=role[0]?measure(context,role,20).ascent+measure(context,role,20).descent+4:0;
-  if(role[0]){out->role_baseline=content_top+measure(context,role,20).ascent;content_top+=role_height;}
+  const int role_height=role[0]?measure(context,role,XOCE_UI_SECONDARY_POINT).ascent+
+      measure(context,role,XOCE_UI_SECONDARY_POINT).descent+4:0;
+  if(role[0]){out->role_baseline=content_top+measure(context,role,XOCE_UI_SECONDARY_POINT).ascent;content_top+=role_height;}
   int support_height=0;
   if(support[0]) {
     music_wrap(support,support_point,180,secondary||vector||scalar?1:2,false,measure,context,&out->support);
     support_height=music_line_offsets(&out->support,support_point,measure,context,out->support_baseline)+4;
   }
   int main_limit=limit-support_height-(meter?8:0);
-  if(secondary&&out->support.count&&main_limit-content_top<(vector||scalar?26:measure(context,main,24).ascent+measure(context,main,24).descent)) {
+  if(secondary&&out->support.count&&main_limit-content_top<(vector||scalar?26:
+      measure(context,main,XOCE_UI_BODY_POINT).ascent+measure(context,main,XOCE_UI_BODY_POINT).descent)) {
     secondary=false;goto layout_again;
   }
   if(main_limit-content_top<18){out->support.count=0;support_height=0;main_limit=limit-(meter?8:0);}
@@ -165,10 +167,10 @@ layout_again:
     if(vector)out->left=10+(180-value.width)/2;
     main_bottom=out->main_baseline[0]+value.descent;
   } else {
-    out->point=24;
+    out->point=XOCE_UI_BODY_POINT;
     for(int count=secondary?2:3;count>=1;--count) {
-      music_wrap(main,24,180,count,false,measure,context,&out->main);
-      const int height=music_line_offsets(&out->main,24,measure,context,out->main_baseline);
+      music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
+      const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
       if(content_top+height<=main_limit) {
         for(int i=0;i<out->main.count;++i)out->main_baseline[i]+=content_top;
         main_bottom=content_top+height;break;

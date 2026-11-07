@@ -78,6 +78,12 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
     native_pbw=output/'native-candidate.pbw'
     if native_pbw==pbw:raise ValueError('Source PBW must differ from the native-only output')
     appinfo,native_hashes=native_candidate(pbw,native_pbw)
+    with zipfile.ZipFile(native_pbw) as captured:
+        captured_binary=captured.read('emery/pebble-app.bin')
+    # SDK4.33.1 injects only this four-byte resource timestamp. Preserve every
+    # other byte and the binary length in an independently reproducible hash.
+    if len(captured_binary)<128:raise ValueError('Truncated captured native binary')
+    normalized_binary_sha256=sha256(captured_binary[:124]+b'\0'*4+captured_binary[128:])
     target=uuid.UUID(appinfo['uuid']);keys=appinfo['messageKeys']
     package=json.loads((ROOT/'package.json').read_text());version=package['version']
     if appinfo.get('versionLabel')!=version or appinfo['uuid']!=package['pebble']['uuid']:
@@ -159,6 +165,7 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
         (output/'fixtures.json').write_text(json.dumps(plan,indent=2)+'\n')
         result={'version':version,'source':{'capturedFromCandidatePbwSha256':sha256(native_pbw.read_bytes()),
             'candidateSourcePbwSha256':sha256(pbw.read_bytes()),'nativePayloadSha256':native_hashes,
+            'normalizedNativeBinarySha256':normalized_binary_sha256,
             'timelineSample':'Actual native unobstructed geometry; reserved OS panel, no event payload.'},'frames':frames}
         report={'version':version,'pbw_sha256':sha256(native_pbw.read_bytes()),
             'candidate_source_pbw_sha256':sha256(pbw.read_bytes()),'native_payload_sha256':native_hashes,
@@ -267,13 +274,23 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
             if preset.get('verifyClockTick') and not verify_ticks:
                 captured['clock_tick_check']='Not run: this is a layout-only capture'
             if preset.get('verifyClockTick') and verify_ticks:
+                # Guest execution can trail host wall time while other build
+                # jobs are busy. Observe one unchanged fixture for a bounded
+                # interval; never resend it to manufacture a clock update.
+                tick_started=time.monotonic()
                 time.sleep(1.15)
-                later=b''.join(Screenshot(pebble).grab_image())
-                if pixels[200*106*3:]==later[200*106*3:]:raise RuntimeError('Visible native clock did not advance: '+preset['name'])
+                while True:
+                    later=b''.join(Screenshot(pebble).grab_image())
+                    if pixels[200*106*3:]!=later[200*106*3:]:break
+                    remaining=3.0-(time.monotonic()-tick_started)
+                    if remaining<=0:raise RuntimeError('Visible native clock did not advance within 3s: '+preset['name'])
+                    time.sleep(min(.25,remaining))
+                tick_wait=time.monotonic()-tick_started
                 tick_path=output/(preset['name']+'-tick.png')
                 Image.frombytes('RGB',(200,228),later).save(tick_path)
                 captured['clock_tick']={'file':tick_path.name,'sha256':sha256(tick_path.read_bytes()),
-                    'activity_rgb_changed':True,'fixture_resent':False,'wait_seconds':1.15,
+                    'activity_rgb_changed':True,'fixture_resent':False,'wait_seconds':round(tick_wait,3),
+                    'observation_limit_seconds':3,
                     'native_pixels_modified':False}
             captures.append(captured)
             print('Captured '+preset['name'],flush=True)
