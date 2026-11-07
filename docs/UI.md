@@ -3,7 +3,7 @@
 The accepted UI is merged into main; implementation version 0.18.2 remains
 unpublished. Published downloads retain their original versions and interfaces.
 
-Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Only a newly appearing activity panel gets a short entry; updates within the panel redraw in place. Dynamic has no physical action rail.
+Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Animated layouts, Peek response and genuine item transitions are part of Dynamic's design. Dynamic has no physical action rail.
 
 The shared `pebble-xoce-ui` package supplies the26px utility date/header,
 24px body and22px secondary role definitions, common timer/music/navigation/
@@ -42,20 +42,25 @@ shapes retain their space. Loading, unavailable and expired states clear the old
 value, retaining only permitted identity. Unconfigured positions stay empty; the
 other reading does not move into their place.
 
-Header and reading layouts switch together to their complete idle, activity or
-Peek composition. A newly appearing activity settles10px into place over132ms
-with the same quadratic EaseOut shape used by native Pebble motion. Passive
-activity updates redraw in place; expiry/privacy clears immediately. There is no
-font morph, full-width replacement slide or overshoot. Native visibility, expiry
-and clock scheduling contracts remain.
+Clock and reading groups animate between idle and activity layouts with bounded,
+monotonic Pebble timing. Native Peek follows the available height rather than
+snapping to another layout. The complete date moves/fades out before the clock
+crosses its row, then the target date enters; measured ink bounds prevent overlap.
+Genuine source/run or media-item replacements retain an incoming transition.
+Ordinary ticks and repeated data do not replay it. Expiry/privacy still clear
+immediately, and covered views do not schedule decorative work.
+
+These animations are intentional. Improve their timing, paths and clipping;
+removing them is a separate user decision, not a substitute for fixing them.
 
 This branch uses the local unpublished Core 0.5.2-dev.0 candidate for its optional
 public-label callback. The v4 wire, message-key numbering, saved preferences and
 global complication picker are unchanged. Forecast-series charts and new native
 health sources are separate features, not part of this layout change.
 
-The previous clock/date crossing path has been removed. Header elements use
-complete endpoint layouts during activity changes and Timeline Peek.
+Animation endpoints preserve the large type roles and readable spacing. The
+underline removal, accent icons and expanded activity area remain independent
+of the motion correction.
 
 Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 

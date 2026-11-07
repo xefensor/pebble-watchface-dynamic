@@ -6,7 +6,6 @@
 #include <string.h>
 
 #define WATCH_LAYOUT_SLOT_COUNT 5
-enum { WATCH_PANEL_ENTRY_MS=132, WATCH_PANEL_ENTRY_DISTANCE=10 };
 
 enum { WATCH_CLOCK_FOLLOW=0, WATCH_CLOCK_12=12, WATCH_CLOCK_24=24, WATCH_CLOCK_QUERY=255 };
 static inline uint8_t watch_clock_format(int stored,int legacy) {
@@ -31,13 +30,19 @@ static inline float watch_lerp(float first, float last, float amount) {
   return first + (last - first) * amount;
 }
 
-/* A Weather-style short vertical entry, with stock quadratic EaseOut and no
- * overshoot. Header/readings are never part of this presentation offset. */
-static inline int watch_panel_offset(uint32_t elapsed) {
-  if(elapsed>=WATCH_PANEL_ENTRY_MS)return 0;
-  const uint32_t remaining=WATCH_PANEL_ENTRY_MS-elapsed;
-  const uint32_t denominator=WATCH_PANEL_ENTRY_MS*WATCH_PANEL_ENTRY_MS;
-  return (WATCH_PANEL_ENTRY_DISTANCE*remaining*remaining+denominator/2)/denominator;
+// Stock quadratic timing, clamped to complete endpoints with no overshoot.
+static inline float watch_ease_out(float value) {
+  value=watch_clamp(value);return value*(2-value);
+}
+static inline float watch_ease_in_out(float value) {
+  value=watch_clamp(value);
+  return value<0.5f?2*value*value:1-2*(1-value)*(1-value);
+}
+static inline float watch_smooth(float value) {
+  value=watch_clamp(value);return value*value*(3-2*value);
+}
+static inline float watch_incoming(float progress) {
+  return watch_ease_out(progress);
 }
 
 static inline WatchPose watch_pose_idle(void) {
@@ -65,10 +70,19 @@ static inline float watch_context_visibility(WatchPose pose) {
   return watch_clamp(pose.music+pose.notice);
 }
 
-// Pebble owns the Peek reveal. Keep one fitted unobstructed composition while
-// its height changes; do not independently sweep the clock/date across it.
-static inline WatchPose watch_pose_at_height(WatchPose full, int height) {
-  return height>=228?full:watch_pose_peek();
+// Each reading remains one group throughout a pose transition.
+static inline WatchPose watch_pose_between(WatchPose a,WatchPose b,float amount) {
+  WatchPose result;amount=watch_clamp(amount);
+#define WATCH_MIX(field) result.field=watch_lerp(a.field,b.field,amount)
+  WATCH_MIX(clock_x);WATCH_MIX(clock_y);WATCH_MIX(clock_size);
+  WATCH_MIX(date_x);WATCH_MIX(date_y);WATCH_MIX(row_y);WATCH_MIX(number_size);
+  WATCH_MIX(label_y);WATCH_MIX(context);WATCH_MIX(music);WATCH_MIX(notice);WATCH_MIX(peek);
+#undef WATCH_MIX
+  return result;
+}
+// Follow the actual native unobstructed height while bounding Peek overshoot.
+static inline WatchPose watch_pose_at_height(WatchPose full,int height) {
+  return watch_pose_between(full,watch_pose_peek(),watch_clamp((228-height)/57.0f));
 }
 
 // Used while fitting text to a pixel width, never as a fixed character limit.

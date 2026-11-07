@@ -418,9 +418,9 @@ def capture_complications(pebble,pbw,output,appmessage=None,names=None,language=
 
 
 def capture_motion(pebble,pbw,output):
-    """Observe first-panel entry and passive replacement as actual native frames.
+    """Observe animated layout and genuine-item replacement as native frames.
 
-    Serial screenshot transfer can exceed the132ms entry. Two endpoint states
+    Serial screenshot transfer can miss a short transition. Two endpoint states
     are sufficient evidence; missing intermediate observations are reported,
     never generated. Acquisition times are not physical display latency.
     """
@@ -512,29 +512,26 @@ def capture_motion(pebble,pbw,output):
         idle,_=grab('idle-before',time.monotonic())
         entry,entry_meta=sequence('panel-entry',idle,presets['music-24-light'])
         if entry[0].tobytes()==entry[-1].tobytes():raise RuntimeError('Idle and first Music panel are identical')
-        header=(0,0,200,86)
-        endpoint_headers={entry[0].crop(header).tobytes(),entry[-1].crop(header).tobytes()}
-        if any(frame.crop(header).tobytes() not in endpoint_headers for frame in entry):
-            raise RuntimeError('First panel morphed or swept its header/readings')
         music=entry[-1]
-        replacement,replacement_meta=sequence('passive-replacement',music,presets['notification-24-light'])
+        replacement,replacement_meta=sequence('genuine-replacement',music,presets['notification-24-light'])
         endpoints={replacement[0].tobytes(),replacement[-1].tobytes()}
         if len(endpoints)!=2:raise RuntimeError('Music and Notification endpoints are identical')
-        if any(frame.tobytes() not in endpoints for frame in replacement):
-            raise RuntimeError('Passive replacement translated, morphed or exposed an intermediate frame')
-        if any(frame.crop(header).tobytes() not in endpoint_headers for frame in replacement):
-            raise RuntimeError('Passive replacement changed header geometry')
         entry_endpoints={entry[0].tobytes(),entry[-1].tobytes()}
         intermediate=sum(frame.tobytes() not in entry_endpoints for frame in entry[1:-1])
+        replacement_intermediate=sum(frame.tobytes() not in endpoints for frame in replacement[1:-1])
         report={'version':info['versionLabel'],'candidateSourcePbwSha256':sha256(Path(pbw).read_bytes()),
             'capturedNativePbwSha256':sha256(native.read_bytes()),'nativePayloadSha256':payload,
             'fixtureTimeUtc':now,'fixtureTimeMode':'host-rtc' if host_rtc else 'fixed-utc',
             'captures':captures,'gifs':gifs,'entry':{'gif':'panel-entry.gif','captures':entry_meta,
-                'expectedDistancePx':10,'expectedDurationMs':132,'expectedFrameIntervalMs':33,
-                'headerMatchesRealEndpoints':True,'endpointStatesObserved':2,'intermediateFramesObserved':intermediate,
-                'observation':'Endpoint-only observation is valid when screenshot transfer exceeds132ms; no extra frames are invented.'},
-            'passiveReplacement':{'gif':'passive-replacement.gif','captures':replacement_meta,
-                'allFullFramesMatchRealEndpoints':True,'liveActivityClocks':False},
+                'expectedDurationMs':250,'expectedCurve':'quadratic EaseInOut','expectedFrameIntervalMs':33,
+                'animatedHeaderAndReadings':True,'endpointStatesObserved':2,'intermediateFramesObserved':intermediate,
+                'settledNativeRgbEqual':True,
+                'observation':'Only observed states are reported. Screenshot transfer may observe two endpoints without an intermediate frame; no extra frames are invented.'},
+            'genuineReplacement':{'gif':'genuine-replacement.gif','captures':replacement_meta,
+                'identityChanged':True,'expectedDistancePx':200,'expectedDurationMs':231,
+                'expectedCurve':'quadratic EaseOut','expectedFrameIntervalMs':33,
+                'endpointStatesObserved':2,'intermediateFramesObserved':replacement_intermediate,
+                'settledNativeRgbEqual':True,'liveActivityClocks':False},
             'scope':'Actual native Screenshot-service frames using synthetic idle/Music/notification data. GIFs contain only captured frames with an added final hold; no interpolation. Host acquisition times are not physical-watch latency. No phone runtime or physical device verification.'}
         (output/'motion.json').write_text(json.dumps(report,indent=2)+'\n')
         return report

@@ -3,13 +3,14 @@
 #include "../src/c/reading_presentation.h"
 
 int main(void) {
-  assert(watch_panel_offset(0)==10&&watch_panel_offset(132)==0);
-  assert(watch_panel_offset(33)==6&&watch_panel_offset(66)==3&&watch_panel_offset(99)==1);
-  assert(watch_panel_offset(UINT32_MAX)==0);
-  int previous=10;
-  for(unsigned elapsed=0;elapsed<300;++elapsed) {
-    const int offset=watch_panel_offset(elapsed);
-    assert(offset>=0&&offset<=previous);previous=offset;
+  assert(watch_ease_in_out(0)==0&&watch_ease_in_out(1)==1);
+  assert(watch_ease_in_out(0.25f)==0.125f&&watch_ease_in_out(0.75f)==0.875f);
+  assert(watch_incoming(0.5f)==0.75f&&watch_incoming(1)==1);
+  float previous_layout=0,previous_incoming=0;
+  for(unsigned elapsed=0;elapsed<=300;++elapsed) {
+    const float layout=watch_ease_in_out(elapsed/250.0f),incoming=watch_incoming(elapsed/231.0f);
+    assert(layout>=previous_layout&&layout<=1&&incoming>=previous_incoming&&incoming<=1);
+    previous_layout=layout;previous_incoming=incoming;
   }
   assert(watch_clock_format(-1,-1)==WATCH_CLOCK_FOLLOW);
   assert(watch_clock_format(-1,0)==WATCH_CLOCK_24);
@@ -50,13 +51,9 @@ int main(void) {
       assert(p.row_y<height);
       assert(p.row_y+9<height);
       assert(p.date_y<p.clock_y && p.clock_y<p.row_y);
-      if(height<228) {
-        assert(p.clock_x==peek.clock_x && p.clock_y==peek.clock_y);
-        assert(p.row_y==peek.row_y && p.context==0);
-        assert(!memcmp(&p,&peek,sizeof(p)));
-      } else {
-        assert(!memcmp(&p,&active,sizeof(p)));
-      }
+      if(height<=171)assert(!memcmp(&p,&peek,sizeof(p)));
+      else if(height<228)assert(p.peek>0&&p.peek<1&&p.context>0&&p.context<1);
+      else assert(!memcmp(&p,&active,sizeof(p)));
     }
     const WatchPose from_idle=watch_pose_at_height(idle,166);
     const WatchPose from_active=watch_pose_at_height(active,166);

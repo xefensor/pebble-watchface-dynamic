@@ -39,6 +39,8 @@
 #define NATIVE_INBOX_BYTES 6144
 #define FULL_LAYOUT_HEIGHT 228
 #define MOTION_FRAME_MS XOCE_UI_PRESS_FRAME_MS
+#define LAYOUT_DURATION_MS 250
+#define INCOMING_DURATION_MS 231
 
 enum { ACTIVITY_LINE_BYTES=PAV_TEXT_BYTES+PAV_LABEL_BYTES+8 };
 typedef struct {
@@ -76,13 +78,16 @@ typedef struct {
   FontRasterContour clock_raster_contours[CLOCK_GLYPH_MAX_CONTOURS];
   int32_t clock_intersections[CLOCK_GLYPH_MAX_POINTS];
   uint8_t clock_coverage[200];
+  char activity_identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2];
+  uint8_t activity_visual[8];
   ActivityPlan activity_plan;
   ActivityNavigation navigation;
-  WatchPose pose,pose_target;
+  WatchPose pose,pose_from,pose_target;
 } NativeState;
 static NativeState *s_native;
 #define s_core (s_native->core)
 #define s_pose (s_native->pose)
+#define s_pose_from (s_native->pose_from)
 #define s_pose_target (s_native->pose_target)
 #define s_clock_path_points (s_native->clock_path_points)
 #define s_clock_path (s_native->clock_path)
@@ -107,9 +112,9 @@ static bool s_body_loaded[BODY_FONT_COUNT];
 static const uint32_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_11,RESOURCE_ID_FONT_BODY_14,
   RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_22,
   RESOURCE_ID_FONT_BODY_24,RESOURCE_ID_FONT_BODY_26,RESOURCE_ID_FONT_BODY_32};
-static bool s_pose_ready, s_panel_entering, s_peek_transition;
-static uint32_t s_panel_started;
-static int s_panel_offset;
+static bool s_pose_ready, s_layout_active, s_slide_active, s_peek_transition;
+static uint32_t s_layout_started, s_slide_started;
+static float s_slide_amount=1;
 static bool s_private_rebaseline;
 static bool s_format_reply_pending,s_outbox_format_only,s_outbox_presentation,s_transport_ready;
 
@@ -121,6 +126,7 @@ static void prv_context_expired(void *context);
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point);
 static MusicTextMetrics prv_activity_clock_measure(void *context,const char *text,int point);
 static void prv_activity_reset(void);
+static int prv_activity_top(void);
 static void prv_apply_colors(void);
 static void prv_activity_clock_schedule(void);
 static void prv_cancel_motion(void);
@@ -314,6 +320,13 @@ static GColor prv_muted_text(float alpha) {
   const unsigned b=prv_round(watch_lerp(s_background_color.argb&3,ink&3,alpha));
   return (GColor){.argb=0xc0|(r<<4)|(g<<2)|b};
 }
+static GColor prv_faded_text(float alpha) {
+  alpha=watch_clamp(alpha);
+  const unsigned r=prv_round(watch_lerp((s_background_color.argb>>4)&3,(s_text_color.argb>>4)&3,alpha));
+  const unsigned g=prv_round(watch_lerp((s_background_color.argb>>2)&3,(s_text_color.argb>>2)&3,alpha));
+  const unsigned b=prv_round(watch_lerp(s_background_color.argb&3,s_text_color.argb&3,alpha));
+  return (GColor){.argb=0xc0|(r<<4)|(g<<2)|b};
+}
 static const ClockGlyph *prv_clock_glyph(uint32_t code) {
   for(unsigned i=0;i<CLOCK_GLYPH_COUNT;++i) if(clock_glyphs[i].code==code) return &clock_glyphs[i];
   return NULL;
@@ -446,30 +459,35 @@ static void prv_private_clear(void) {
 }
 static void prv_motion_frame(void *context) {
   (void)context;s_motion_timer=NULL;
-  if(!s_app_focused){prv_cancel_motion();return;}
-  if(!s_panel_entering)return;
-  if(s_peek_transition||!prv_primary_activity()||
-      layer_get_unobstructed_bounds(s_window_layer).size.h<FULL_LAYOUT_HEIGHT) {
-    prv_cancel_motion();prv_sync_layers();prv_activity_clock_schedule();return;
+  if(!s_app_focused){prv_cancel_motion();s_pose=s_pose_target;return;}
+  if(!s_layout_active&&!s_slide_active)return;
+  const uint32_t now=prv_millis();
+  if(s_layout_active) {
+    const float t=watch_clamp((now-s_layout_started)/(float)LAYOUT_DURATION_MS);
+    s_pose=watch_pose_between(s_pose_from,s_pose_target,watch_ease_in_out(t));
+    if(t>=1) { s_pose=s_pose_target;s_layout_active=false; }
   }
-  const uint32_t elapsed=prv_millis()-s_panel_started;
-  s_panel_offset=watch_panel_offset(elapsed);
-  if(elapsed>=WATCH_PANEL_ENTRY_MS)s_panel_entering=false;
-  prv_sync_layers();
-  if(s_panel_entering)prv_schedule_motion();
+  if(s_slide_active) {
+    const float progress=(now-s_slide_started)/(float)INCOMING_DURATION_MS;
+    s_slide_amount=watch_incoming(progress);
+    if(progress>=1){s_slide_active=false;s_slide_amount=1;}
+  }
+  if(s_slide_active&&!s_layout_active&&s_context_layer)prv_dirty(s_context_layer);
+  else prv_sync_layers();
+  if(s_layout_active || s_slide_active) prv_schedule_motion();
   else prv_activity_clock_schedule();
 }
 static void prv_cancel_motion(void) {
   if(s_motion_timer) { app_timer_cancel(s_motion_timer);s_motion_timer=NULL; }
-  s_panel_entering=false;s_panel_offset=0;
+  s_layout_active=false;s_slide_active=false;s_slide_amount=1;
 }
 static void prv_schedule_motion(void) {
-  if(!s_panel_entering||s_motion_timer||!s_app_focused)return;
+  if((!s_layout_active&&!s_slide_active)||s_motion_timer||!s_app_focused)return;
   s_motion_timer=app_timer_register(MOTION_FRAME_MS,prv_motion_frame,NULL);
   if(!s_motion_timer) {
     // A decorative allocation failure must settle the visible composition,
     // rather than leave a partial incoming paint waiting for the next minute.
-    prv_cancel_motion();
+    prv_cancel_motion();s_pose=s_pose_target;
     prv_sync_layers();prv_activity_clock_schedule();
   }
 }
@@ -477,24 +495,33 @@ static void prv_apply_unobstructed_layout(void) {
   if(s_window_layer==NULL) return;
   const bool motion=s_app_focused && s_animations_enabled && !s_peek_transition &&
       layer_get_unobstructed_bounds(s_window_layer).size.h>=228;
+  const PavCard *activity=prv_primary_activity();
+  char identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2]={0};
+  if(activity)snprintf(identity,sizeof(identity),"%s|%s",activity->provider,activity->id);
+  const bool replaced=s_native->activity_identity[0]&&activity&&
+      (strcmp(identity,s_native->activity_identity)||
+       (activity->presentation==PAV_PRESENTATION_MEDIA&&
+        memcmp(activity->visual_token,s_native->activity_visual,8)));
+  if(replaced&&motion) {
+    s_native->activity_plan.cache.drawn=false;
+    s_slide_active=true;s_slide_amount=0;s_slide_started=prv_millis();
+  }
+  if(!activity){s_slide_active=false;s_native->activity_identity[0]=0;}
+  else {
+    memcpy(s_native->activity_identity,identity,sizeof(identity));
+    memcpy(s_native->activity_visual,activity->visual_token,8);
+  }
   const WatchPose target=prv_full_pose();
-  const bool was_entering=s_panel_entering;
-  const bool was_present=s_pose_ready&&watch_context_visibility(s_pose_target)>0;
-  const bool present=watch_context_visibility(target)>0;
-  const bool layout_changed=!s_pose_ready||
+  const bool layout_changed=!s_pose_ready||s_layout_active||
       memcmp(&target,&s_pose_target,sizeof(target))!=0;
   if(layout_changed)s_native->activity_plan.cache.drawn=false;
-  // Header and readings change pose immediately. Only a newly appearing
-  // activity panel gets a small Weather-style vertical settle; updates stay put.
-  s_pose=s_pose_target=target;s_pose_ready=true;
-  if(!present||!motion)prv_cancel_motion();
-  else if(!was_present) {
-    s_native->activity_plan.cache.drawn=false;
-    s_panel_entering=true;s_panel_offset=WATCH_PANEL_ENTRY_DISTANCE;
-    s_panel_started=prv_millis();
+  if(!s_pose_ready) {s_pose=s_pose_from=s_pose_target=target;s_pose_ready=true;}
+  else if(memcmp(&target,&s_pose_target,sizeof(target))!=0) {
+    s_pose_from=s_pose;s_pose_target=target;s_layout_started=prv_millis();s_layout_active=motion;
+    if(!motion)s_pose=target;
   }
-  if(layout_changed)prv_dirty(s_background_layer);
-  if(layout_changed||s_peek_transition||was_entering)prv_sync_layers();
+  if(!motion) {prv_cancel_motion();s_pose=s_pose_target;}
+  if(layout_changed||s_peek_transition)prv_sync_layers();
   else if(s_context_layer)prv_dirty(s_context_layer);
   prv_activity_clock_schedule();
   prv_schedule_motion();
@@ -502,13 +529,22 @@ static void prv_apply_unobstructed_layout(void) {
 static void prv_sync_layers(void) {
   if(!s_app_focused || !s_background_layer || !s_context_layer) return;
   const WatchPose p=prv_current_pose();
-  const bool visible=watch_context_visibility(p)>0&&!s_peek_transition;
-  const int height=visible?142-s_panel_offset:0;
-  layer_set_frame(s_context_layer,GRect(0,86+s_panel_offset,200,height));
-  layer_set_bounds(s_context_layer,GRect(0,0,200,height));
+  const float reveal=watch_smooth((watch_context_visibility(p)-0.72f)/0.28f);
+  int top=86;
+  if(s_layout_active||p.peek>0) {
+    // Keep incoming activity ink below the moving reading group. Offset the
+    // bounds by the same amount so clipping does not move its final geometry.
+    const float bottom=p.row_y+(prv_activity_top()>86?p.label_y+8:p.number_size*0.5f+6);
+    const int clear=prv_round(bottom+0.499f);
+    if(clear>top)top=clear;
+  }
+  const int bottom=86+prv_round(142*reveal);
+  const int height=bottom>top?bottom-top:0;
+  layer_set_frame(s_context_layer,GRect(0,top,200,height));
+  layer_set_bounds(s_context_layer,GRect(0,top-86,200,height));
   layer_set_hidden(s_context_layer,height<=0);
   prv_dirty(s_context_layer);
-  if(!s_panel_entering)prv_dirty(s_background_layer);
+  if(!(s_slide_active&&!s_layout_active))prv_dirty(s_background_layer);
 }
 static void prv_schedule_context_expiry(void) {
   if(s_context_timer) {app_timer_cancel(s_context_timer);s_context_timer=NULL;}
@@ -752,10 +788,27 @@ static void prv_draw_status(GContext *ctx,WatchPose p) {
   }
 }
 static void prv_draw_date(GContext *ctx,WatchPose p) {
-  const bool compact=p.context>=0.5f;
+  // Move the complete date out before the clock crosses its row, then bring
+  // the compact date in from the right. Reverse motion follows the same path.
+  const float context=watch_clamp(p.context);
+  const bool compact=context>0.5f;
+  const float alpha=compact?watch_clamp((context-0.85f)/0.15f):watch_clamp(1-context/0.2f);
+  if(alpha<=0)return;
   const int width=compact?76:200;
-  prv_utility_text(ctx,compact?s_numeric_date_buffer:s_compact_date_buffer,true,
-      prv_round(p.date_x)-width/2,prv_round(p.date_y),width,s_text_color,GTextAlignmentCenter);
+  const int center=compact?158+prv_round(10*(1-alpha)):100;
+  const int baseline=compact?36:31-prv_round(6*(1-alpha));
+  const float clock_width=prv_vector_width(s_time_buffer,p.clock_size);
+  const float available=watch_lerp(184,108,context);
+  const float point=clock_width>available?p.clock_size*available/clock_width:p.clock_size;
+  const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
+  const char *text=compact?s_numeric_date_buffer:s_compact_date_buffer;
+  const GSize date=prv_measure(text,XOCE_UI_HEADER_POINT);
+  const bool rows_overlap=baseline+body_text_descent(text,XOCE_UI_HEADER_POINT)+3>p.clock_y-clock.ascent&&
+      baseline-body_text_ascent(text,XOCE_UI_HEADER_POINT)-3<p.clock_y+clock.descent;
+  if(rows_overlap&&center-date.w/2-3<p.clock_x+clock.width/2&&
+      center+date.w/2+3>p.clock_x-clock.width/2)return;
+  prv_utility_text(ctx,text,true,center-width/2,baseline,width,
+      prv_faded_text(alpha),GTextAlignmentCenter);
 }
 static void prv_draw_background(Layer *layer,GContext *ctx) {
   graphics_context_set_fill_color(ctx,s_background_color);
@@ -775,6 +828,8 @@ static MusicTextMetrics prv_music_measure(void *context,const char *text,int poi
       body_text_descent(text,point)};
 }
 static void prv_activity_reset(void) {
+  s_native->activity_identity[0]=0;
+  memset(s_native->activity_visual,0,sizeof(s_native->activity_visual));
   memset(&s_native->activity_plan,0,sizeof(s_native->activity_plan));
 }
 static MusicTextMetrics prv_activity_clock_measure(void *context,const char *text,int point) {
@@ -975,7 +1030,7 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
 }
 static void prv_activity_clock_schedule(void) {
   const PavCard *card=prv_primary_activity();bool needed=false;
-  if(card&&s_app_focused&&s_window_layer&&!s_peek_transition&&!s_panel_entering&&
+  if(card&&s_app_focused&&s_window_layer&&!s_peek_transition&&!s_layout_active&&!s_slide_active&&
       layer_get_unobstructed_bounds(s_window_layer).size.h>=FULL_LAYOUT_HEIGHT&&
       watch_context_visibility(prv_current_pose())>0.72f) {
     prv_prepare_activity(card,(uint32_t)time(NULL),&s_native->activity_plan);
@@ -1040,7 +1095,7 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
   const uint32_t now=(uint32_t)time(NULL);ActivityPlan *plan=&s_native->activity_plan;
   prv_prepare_activity(card,now,plan);const ActivityLayout *layout=&plan->layout;
   if(!layout->main.count)return;
-  const int x=0;
+  const int x=s_slide_active?prv_round(200*(1-s_slide_amount)):0;
   for(int i=0;i<layout->main.count;++i) {
     if(layout->vector)prv_vector(ctx,layout->main.text[i],x+layout->left,
         y+layout->main_baseline[i],layout->point,s_text_color);
@@ -1097,7 +1152,7 @@ static void prv_presentation_refresh(void *context) {
   const uint32_t now=(uint32_t)time(NULL);
   // A heartbeat confirms the last actual draw only while its exact plan is
   // still current. Expiry, motion, locale and clocks fall back to a new draw.
-  if(card&&plan->cache.drawn&&!s_peek_transition&&pose.peek<0.01f&&!s_panel_entering&&
+  if(card&&plan->cache.drawn&&!s_peek_transition&&pose.peek<0.01f&&!s_layout_active&&!s_slide_active&&
       watch_context_visibility(pose)>=0.999f&&
       activity_plan_current(&plan->cache,card,reading_language(i18n_get_system_locale()),now,s_phone_connected))
     prv_note_presentation(card,true);
@@ -1129,11 +1184,13 @@ static void prv_note_presentation(const PavCard *card,bool stable) {
 }
 static void prv_draw_context(Layer *layer,GContext *ctx) {
   (void)layer;const WatchPose p=prv_current_pose();
+  const float reveal=watch_smooth((watch_context_visibility(p)-0.72f)/0.28f);
+  const int y=-86+prv_round(22*(1-reveal)+65*watch_clamp(p.peek));
   const PavCard *activity=prv_primary_activity();
-  if(activity)prv_draw_activity(ctx,activity,-86);
+  if(activity)prv_draw_activity(ctx,activity,y);
   else memset(&s_native->activity_plan,0,sizeof(s_native->activity_plan));
   const bool stable=s_app_focused&&!s_peek_transition&&p.peek<0.01f&&
-      watch_context_visibility(p)>0&&!s_panel_entering;
+      reveal>=0.99f&&!s_layout_active&&!s_slide_active;
   s_native->activity_plan.cache.drawn=stable&&activity&&s_native->activity_plan.layout.main.count;
   if(s_app_focused)prv_note_presentation(activity,stable);
 }
@@ -1153,7 +1210,7 @@ static void prv_update_clock(void) {
   // only when its actual plan, locale, expiry or geometry has changed.
   const PavCard *activity=prv_primary_activity();
   const WatchPose target=prv_full_pose();
-  if(!s_pose_ready||s_panel_entering||
+  if(!s_pose_ready||s_layout_active||s_slide_active||
       memcmp(&target,&s_pose_target,sizeof(target))||
       (activity&&(s_native->activity_plan.layout.top!=prv_activity_top()||
           !activity_plan_current(&s_native->activity_plan.cache,activity,
