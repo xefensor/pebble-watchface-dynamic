@@ -4,9 +4,9 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const crypto=require('node:crypto'),cp=require('node:child_process');
 const root=path.resolve(__dirname,'..'),version=require(root+'/package.json').version;
-const output=path.resolve(process.argv[2]||root+'/docs/qa/'+version+'/settings-stay-open');
+const output=path.resolve(process.argv[2]||(process.env.PEBBLE_QA_OUTPUT_ROOT||root+'/build/qa')+'/settings-stay-open');
 const endpoint=process.env.DYNAMIC_CHROMIUM_ENDPOINT||'http://127.0.0.1:9227';
-const artifact=path.resolve(process.env.DYNAMIC_QA_PBW||root+'/dist/Dynamic-'+version+'.pbw');
+const artifact=path.resolve(process.env.DYNAMIC_QA_PBW||process.env.PEBBLE_PBW||root+'/build/candidate/Dynamic-'+version+'.pbw');
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const files=JSON.parse(cp.execFileSync('python3',['-c',
   'import json,sys,zipfile\nwith zipfile.ZipFile(sys.argv[1]) as z: print(json.dumps({n:z.read(n).decode() for n in ["config.html","plugin.js","pebble-js-app.js"]}))',artifact],{encoding:'utf8',maxBuffer:16*1024*1024}));

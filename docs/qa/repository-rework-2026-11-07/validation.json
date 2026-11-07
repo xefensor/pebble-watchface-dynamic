@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-07",
+  "scope": "Repository maintenance; preserve features, accepted UI, public API, dependency pins and frozen releases.",
+  "portableChecks": "PASS",
+  "checksRun": [
+    "npm test",
+    "npm run check:docs",
+    "npm run build",
+    "npm run test:workflow",
+    "npm run check:artifact"
+  ],
+  "preservation": {
+    "baseline": "4b2c01246c93d8235469b8fadee88c77242491a0",
+    "protectedFilesChecked": 1903,
+    "result": "PASS",
+    "packageMetadataUnchangedExceptScripts": true
+  },
+  "sdkBuild": "PASS",
+  "nativeEvidence": [
+    {
+      "report": "native-previews-previews.json",
+      "source": "pebble-watchface-dynamic/build/qa/native-previews/previews.json",
+      "sha256": "7454d2409099ae856a83a29536acbe29e599988877688ad07fe619faccf233ef"
+    }
+  ],
+  "evidencePolicy": "New development PBWs, captures and package tarballs are disposable under build/. These reports record this run; original versioned evidence and artifacts were not overwritten.",
+  "browserVerification": "No fresh browser execution in this maintenance pass. Existing browser evidence remains historical.",
+  "physicalDeviceVerification": false,
+  "pushed": false,
+  "published": false,
+  "nativeCommands": [
+    "Imported capture-native-previews.py capture() using workspace FIFO emulator adapter and default candidate/QA paths"
+  ],
+  "developmentPreviewAudit": "Frozen native renderer proven identical except SDK RESOURCE_TIMESTAMP_ADDR (0x7c..0x7f); resources exact. Timestamp exception rejection tests pass; release auditor remains strict."
+}

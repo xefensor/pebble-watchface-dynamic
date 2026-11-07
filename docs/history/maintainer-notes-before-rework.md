@@ -1,0 +1,297 @@
+# Historical maintainer instructions
+
+Snapshot before the2026-11-07 repository rework; source 4b2c01246c93d8235469b8fadee88c77242491a0.
+These notes are historical evidence, not active instructions. Superseded UI,
+build and release rules must not override current AGENTS.md/CONTRIBUTING.md.
+
+# Dynamic maintainer notes
+
+Dynamic targets Pebble Time 2 (`emery`, 200×228). Preserve its UUID and all
+existing AppMessage key numbers. Append new keys; never reuse retired ones.
+
+## Product intent
+
+- ACT3 activities use the agreed notification-style composition: primary content
+  above contextual footer, secondary above primary in exactly one static row.
+  The footer ends at y216. Media has title plus optional 28px cover and one larger artist line;
+  other activities use instance context, falling back to provider identity.
+- Keep the complete primary block bottom-aligned directly above its footer,
+  with an 8px gap when a footer is present. Move standard value labels, headline,
+  detail and range indicator together. Media title ink ends above the cover/artist
+  footer. Spare space stays above the block; the secondary keeps its own position.
+- Any source can occupy either role. The primary expands when secondary is
+  absent. Compact reduction keeps its selected clock/value structured and full;
+  an essential value that cannot fit causes the optional secondary to yield.
+  Both datums and media artwork remain available for local promotion.
+- Text always starts at its beginning and truncates at the last visible line.
+  Do not scroll, marquee, automatically page or cycle text. Do not restore old
+  title continuation timers, identity headers or Last reported UI.
+- Preserve immutable source/run identity, independent clocks and original
+  observation/validity. Timer's known native adapter may display a bounded public
+  deadline prediction without renewing its observation. Other unconfirmed legacy
+  sources are omitted when their required provenance cannot be displayed.
+- Media presentation, identity symbols, compact selector, semantic directions and
+  media-item visual token are explicit ACT3 fields. Do not infer styling from a
+  private label marker. Legacy source adaptation belongs on the phone.
+- Media and Notifications use the shared activity renderer. Keep one bounded
+  render plan and no parallel native Music or notification renderer.
+  Incoming-only 280ms transitions follow run
+  replacement or media item changes; ticks, lease refresh and artist/art arrivals
+  do not start them. Activity clock ticks dirty only the activity layer.
+- Two shared Pebble readings keep their positions. Timeline Peek uses the OS
+  panel. Notifications is an ordinary activity in the same priority/show-hide
+  list; it defaults to Off and a saved position wins over the initial first
+  position. Sender/body privacy never chooses a separate layout or route.
+  Keep the original baseline/privacy policy and bounded eight-second event
+  window, capped by source expiry. It does not replace OS notifications.
+- Activity presentation status confirms actual visible original record indices,
+  native session and view/presentation sequences. A small 30-second status refresh
+  maintains the routing lease; clock ticks never write storage or send messages.
+- The bundled read-only navigation source exposes one recent route record for
+  Open Activity. Persist only two destination app UUIDs and session/expiry data,
+  never provider/run IDs, titles, notification text, artwork or content hashes.
+  Validity is capped at 45 seconds and source/role expiry; reads never renew it.
+- Dynamic requests summary display fields and `open_app`, excluding separate
+  `actions` and `entity_ref` descriptors. Interactive hosts may request those
+  capabilities later; this watchface never invokes provider actions.
+- Open Activity means Dynamic's recent Primary/Secondary from any watchface;
+  stock SDK cannot prove the immediately preceding face. No firmware/mobile-app
+  fork, custom mobile build, Dashboard implementation or global Quick Launch
+  remapping is required. Automatic app opening uses the separate helper repo.
+- Phone settings colours are independent of watch colours. Preview controls
+  must not silently change saved appearance or notification privacy.
+
+## Source boundaries
+
+- The canonical GitHub repository is `xefensor/pebble-watchface-dynamic`.
+  Keep the npm name `dynamic-watchface` and dependency package/import names
+  unchanged. SDK development PBWs use the checkout directory's name; release
+  packaging and preview tools must work in the renamed checkout. See
+  `docs/REPOSITORY-MIGRATION.md` for the repository/package mapping.
+- `src/c/`: Dynamic's renderer, SDK lifecycle and host presentation.
+- `src/pkjs/`: bundled/legacy Clay settings, translations and phone host integration.
+- `vendor/CORE.json` and `vendor/ACTIVITIES.json`: exact pinned
+  library archive/commit/checksum.
+  Change the upstream core repository first, then rebuild and pin its tarball.
+- `scripts/release_licenses.py`: exact notices carried in each standalone PBW.
+- `.github/release.json`, `.github/workflows/release.yml` and
+  `scripts/github-release.py`: independent GitHub release configuration,
+  validation and publication. Shared helper changes should remain aligned with
+  Halftone, Core and ČHMÚ; project configuration and release identity stay separate.
+- `docs/VALIDATION.md`, `docs/asset-provenance.json`, `docs/qa/`: release-specific
+  evidence. Preserve older evidence as historical; do not relabel it as new.
+- Native activity decoding uses `pebble-activity-view.h` and `Pav*` only. Keep
+  legacy provider adaptation on the phone; do not link a second ACT1 decoder
+  into the limited native image. Reuse the bounded activity plan for drawing
+  and clock scheduling; do not copy complete cards per frame.
+
+## Checks and release order
+
+1. `npm ci --ignore-scripts` and `npm test` run portable JS/C checks. Release
+   automation has separate tests:
+   `python3 -m unittest discover -s tests -p test_github_release.py`.
+2. `pebble build` uses the pinned font sources and generated metrics. Inspect
+   native load-image size after native edits and keep it below the
+   SDK's 65,535-byte limit. Heap availability is a separate measurement.
+3. `python3 scripts/package-release.py` packages exact SDK payloads and notices.
+4. `python3 scripts/check-native-style.py --pbw dist/Dynamic-VERSION.pbw`
+   checks bundle/source/font/core/license identity. Its Python font dependencies
+   are pinned in `scripts/requirements-font-assets.txt`.
+5. Capture affected native states and actual Clay pages. Reuse unchanged prior
+   tests; repeat only what changes or an unresolved concern requires. Never
+   treat emulator/fixture results as live-phone or physical-watch verification.
+6. Refresh native preview assets, rebuild, and verify the final binary/resources
+   match the captured renderer. Save final image/provenance evidence.
+7. For a new, unpublished version, run `python3 scripts/prepare-store.py` and
+   its `--check` mode after final provenance, then
+   `python3 scripts/package-source.py` last. Any source/docs edit to that
+   unpublished snapshot requires regenerating its archive/checksums.
+8. Commit the bumped version, checked artifacts/checksums and notes locally,
+   then run
+   `python3 scripts/github-release.py prepare --output /tmp/dynamic-release`.
+   It validates committed `HEAD`, not uncommitted working files. Push that commit
+   to `main` after the check. The workflow validates the pushed commit and
+   publishes exact artifacts without an SDK rebuild. If a GitHub connector
+   creates/publishes the commit directly, rely on its CI check or fetch/check out
+   that commit before a local `prepare`; an old-HEAD run does not validate it.
+   Use the manual Run workflow control for an identical-version retry.
+
+## Published release immutability
+
+- Keep published assets and tags unchanged. Later README/docs/AGENTS or
+  release-automation improvements on `main` do not require rewriting an older
+  source archive or republishing its version.
+- The bootstrap in `.github/release.json` ties published v0.16.2 artifacts to
+  tested commit `48a5aaec1aac4e2805bad2bb7e793b5da58b5165`.
+  Do not repoint it to a documentation commit. A later
+  version uses its own artifact commit; refresh the finite filenames/checksums.
+- Published-byte changes need a new version. The workflow refuses changed or
+  incomplete published assets, conflicting tags and RC/beta promotion to stable.
+- Source ZIPs exclude generated `build/`, dependency, Git and `.pebble/` folders,
+  generated `docs/qa/**/*.png` copies, and all PBW binaries. QA PNGs remain
+  versioned in Git; buildable embedded previews and product screenshots stay in
+  the source ZIP. Committed source recipes are allowed; archive path
+  and runtime/build-input checks still apply.
+- This repository pins Core 0.5.1 and Activities 0.4.4 explicitly. Upstream
+  releases do not automatically repin or rebuild the watchface.
+- Version 0.9.0 is a published GitHub development prerelease. Keep its tested
+  artifacts, tag and the earlier 0.8.0 download links/bytes available.
+  Prior user success on 0.8.0 is useful history, not a physical 0.9.0 check.
+- Version 0.9.1 is a GitHub development prerelease. Preserve published 0.9.0
+  artifacts and their original source snapshot while validating the new bytes.
+
+- Version 0.10.0 adds identified primary/secondary cards and Dynamic-local
+  provider preferences. Preserve 0.9.1 and earlier published artifacts/tags.
+  Phone preferences never become new native message keys or private-content cache.
+
+`store/listing.json` is a local publication record, not a Pebble CLI schema.
+GitHub builds remain prereleases. The current official
+[plugin-preview guide](https://developer.repebble.com/guides/plugins/preview/)
+holds appstore submission. Recheck
+the linked official rule before changing that status; preparing a consistent
+store kit does not publish the app or remove the restriction.
+
+Version 0.12.0 adds the independently callable navigation plugin. Distribution
+packaging must include plugin.js, its manifest source declaration and exact
+source identity, alongside the unchanged SDK native/JS payloads and licences.
+Append ACTIVITY_PRESENTED/REQUEST_PRESENTATION after all existing message keys.
+Native screenshots prove rendering only; real-phone app switching, permissions,
+physical-watch latency and battery remain separate checks.
+
+Version 0.13.0 removes the native notification panel. Notifications use ACT3
+record indices and the normal app-destination mapping in both roles, including
+body-free summaries. Presentation flags are zero; reject the retired special
+notification flag. The 13-byte context-effects sidecar carries only native
+session, event counter, flags and original expiry for optional vibration.
+
+Version 0.14.0 changes phone settings only. Keep Appearance, Content & priority
+and Connection & help with nonsticky focus/scroll shortcuts that do not change
+browser history. The activity list owns Music/Notifications visibility; the
+three notification detail choices retain their saved privacy state while hidden.
+SHOW_ACTIVITIES affects generic plugins only; disabled rows explain that state
+without rewriting saved order/visibility. Preserve all preference keys and default
+privacy. Reused 0.13 native activity captures must retain their historical origin;
+20 fresh 0.14 native previews and current Clay source hashes are separate evidence.
+
+Version 0.15.0 adds a one-pixel divider at y114 only while a secondary row is
+actually visible. Paused state follows the existing 17-language native table
+and precedes optional labels/context in both roles. A compact structured value
+and paused state must fit together or the optional row yields; presentation
+confirmation must describe the resulting visible roles. Keep the primary/footer
+anchors, one static row and original lifecycle/leases unchanged.
+
+Phone preview includes Timer+Music, giving six sample states and 24 native
+state/format/theme captures. Share colours is disclosed on demand. Preview tabs
+support Home/End and wrapping arrows. The Save bar reserves its measured height;
+short layout or visual viewports put it into document flow. Use visualViewport
+bounds when available to keep focused inputs/selects visible. Native and phone
+pixels are fresh 0.15 evidence; older evidence remains historical.
+
+Version 0.16.0 reuses one activity plan, keyed by record/session invalidation,
+language, connection, all candidate clock seconds and earliest datum/source
+expiry. Hidden clocks still invalidate fitting on a host redraw. The cache's
+drawn flag means an actual stable paint, not merely a prepared or sliding plan.
+Preserve fresh native confirmation and final Peek geometry synchronization.
+Core 0.5.1 validates complete legacy context but Dynamic retains only
+WfcPhoneStatus; never restore a parallel private context allocation. Activities
+0.4.2 provides the host entry without unused publisher code.
+Release PBWs contain minified JavaScript and no external source maps. SDK output
+stays original; the separate debug ZIP retains original SDK inputs, exact chained
+maps and minifier identity. Pin Terser 5.46.0, preserve serialized Clay function
+boundaries (compression/property mangling remain disabled), and independently
+recompute code/maps in artifact and committed-release checks.
+Generated minifier identifiers must exclude `$` in every position: Clay inserts
+customFn.toString through String.replace replacement-string semantics. Keep the
+actual stock-Clay generation regression and actual packaged browser execution;
+source-only page tests cannot establish serialized/minified compatibility.
+
+Version 0.16.1 pins Activities 0.4.3 and keeps Core 0.5.1. Covered native views
+still validate and expire source data, but do not schedule decorative motion,
+activity ticks, presentation heartbeats or host paint invalidations. The OS may
+still request a background draw. Such a draw cannot confirm or withdraw the
+recent navigation hint; its original source and 45-second bounds remain.
+Focus return reconciles identity/expiry/clock/palette before one fresh visible
+paint without replaying motion. Static minute updates dirty the background only
+unless the activity plan or geometry is stale. A failed motion-timer allocation
+settles the final composition immediately.
+Bootstrap generations own their retry timer and content-free transport tickets.
+Native baseline receipt invalidates active retries and already queued bootstrap
+queries without changing other FIFO traffic. Preserve the matching ticket when
+the shared queue copies a payload; it must never become a native message field.
+`tests/test_native_lifecycle.py` compiles actual production callbacks against a
+counted fake SDK; this is work/lifecycle evidence, not watch battery measurement.
+
+Version 0.16.2 preserves explicit paused media state through Activities 0.4.4.
+Primary media puts the localized state first in its existing cover/artist footer;
+secondary media keeps the same single static row. Do not infer completion or
+new labels from stopped/buffering/unknown playback. Playback-only updates keep
+the original media item token and must not replay incoming-track motion. An
+expired or absent artist cannot hide Paused or reintroduce stale context.
+The footer uses existing ActivityPlan scratch; no new retained source data or
+timer is needed. Keep standard activities with a media icon in their declared
+standard presentation, including independent clocks in either role.
+
+## Shared UI/UX implementation — local 0.17.0
+
+Read [the implementation handoff](docs/UX-ALIGNMENT.md) and the canonical local
+XOCE standard before UI work. The 0.17.0 local candidate implements the shared
+phone presentation and confirmed Save-and-stay; published 0.16.2 stays frozen.
+The declared `config.html` is generated by `scripts/generate-config.cjs` from
+the existing Clay layout. It must not display editable defaults before a saved
+snapshot loads. Preserve 17-language coverage and the legacy close-URL fallback.
+
+`src/common/settings-state.js` validates one atomic snapshot in `clay-settings`,
+including only stable activity preferences under `__dynamicActivityPreferences`.
+Read the older separate key without rewriting it on open. Active PKJS owns live
+writes; recheck targets after a plugin acknowledgement and synchronize a newly
+started runtime before confirming Save. Wrong/late/unconfirmed acknowledgements
+never discard the draft. Phone persistence is separate from watch delivery.
+
+Keep Discard local to the last confirmed form; it must not write or promise to
+undo an uncertain request. Retain browser anchoring when controls change height,
+and never focus a text field while removing a filter. Preserve exact old RGB
+values until their own picker changes. The native watchface layout is unchanged.
+After new native captures, use an incremental SDK build and package-release to
+rebundle previews without changing the captured native payload; a clean SDK
+rebuild requires new native provenance. Run the exact package/font audit and
+both settings browser checks, including the actual archived config/plugin/PKJS.
+
+## Historical 0.18.0 design branch
+
+`design/pebble-native-redesign` is an aesthetic trial for review. Read
+[REDESIGN.md](docs/REDESIGN.md) and the updated handoff before changing it. Native
+The first trial used Gothic utility/date roles, stronger semantic icons and a
+3px incoming settle. The current 0.18.2 hierarchy and geometry below supersede
+its type/layout choices; data/lifecycle contracts remain. Preserve 0.17.0 artifacts, store kit and evidence.
+Fresh native/package checks pass; Chromium exits 133 with crashpad EPERM, so
+fresh browser/device verification is still pending. Do not present historical
+0.17.0 browser results as checks of this trial. Do not publish this branch.
+
+## Historical readability correction — 0.18.1
+
+Xef rejected shrinking top time/date and icons sitting above adjacent text.
+Readability wins over matching small Pebble utility text. That revision used a
+larger Gothic date/labels and compact clock; Xef rejected the remaining size
+imbalance. The coherent 0.18.2 proposal below supersedes these sizes. Actual ink
+centering, fixed footer boundary and bottom-aligned primary intent still apply.
+Native previews must cover long date/time and generic/notification layouts. Phone controls use
+centered labels/chevrons and readable text; retain all existing storage/locale
+contracts. See [REDESIGN.md](docs/REDESIGN.md). Preserve 0.18.0 artifacts as the
+rejected trial, not as current verification.
+
+## Coherent readability redesign — unpublished 0.18.2
+
+Xef rejected a larger header paired with tiny body text. The current proposal
+redesigns all type roles/bands together: Roboto Condensed Bold date 26, labels 20,
+secondary 22 and captions 24; Fredoka clock/values remain dominant. Use actual ink
+metrics and at least 3px between adjacent lines, with separate group breathing
+room. Do not restore tiny normal-case fit fonts. Idle/Peek retain weekday/date;
+compact keeps the numeric date. Media uses 28px art and one artist line.
+Paused state and structured detail lead the footer before optional identity;
+essential values/units cannot be ellipsized to make room for a name. Ordinary
+Paused/Workout/Navigation/Message pairs retain the secondary. An exceptional
+primary may claim extra space, but actual presentation confirmation must omit
+a secondary that was not painted. Folded clock details must still tick.
+Preserve source validity, privacy, identity, one static secondary and all phone
+contracts. Refresh preview artwork preservation rectangles with any geometry
+change. Preserve 0.18.1/earlier artifacts and do not publish this review branch.

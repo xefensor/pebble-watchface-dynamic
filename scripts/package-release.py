@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Permission-package exact SDK payloads with deterministic license documents."""
 from pathlib import Path
-import hashlib, json, zipfile, subprocess
+import hashlib, json, zipfile, subprocess, os
+from repo_workflow import require_new_artifacts
 from release_licenses import license_payloads
 from release_js import prepare_js, zip_payloads
 root = Path(__file__).resolve().parents[1]
 pkg = json.loads((root / 'package.json').read_text())
 # The stock SDK names its development bundle after the checkout directory.
 source = root / 'build' / (root.name + '.pbw')
-target = root / 'dist' / ('Dynamic-' + pkg['version'] + '.pbw')
-target.parent.mkdir(exist_ok=True)
+output = Path(os.environ.get('PEBBLE_BUILD_OUTPUT', str(root / 'build/candidate'))).resolve()
+target = output / ('Dynamic-' + pkg['version'] + '.pbw')
+if output == (root / 'dist').resolve():
+    require_new_artifacts([target, target.with_name('Dynamic-' + pkg['version'] + '-debug.zip')])
+target.parent.mkdir(parents=True, exist_ok=True)
 subprocess.run(['python3',str(root/'scripts/bundle-js.py'),str(root/'src/plugin/index.js'),str(root/'build/plugin.js')],check=True,cwd=root)
 subprocess.run(['node',str(root/'scripts/generate-config.cjs')],check=True,cwd=root)
 licenses = license_payloads(root)
@@ -46,3 +50,5 @@ print(target)
 print(hashlib.sha256(target.read_bytes()).hexdigest())
 print(debug)
 print(hashlib.sha256(debug.read_bytes()).hexdigest())
+
+(target.parent/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in (target,debug)))

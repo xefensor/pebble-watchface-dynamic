@@ -21,6 +21,8 @@ with zipfile.ZipFile(buffer, 'w', compression=zipfile.ZIP_DEFLATED, compressleve
         info.compress_type = zipfile.ZIP_DEFLATED
         archive.writestr(info, (root / name).read_bytes(), compresslevel=9)
 target = root / 'dist' / ('Dynamic-' + pkg['version'] + '-source.zip')
+if target.exists():
+    raise ValueError('Frozen source archive exists; use a new version, not a documentation rebuild.')
 target.parent.mkdir(exist_ok=True)
 target.write_bytes(buffer.getvalue())
 with zipfile.ZipFile(target) as archive:

@@ -736,21 +736,36 @@ def read_dependency(root, specification, active_modules):
             "installedAndSdkStagingMatch": True}, sources
 
 
-def audit_preview_identity(root, version, binary, resources):
+def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp=False):
     source = (root / "src/pkjs/settings-preview.js").read_text(encoding="utf-8")
     exported = re.search(r"module\.exports\s*=\s*(\{.*\})\s*;\s*$", source, re.S)
     require(exported, "Native preview asset export is missing")
     preview = json.loads(exported.group(1))
     require(preview["version"] == version and len(preview["frames"]) == 24,
             "Native preview assets belong to a different release")
+    timestamp_only = False
     for name, content in (("emery/pebble-app.bin", binary),
                           ("emery/app_resources.pbpack", resources)):
-        require(preview["source"]["nativePayloadSha256"][name] == sha256(content),
+        if preview["source"]["nativePayloadSha256"][name] == sha256(content):
+            continue
+        require(allow_sdk_timestamp and name == "emery/pebble-app.bin",
                 "Native previews belong to a different renderer: " + name)
-    return {"samples": 24, "nativeBinaryAndResourcesMatch": True}
+        with zipfile.ZipFile(root / "dist" / ("Dynamic-" + version + ".pbw")) as frozen:
+            reference = frozen.read(name)
+        require(sha256(reference) == preview["source"]["nativePayloadSha256"][name],
+                "Frozen renderer does not match embedded preview provenance")
+        # SDK 4.33.1 inject_metadata.py RESOURCE_TIMESTAMP_ADDR: a four-byte
+        # bundle timestamp at 0x7c. Compare every other byte, including CRCs.
+        require(content[:124] == reference[:124] and content[128:] == reference[128:]
+                and len(content) == len(reference),
+                "Native preview renderer differs beyond the SDK resource timestamp")
+        timestamp_only = True
+    return {"samples": 24, "nativeBinaryAndResourcesMatch": not timestamp_only,
+            "rendererMatchesExceptSdkResourceTimestamp": timestamp_only,
+            "freshCaptureClaimed": False}
 
 
-def audit(pbw, root=ROOT, sdk_font_header=None):
+def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
     require(package["version"] == "0.18.2", "Review this auditor for a different release version")
@@ -852,7 +867,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None):
     require(len(source_map["sources"]) == len(source_map["sourcesContent"]),
             "Invalid source map")
     sdk_additions = audit_sdk_additions(root, source_map)
-    preview_identity = audit_preview_identity(root, package["version"], binary, resources)
+    preview_identity = audit_preview_identity(root, package["version"], binary, resources, allow_sdk_timestamp)
     require(len(source_map["sources"]) == len(set(source_map["sources"])),
             "Source map has duplicate modules")
     hosts, modules, activity_modules, xhr, bundled_keys = set(), set(), set(), [], None
@@ -942,9 +957,12 @@ def main():
     parser.add_argument("--pbw", type=Path, required=True, help="Permission-packaged Dynamic PBW")
     parser.add_argument("--sdk-font-header", type=Path,
                         help="Optional selected SDK pebble_fonts.h catalog")
+    parser.add_argument("--allow-sdk-timestamp", action="store_true",
+                        help="Development rebuild: permit only SDK resource timestamp drift from frozen previews")
     args = parser.parse_args()
     try:
-        result = audit(args.pbw, sdk_font_header=args.sdk_font_header)
+        result = audit(args.pbw, sdk_font_header=args.sdk_font_header,
+                       allow_sdk_timestamp=args.allow_sdk_timestamp)
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, struct.error,
             IndexError, re.error, subprocess.SubprocessError, tarfile.TarError, zipfile.BadZipFile) as error:
         parser.exit(1, "Dynamic native-style audit failed: " + str(error) + "\n")

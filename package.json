@@ -3,11 +3,17 @@
   "author": "Xef",
   "version": "0.18.2",
   "scripts": {
-    "test": "python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py",
+    "test": "python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py && npm run test:workflow && npm run check:docs",
     "test:js": "node --test tests/*.test.js",
     "test:native": "python3 scripts/test-native.py",
     "build": "python3 scripts/build.py",
-    "check:config": "node scripts/generate-config.cjs --check"
+    "check:config": "node scripts/generate-config.cjs --check",
+    "build:release": "python3 scripts/build.py --release",
+    "test:workflow": "python3 -m unittest discover -s tests -p test_development_workflow.py",
+    "test:source": "python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py",
+    "check:artifact": "python3 scripts/check-candidate.py",
+    "release:source": "python3 scripts/package-source.py",
+    "check:docs": "python3 scripts/check-docs.py"
   },
   "license": "SEE LICENSE IN LICENSE",
   "keywords": [

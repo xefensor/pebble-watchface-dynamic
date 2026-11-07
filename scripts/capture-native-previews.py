@@ -20,6 +20,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from repo_workflow import candidate as candidate_pbw, qa_output
 import subprocess
 import threading
 import time
@@ -72,7 +73,8 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
     from PIL import Image
 
     pbw=Path(pbw).resolve();output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
-    preview=Path(preview or ROOT/'src/pkjs/settings-preview.js')
+    preview=Path(preview or output/'settings-preview.js')
+    preview.parent.mkdir(parents=True,exist_ok=True)
     native_pbw=output/'native-candidate.pbw'
     if native_pbw==pbw:raise ValueError('Source PBW must differ from the native-only output')
     appinfo,native_hashes=native_candidate(pbw,native_pbw)
@@ -190,7 +192,7 @@ def capture_activities(pebble,session,output,appmessage=None,verify_ticks=True):
 
     host_rtc=os.environ.get('PEBBLE_QA_HOST_RTC')=='1'
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=True)
-    exported=(ROOT/'src/pkjs/settings-preview.js').read_text().split('module.exports = ',1)[1].strip().removesuffix(';')
+    exported=(output.parent/'native-previews/settings-preview.js').read_text().split('module.exports = ',1)[1].strip().removesuffix(';')
     preview=json.loads(exported)
     with zipfile.ZipFile(output.parent/'native-previews/native-candidate.pbw') if (output.parent/'native-previews/native-candidate.pbw').is_file() else zipfile.ZipFile(ROOT/'build'/(ROOT.name+'.pbw')) as archive:
         appinfo=json.loads(archive.read('appinfo.json'))
@@ -342,7 +344,7 @@ def capture_motion(pebble,pbw,output):
         send(presets['music-24-light']);time.sleep(1)
         before=b''.join(Screenshot(pebble).grab_image())
         Image.frombytes('RGB',(200,228),before).save(output/'before.png')
-        reference=ROOT/'docs/qa'/info['versionLabel']/'native-previews/music-24-light.png'
+        reference=qa_output(ROOT, '')/'native-previews/music-24-light.png'
         if reference.exists() and Image.open(reference).convert('RGB').tobytes()!=before:
             raise RuntimeError('Replacement baseline differs from the settled Music preview')
         frames=[];captures=[]
@@ -370,9 +372,9 @@ def capture_motion(pebble,pbw,output):
 def main():
     parser=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--emulator',choices=['emery'],help='Explicit emulator selection; never inferred')
-    parser.add_argument('--pbw',type=Path,default=ROOT/'build'/(ROOT.name+'.pbw'))
+    parser.add_argument('--pbw',type=Path,default=candidate_pbw(ROOT, 'Dynamic'))
     parser.add_argument('--output',type=Path)
-    parser.add_argument('--preview',type=Path,default=ROOT/'src/pkjs/settings-preview.js')
+    parser.add_argument('--preview',type=Path,help='Explicit asset destination; defaults to the QA output directory')
     parser.add_argument('--plan',action='store_true',help='Print fixture plan only; no connection, installation or images')
     parser.add_argument('--motion',action='store_true',help='Capture incoming replacement frames instead of static presets')
     args=parser.parse_args()
@@ -385,7 +387,7 @@ def main():
     command=PreviewConnection();command._set_debugging(0)
     connection=command._connect(argparse.Namespace(v=0,emulator=args.emulator,sdk=None,vnc=False,sunlight=False))
     version=json.loads((ROOT/'package.json').read_text())['version']
-    if args.motion:capture_motion(connection,args.pbw,args.output or ROOT/'docs/qa'/version/'native-motion')
-    else:capture(connection,args.pbw,args.output or ROOT/'docs/qa'/version/'native-previews',args.preview)
+    if args.motion:capture_motion(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-motion')
+    else:capture(connection,args.pbw,args.output or qa_output(ROOT, '')/'native-previews',args.preview)
 
 if __name__=='__main__':main()

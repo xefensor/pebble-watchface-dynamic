@@ -5,13 +5,13 @@ const path=require('node:path'),os=require('node:os'),crypto=require('node:crypt
 const {execFileSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..');
 const version=require(path.join(root,'package.json')).version;
-const output=path.resolve(process.argv[2] || path.join(root,'docs/qa',version,'settings'));
+const output=path.resolve(process.argv[2] || path.join(process.env.PEBBLE_QA_OUTPUT_ROOT||path.join(root,'build/qa'),'settings'));
 const endpoint=process.env.DYNAMIC_CHROMIUM_ENDPOINT || 'http://127.0.0.1:9227';
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'dynamic-settings-'));
 fs.mkdirSync(output,{recursive:true});
 const config=require(root+'/src/pkjs/config'),localization=require(root+'/src/pkjs/localization');
 const custom=require(root+'/src/pkjs/settings-page');
-const candidate=path.resolve(process.env.DYNAMIC_QA_PBW || path.join(root,'dist','Dynamic-'+version+'.pbw'));
+const candidate=path.resolve(process.env.DYNAMIC_QA_PBW || path.resolve(process.env.PEBBLE_PBW||path.join(root,'build/candidate','Dynamic-'+version+'.pbw')));
 const candidateBytes=fs.existsSync(candidate)?fs.readFileSync(candidate):null;
 if(process.env.DYNAMIC_QA_PBW)assert.ok(candidateBytes,'the requested packaged candidate exists');
 const frozenCandidate=path.join(scratch,'candidate.pbw');

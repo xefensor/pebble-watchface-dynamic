@@ -33,6 +33,6 @@ function reviewBridge(pages){
 const injection='<script>('+reviewBridge.toString()+')('+JSON.stringify(pages).replace(/<\/script/gi,'<\\/script')+');</script>';
 let html=fs.readFileSync(root+'/config.html','utf8').replace('<script>',()=>injection+'<script>');
 html=html.replace('<body>','<body><aside role="note" style="margin:0 0 24px;padding:12px 16px;border:1px solid currentColor;border-radius:8px;font:14px/1.5 system-ui,sans-serif">Design preview · sample data · saves stay in this page only.</aside>');
-const output=path.join(root,'docs/qa',version,'phone-preview.html');
+const output=path.join(process.env.PEBBLE_QA_OUTPUT_ROOT||path.join(root,'build/qa'),'phone-preview.html');
 fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,html);
 console.log(output);

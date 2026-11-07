@@ -1,6 +1,11 @@
 # Dynamic
 
-Review branch: **`design/pebble-native-redesign`**, unpublished 0.18.2.
+Main contains the current implementation. [Development](CONTRIBUTING.md),
+[current maintenance contracts](docs/MAINTENANCE.md) and [release policy](docs/RELEASING.md)
+are the active contributor references. Public downloads and frozen evidence keep
+their original versions; a merge to main is not publication.
+
+Current main implementation, unpublished 0.18.2.
 [Design choices and review evidence](docs/REDESIGN.md).
 
 A Pebble Time 2 watchface with rounded time, two horizontal readings and
@@ -14,9 +19,9 @@ Canonical repository: **`xefensor/pebble-watchface-dynamic`**. The
 [XOCE repository migration](docs/REPOSITORY-MIGRATION.md) preserves Dynamic's
 identity, package names and published release files.
 
-## Local Pebble-native design trial
+## Current merged UI
 
-**0.18.2 is built locally on `design/pebble-native-redesign` and has not been
+**0.18.2 is built locally on `main` and has not been
 published.** Xef asked for every text role and its spacing to be redesigned
 together for readability. Roboto Condensed utility text now forms one hierarchy
 with the Fredoka clock/values: prominent date, larger reading labels, readable
@@ -24,8 +29,7 @@ static secondary and larger primary captions. The vertical bands are repartition
 as a whole. Compact activity views keep the numeric date; Idle and Peek also keep
 the weekday. Media uses a 28px cover and one larger artist line so the main title
 retains two readable lines. State and structured detail lead non-media footers;
-optional identity truncates first. These density choices are explicit review
-proposals, documented with actual native captures in [the design notes](docs/REDESIGN.md).
+optional identity truncates first. These accepted density choices are documented with actual native captures in [the design notes](docs/REDESIGN.md).
 
 The bundled 17-language phone page retains the shared neutral/blue style,
 confirmed **✓ Saved**, local Discard, exact custom RGB values and the legacy
@@ -385,47 +389,8 @@ verification of every device/language.
 
 ## Build and install
 
-Use Node.js, a C99 compiler for portable tests and a Pebble C SDK with Emery
-support. The release audit and optional font regeneration also require the
-Python packages pinned in
-[scripts/requirements-font-assets.txt](scripts/requirements-font-assets.txt),
-installed in your build environment.
-
-```sh
-npm ci --ignore-scripts
-npm test
-npm run build
-python3 scripts/check-native-style.py --pbw dist/Dynamic-0.18.0.pbw
-python3 scripts/package-source.py
-```
-
-`npm test` covers phone-side behavior and portable native layout/core use;
-`npm run test:native` runs only the native suites. Release packaging verifies
-the permission manifest and exact SDK payloads before producing the PBW in
-`dist/`. The audit checks the packaged build, pinned core and declared font
-assets. Native captures check the appearance of the clock, text and motion.
-Validation is recorded separately for each release. For a packaged build:
-
-```sh
-pebble install --emulator emery dist/Dynamic-0.18.0.pbw
-```
-
-The clock outline and body-baseline headers are committed with their source
-fonts. With the pinned Python tools installed, check them using:
-
-```sh
-python3 scripts/generate-clock-glyphs.py --check
-python3 scripts/generate-body-metrics.py --check
-```
-
-The body metrics use the SDK's FreeType rendering mode. The normal SDK build
-uses the committed fonts and headers.
-
-For a real PT2, enable Dev Connection in the phone app and install with your
-normal Pebble developer connection. Native screenshots exercise deterministic
-fixtures; live phone/plugin delivery and hardware behavior need device checks.
-See [the build-specific validation record](docs/VALIDATION.md) for checks and
-remaining limitations.
+Use [CONTRIBUTING](CONTRIBUTING.md) for current setup, safe candidate builds and
+verification. Release preparation is a separate [explicit workflow](docs/RELEASING.md).
 
 ## Releases and maintenance
 
