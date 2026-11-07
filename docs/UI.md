@@ -1,7 +1,7 @@
 # Dynamic: current UI
 
-The accepted UI is merged into main; implementation version 0.18.2 remains
-unpublished. Published downloads retain their original versions and interfaces.
+The current release is 0.18.3. Earlier downloads and frozen evidence retain
+their original versions and interfaces.
 
 Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Animated layouts, Peek response and genuine item transitions are part of Dynamic's design. Dynamic has no physical action rail.
 
@@ -15,7 +15,7 @@ also use at least22px and are measured at the same size before choosing a layout
 Activity icon boxes remain centered beside measured glyph ink. Shared helpers
 do not own activity selection, expiry, privacy, navigation or clock scheduling.
 
-## Complications on the review branch
+## Complication layout
 
 The two global Pebble complication choices retain their positions in equal
 columns. Each reading combines a source symbol and its value/unit in one group.
@@ -53,7 +53,7 @@ immediately, and covered views do not schedule decorative work.
 These animations are intentional. Improve their timing, paths and clipping;
 removing them is a separate user decision, not a substitute for fixing them.
 
-This branch uses the local unpublished Core 0.5.2-dev.0 candidate for its optional
+This release uses Core 0.5.2 for its optional
 public-label callback. The v4 wire, message-key numbering, saved preferences and
 global complication picker are unchanged. Forecast-series charts and new native
 health sources are separate features, not part of this layout change.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.3
+
+- Adopt shared XOCE type roles, icons and phone settings styling while retaining the Fredoka clock and values.
+- Combine each complication symbol, value and unit; retain meaningful public qualifiers and source labels while removing redundant weather captions.
+- Restore animated layout changes, Peek response and genuine item transitions. Keep accent complication icons, readable values and the expanded activity area.
+- Bundle Core 0.5.2 and UI 0.1.1. Preserve v1–v4 readings, ACT3 activity identity, preferences and private-content handling.
+- GitHub development prerelease with fresh package/native emulator validation; physical-device and fresh browser checks remain unverified.
+
 ## 0.18.2
 
 - Redesign all native type roles and vertical bands together after Xef rejected

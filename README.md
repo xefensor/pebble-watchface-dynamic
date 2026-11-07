@@ -5,70 +5,40 @@ Main contains the current implementation. [Development](CONTRIBUTING.md),
 are the active contributor references. Public downloads and frozen evidence keep
 their original versions; a merge to main is not publication.
 
-Current main implementation, unpublished 0.18.2.
-[Design choices and review evidence](docs/REDESIGN.md).
+## Version 0.18.3
 
-The local review branch combines each complication's icon, value and unit,
-removes redundant weather captions and retains meaningful qualifiers/source
-context. It uses an unpublished Core 0.5.2-dev.0 candidate for public labels.
-See [the current complication layout](docs/UI.md#complications-on-the-review-branch).
-Build this branch with `npm run build`; its candidate is under `build/candidate/`.
+- Adopt shared XOCE type roles, icons and phone settings styling while retaining the Fredoka clock and values.
+- Combine each complication symbol, value and unit; retain meaningful public qualifiers and source labels while removing redundant weather captions.
+- Restore animated layout changes, Peek response and genuine item transitions. Keep accent complication icons, readable values and the expanded activity area.
+- Bundle Core 0.5.2 and UI 0.1.1. Preserve v1–v4 readings, ACT3 activity identity, preferences and private-content handling.
 
-A Pebble Time 2 watchface with rounded time, two horizontal readings and
-notification-style activities. Version 0.16.2 fixes paused-media state and
-provider recovery while retaining the earlier rendering and package
-optimizations. It places one compact activity row above the main activity and
-groups the primary content against its bottom context. Music uses title, artwork and artist. Text stays
-still and truncates at its end. Dynamic is an independent watchface by Xef.
+GitHub development prerelease for Pebble Time 2 / Emery with SDK 4.33.1.
+Validation covers portable tests, packaged runtimes and isolated native emulator
+checks. Physical phone/watch and fresh browser testing remain unverified.
 
-Canonical repository: **`xefensor/pebble-watchface-dynamic`**. The
-[XOCE repository migration](docs/REPOSITORY-MIGRATION.md) preserves Dynamic's
-identity, package names and published release files.
+[Release validation](docs/qa/0.18.3/validation.json) records the exact package and native payload.
 
-## Current merged UI
+Download the [PBW](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3.pbw),
+[source](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3-source.zip),
+[debug files](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3-debug.zip), and
+[checksums](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/SHA256SUMS.txt).
 
-**0.18.2 is built locally on `main` and has not been
-published.** Xef asked for every text role and its spacing to be redesigned
-together for readability. Roboto Condensed utility text now forms one hierarchy
-with the Fredoka clock/values: prominent date, larger reading labels, readable
-static secondary and larger primary captions. The vertical bands are repartitioned
-as a whole. Compact activity views keep the numeric date; Idle and Peek also keep
-the weekday. Media uses a 28px cover and one larger artist line so the main title
-retains two readable lines. State and structured detail lead non-media footers;
-optional identity truncates first. These accepted density choices are documented with actual native captures in [the design notes](docs/REDESIGN.md).
+A Pebble Time 2 watchface with a rounded clock, two complication readings and
+notification-style activities. **0.18.3** includes the current shared UI, public
+reading labels, complication layout and restored layout/Peek/item animations.
+It bundles Core 0.5.2, Activities 0.4.4 and UI 0.1.1.
 
-The bundled 17-language phone page retains the shared neutral/blue style,
-confirmed **✓ Saved**, local Discard, exact custom RGB values and the legacy
-Save-and-close fallback. Phone storage and watch delivery remain separate.
-See [the implementation handoff](docs/UX-ALIGNMENT.md) and
-[0.18.2 validation](docs/qa/0.18.2/VALIDATION.md). Fresh browser execution remains
-blocked by this environment; native emulator checks are separate from a physical watch.
+[Current UI](docs/UI.md) describes the type roles, source/privacy boundaries and
+intentional motion. [Design review](docs/REDESIGN.md) and
+[historical 0.18.2 validation](docs/qa/0.18.2/VALIDATION.md) retain their original scope.
+New release checks use the actual 0.18.3 packages; historical captures are not
+relabeled as fresh browser or physical-device evidence.
 
-Local installable file: [Dynamic-0.18.2.pbw](dist/Dynamic-0.18.2.pbw).
-Review [the phone page](docs/qa/0.18.2/phone-preview.html) with its labelled
-sample-only bridge and [actual native motion](docs/qa/0.18.2/native-motion/incoming.gif).
-The published downloads below retain their original versions and bytes.
+## Earlier downloads
 
-## Download
-
-Version 0.16.2 fixes missing paused-media state and provider recovery, pins
-Activities 0.4.4, and preserves Core 0.5.1 and the existing layouts. See
-[the activity display fixes](docs/ACTIVITY-DISPLAY-FIXES.md).
-
-The current release is [**v0.16.2 — GitHub development prerelease**](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2).
-It is ready for sideload testing. Pebble appstore submission remains held.
-
-| File | Use |
-| --- | --- |
-| [Dynamic-0.16.2.pbw](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2.pbw) | Install on Pebble Time 2 through your Pebble developer/sideload connection |
-| [Dynamic-0.16.2-source.zip](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2-source.zip) | Checked source snapshot and pinned dependencies |
-| [Dynamic-0.16.2-debug.zip](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/Dynamic-0.16.2-debug.zip) | Original scripts and chained maps for debugging |
-| [SHA256SUMS.txt](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.16.2/SHA256SUMS.txt) | Verify downloads with `sha256sum --ignore-missing -c SHA256SUMS.txt` |
-
-The [optimization review](docs/OPTIMIZATION-REVIEW.md) records measured sizes and
-validation. The release tag freezes artifact commit
-[`48a5aae`](https://github.com/xefensor/pebble-watchface-dynamic/commit/48a5aaec1aac4e2805bad2bb7e793b5da58b5165).
-Later documentation updates preserve the published archives and tag.
+The previous [Dynamic 0.16.2 prerelease](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.2)
+retains its original downloads and source tag. Use the 0.18.3 links above for the
+current shared UI. Pebble appstore submission remains separate.
 
 The [previous 0.16.0 release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.16.0)
 and its artifacts remain available unchanged.

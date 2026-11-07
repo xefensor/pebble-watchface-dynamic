@@ -1,0 +1,43 @@
+{
+  "version": "0.18.3",
+  "sdk": "4.33.1",
+  "platform": "emery",
+  "result": "PASS",
+  "pbwSha256": "d7ff0404fc8c78dc40e51780cfe376d263fe53f51a9376a60756dc53c928d4a3",
+  "nativePayloadSha256": {
+    "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+    "emery/manifest.json": "85187d792515c24d5ec2da8e90025177b3bd6218eabf2336ad890c89719093a5",
+    "emery/pebble-app.bin": "8d5ff1edb218c824cbfe8c47f47ac345810eb71b24a9f55d83cff72fc176ff6d"
+  },
+  "capturedNativePayloadSha256": {
+    "emery/pebble-app.bin": "8d5ff1edb218c824cbfe8c47f47ac345810eb71b24a9f55d83cff72fc176ff6d",
+    "emery/app_resources.pbpack": "a172939de54dba1762d49cda5949bc3d74816e25203fe7257d25d2705c55e62d",
+    "emery/manifest.json": "d1c84af648ed5e6357b88736d914960ba5f2fe6490490a67c83d7c3535ffd664"
+  },
+  "portableTests": "PASS",
+  "packagedIdentityAndRuntimeChecks": "PASS",
+  "nativeScope": "24 actual native Screenshot-service presets; sample data, not live phone/provider verification.",
+  "embeddedNativePreviewCount": 24,
+  "previewRendererMatchesReleaseExactly": true,
+  "manifestNote": "Only emery/manifest.json generatedAt changed during JS rebundling. Native executable and resource bytes exactly match the captured renderer.",
+  "visualReview": {
+    "reviewedExamples": [
+      {
+        "file": "idle-24-light.png",
+        "sha256": "03e9258cabb7415821a02dad8e73a3d0a061d2fa608bced4db38bc53b81d9a69"
+      },
+      {
+        "file": "music-24-dark.png",
+        "sha256": "c656db86eabd86685f625b9083f0042738e3cc50e473574dba8103aefce05ecb"
+      },
+      {
+        "file": "timeline-24-light.png",
+        "sha256": "de8bde44d9a2fa60e2906b0b6e2e0f51751632113aaf16f49144c976c7231714"
+      }
+    ],
+    "scope": "Inspected actual captures with sample data in isolated Emery QEMU"
+  },
+  "physicalPhone": "not run",
+  "physicalWatch": "not run",
+  "freshBrowser": "not run"
+}
