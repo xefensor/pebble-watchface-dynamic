@@ -10,3 +10,5 @@ __pycache__/
 # Native-only QA installation copies are generated, never source inputs.
 docs/qa/**/native-candidate.pbw
 docs/qa/**/native.pbw
+
+/.venv/
