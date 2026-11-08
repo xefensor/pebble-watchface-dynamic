@@ -57,6 +57,7 @@ int main(void){
 #include "pebble-xoce-ui/native-type.h"
 typedef struct {uint32_t argb;} GColor;
 #define GColorFromHEX(value) ((GColor){(value)})
+static void prv_clear_media_motion(void){}
 static GColor s_day_colors[3],s_night_colors[3],s_background_color,s_text_color,s_accent_color;
 static struct {DisplayPreferences display;struct {struct {bool valid,drawn;} cache;} activity_plan;} native_state,*s_native=&native_state;
 static unsigned s_system_text_size;static DynamicType s_type;

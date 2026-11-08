@@ -103,7 +103,10 @@ layout_again:
   out->secondary_height=secondary_height;
   int content_top=top+(secondary?secondary_height+6:4);out->support_point=support_point;
   out->secondary_baseline=top+4+measure(context,"Ag",secondary_point).ascent;
-  out->icon_size=footer_symbol&&(image||!media)?28:0;
+  /* The artwork home exists before bytes arrive, so metadata never reflows
+   * merely because an image finishes loading. Keep the legacy argument. */
+  (void)image;
+  out->icon_size=footer_symbol?28:0;
   out->footer_left=out->icon_size?46:10;
   out->footer_width=190-out->footer_left;out->footer_point=footer_point;
   const int footer_lines=footer_symbol?(strchr(footer,'\n')?2:1):

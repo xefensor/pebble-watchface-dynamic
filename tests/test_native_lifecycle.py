@@ -85,6 +85,9 @@ static void layer_set_bounds(Layer *layer,GRect rect){(void)layer;(void)rect;++g
 static void layer_set_hidden(Layer *layer,bool hidden){(void)layer;(void)hidden;++geometry;}
 static AppTimer *app_timer_register(uint32_t ms,void(*fn)(void *),void *ctx){last_interval=ms;(void)fn;(void)ctx;++registrations;return fail_timer?NULL:&timers[registrations%64];}
 static void app_timer_cancel(AppTimer *timer){assert(timer);++cancellations;}
+static void prv_clear_media_motion(void){}
+static void prv_end_media_slide(void){}
+static void prv_media_replaced(const PavCard *card){(void)card;}
 static void prv_activity_clock_schedule(void){++scheduled;}
 static void prv_schedule_context_expiry(void){++prunes;}
 static void prv_apply_colors(void){}

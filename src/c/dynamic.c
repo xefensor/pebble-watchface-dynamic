@@ -20,6 +20,7 @@
 #include "native_settings.h"
 #include "display_preferences.h"
 #include "activity_plan_cache.h"
+#include "media_transition.h"
 
 #define PERSIST_KEY_BACKGROUND_COLOR 2
 #define PERSIST_KEY_TEXT_COLOR 3
@@ -88,6 +89,7 @@ typedef struct {
   char activity_identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2];
   uint8_t activity_visual[8];
   ActivityPlan activity_plan;
+  MediaTransition media_motion;
   ActivityNavigation navigation;
   WatchPose pose,pose_from,pose_target;
 } NativeState;
@@ -458,6 +460,11 @@ static uint32_t prv_millis(void) {
 static const PavCard *prv_primary_activity(void) {
   return pav_state_select(&s_activities,(uint32_t)time(NULL),0);
 }
+static void prv_clear_media_motion(void){media_transition_clear(&s_native->media_motion);}
+static void prv_end_media_slide(void){media_paint_clear(&s_native->media_motion.outgoing);}
+static void prv_media_replaced(const PavCard *incoming){
+  media_transition_start(&s_native->media_motion,incoming,(uint32_t)time(NULL),s_phone_connected);
+}
 static WatchPose prv_full_pose(void) {
   return prv_primary_activity()?watch_pose_context(false):watch_pose_idle();
 }
@@ -482,7 +489,7 @@ static void prv_motion_frame(void *context) {
   if(s_slide_active) {
     const float progress=(now-s_slide_started)/(float)INCOMING_DURATION_MS;
     s_slide_amount=watch_incoming(progress);
-    if(progress>=1){s_slide_active=false;s_slide_amount=1;}
+    if(progress>=1){s_slide_active=false;s_slide_amount=1;prv_end_media_slide();}
   }
   if(s_slide_active&&!s_layout_active&&s_context_layer)prv_dirty(s_context_layer);
   else prv_sync_layers();
@@ -491,7 +498,7 @@ static void prv_motion_frame(void *context) {
 }
 static void prv_cancel_motion(void) {
   if(s_motion_timer) { app_timer_cancel(s_motion_timer);s_motion_timer=NULL; }
-  s_layout_active=false;s_slide_active=false;s_slide_amount=1;
+  s_layout_active=false;s_slide_active=false;s_slide_amount=1;prv_clear_media_motion();
 }
 static void prv_schedule_motion(void) {
   if((!s_layout_active&&!s_slide_active)||s_motion_timer||!s_app_focused)return;
@@ -515,10 +522,11 @@ static void prv_apply_unobstructed_layout(void) {
        (activity->presentation==PAV_PRESENTATION_MEDIA&&
         memcmp(activity->visual_token,s_native->activity_visual,8)));
   if(replaced&&motion) {
+    prv_media_replaced(activity);
     s_native->activity_plan.cache.drawn=false;
     s_slide_active=true;s_slide_amount=0;s_slide_started=prv_millis();
   }
-  if(!activity){s_slide_active=false;s_native->activity_identity[0]=0;}
+  if(!activity){s_slide_active=false;prv_clear_media_motion();s_native->activity_identity[0]=0;}
   else {
     memcpy(s_native->activity_identity,identity,sizeof(identity));
     memcpy(s_native->activity_visual,activity->visual_token,8);
@@ -1138,6 +1146,10 @@ static void prv_activity_clock_schedule(void) {
 }
 static void prv_draw_activity_image(GContext *ctx,const PavCard *activity,int x,int y,int size) {
   if(!(activity->flags&PAV_HAS_IMAGE)||!activity->width||!activity->height) {
+    if(activity->presentation==PAV_PRESENTATION_MEDIA){
+      xoce_ui_draw_content_icon(ctx,XOCE_ICON_MUSIC,GPoint(x+size/2,y+size/2),size,prv_accent_color());
+      return;
+    }
     graphics_context_set_stroke_color(ctx,prv_accent_color());graphics_context_set_stroke_width(ctx,2);
     graphics_draw_round_rect(ctx,GRect(x,y,size,size),3);
     for(int line=1;line<=2;++line)
@@ -1185,11 +1197,29 @@ static void prv_activity_symbol(GContext *ctx,unsigned symbol,unsigned direction
   else if(symbol==PAV_SYMBOL_MEDIA)icon=XOCE_ICON_MUSIC;
   xoce_ui_draw_content_icon(ctx,icon,GPoint(x+size/2,y+size/2),size,prv_accent_color());
 }
+static void prv_paint_media(GContext *ctx,const PavCard *card,const ActivityLayout *layout,int x,int y){
+  for(int i=0;i<layout->main.count;++i)prv_text(ctx,layout->main.text[i],layout->point,
+      x+layout->left,y+layout->main_baseline[i],layout->width,s_text_color,GTextAlignmentLeft);
+  for(int i=0;i<layout->footer.count;++i)prv_text(ctx,layout->footer.text[i],layout->footer_point,
+      x+layout->footer_left,y+layout->footer_baseline[i],layout->footer_width,prv_muted_text(1),GTextAlignmentLeft);
+  if(layout->icon_size>0)prv_draw_activity_image(ctx,card,x+10,y+layout->icon_top,layout->icon_size);
+}
 static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
   const uint32_t now=(uint32_t)time(NULL);ActivityPlan *plan=&s_native->activity_plan;
   prv_prepare_activity(card,now,plan);const ActivityLayout *layout=&plan->layout;
   if(!layout->main.count)return;
   const int x=s_slide_active?prv_round(200*(1-s_slide_amount)):0;
+  if(layout->media){
+    MediaTransition *motion=&s_native->media_motion;
+    if(s_slide_active&&media_paint_visible(&motion->outgoing,now,s_phone_connected))
+      prv_paint_media(ctx,&motion->outgoing.card,&motion->outgoing.layout,
+          media_outgoing_x(&motion->outgoing,s_slide_amount),y);
+    else prv_end_media_slide();
+    prv_paint_media(ctx,card,layout,x,y);
+    if(s_app_focused)media_paint_capture(&motion->latest,card,layout,x);
+    goto secondary;
+  }
+  prv_clear_media_motion();
   for(int i=0;i<layout->main.count;++i) {
     if(layout->vector)prv_vector(ctx,layout->main.text[i],x+layout->left,
         y+layout->main_baseline[i],layout->point,s_text_color);
@@ -1212,7 +1242,7 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
   for(int i=0;i<layout->footer.count;++i)prv_text(ctx,layout->footer.text[i],layout->footer_point,
       x+layout->footer_left,y+layout->footer_baseline[i],layout->footer_width,
       prv_muted_text(1),GTextAlignmentLeft);
-  if(layout->icon_size>0&&(card->flags&PAV_HAS_IMAGE)&&(layout->media||layout->footer.count))
+  if(layout->icon_size>0&&(layout->media||((card->flags&PAV_HAS_IMAGE)&&layout->footer.count)))
     prv_draw_activity_image(ctx,card,x+10,y+layout->icon_top,layout->icon_size);
   else if(layout->icon_size>0&&!layout->media&&layout->footer.count)prv_activity_symbol(ctx,card->identity_symbol,0,
       x+10,y+layout->icon_top,layout->icon_size);
@@ -1222,6 +1252,7 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
     const int fill=((uint32_t)card->meter*178u+32767u)/65535u;
     if(fill)graphics_fill_rect(ctx,GRect(x+11,y+layout->meter_top+1,fill,2),0,GCornerNone);
   }
+ secondary:
   if(layout->secondary&&plan->alternate) {
     graphics_context_set_stroke_color(ctx,prv_muted_text(1));
     graphics_context_set_stroke_width(ctx,1);
@@ -1443,7 +1474,7 @@ static void prv_display_apply(const DisplayPreferences *v){
   s_clock_format=(uint8_t)v->value[DISPLAY_CLOCK];s_show_status=v->value[DISPLAY_STATUS];s_animations_enabled=v->value[DISPLAY_ANIMATIONS];s_vibration=(uint8_t)v->value[DISPLAY_VIBRATION];
   s_night_enabled=v->value[DISPLAY_MODE]==DISPLAY_QUIET;
   const DynamicType type=dynamic_type(xoce_ui_effective_text_size(v->value[DISPLAY_TEXT_SIZE],s_system_text_size));
-  if(memcmp(&type,&s_type,sizeof(type))){s_native->activity_plan.cache.valid=false;s_native->activity_plan.cache.drawn=false;}
+  if(memcmp(&type,&s_type,sizeof(type))){prv_clear_media_motion();s_native->activity_plan.cache.valid=false;s_native->activity_plan.cache.drawn=false;}
   s_type=type;
 }
 static void prv_focus_will_change(bool focused) {
@@ -1549,13 +1580,13 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
   bool valid=false;
   if(request)valid=request->type==TUPLE_BYTE_ARRAY&&display_decode(request->value->data,request->length,&next,&status,&flags)&&next.revision&&!status&&!flags;
   else {
-    const uint32_t keys[]={MESSAGE_KEY_BACKGROUND_COLOR,MESSAGE_KEY_TEXT_COLOR,MESSAGE_KEY_ACCENT_COLOR,MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,MESSAGE_KEY_NIGHT_TEXT_COLOR,MESSAGE_KEY_NIGHT_ACCENT_COLOR,MESSAGE_KEY_CLOCK_FORMAT,MESSAGE_KEY_SHOW_STATUS,MESSAGE_KEY_ANIMATIONS,MESSAGE_KEY_NOTIFICATION_VIBRATION};
-    for(unsigned i=0;i<10;++i){uint32_t value;if(!native_setting_value(dict_find(iterator,keys[i]),&value))continue;
+    static const uint32_t *const keys[]={&MESSAGE_KEY_BACKGROUND_COLOR,&MESSAGE_KEY_TEXT_COLOR,&MESSAGE_KEY_ACCENT_COLOR,&MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,&MESSAGE_KEY_NIGHT_TEXT_COLOR,&MESSAGE_KEY_NIGHT_ACCENT_COLOR,&MESSAGE_KEY_CLOCK_FORMAT,&MESSAGE_KEY_SHOW_STATUS,&MESSAGE_KEY_ANIMATIONS,&MESSAGE_KEY_NOTIFICATION_VIBRATION,&MESSAGE_KEY_TEXT_SIZE,&MESSAGE_KEY_APPEARANCE_MODE,&MESSAGE_KEY_MANUAL_APPEARANCE};
+    for(unsigned i=0;i<DISPLAY_FIELDS;++i){uint32_t value;if(!native_setting_value(dict_find(iterator,*keys[i]),&value))continue;
       DisplayPreferences candidate=next;candidate.value[i]=value;if(display_valid(&candidate))next=candidate;
     }
     uint32_t value;
     if(!dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_USE_12_HOUR),&value)&&value<=1)next.value[DISPLAY_CLOCK]=value?12:24;
-    if(native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&value)&&value<=1)next.value[DISPLAY_MODE]=value?DISPLAY_QUIET:DISPLAY_EXPLICIT;
+    if(!dict_find(iterator,MESSAGE_KEY_APPEARANCE_MODE)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&value)&&value<=1)next.value[DISPLAY_MODE]=value?DISPLAY_QUIET:DISPLAY_EXPLICIT;
     changed=memcmp(&next,&s_native->display,sizeof(next))!=0;valid=changed;
   }
   uint32_t format;
@@ -1564,7 +1595,9 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
     if(display_save(&next)){
       clock_changed=next.value[DISPLAY_CLOCK]!=s_native->display.value[DISPLAY_CLOCK];
       layout_changed|=next.value[DISPLAY_TEXT_SIZE]!=s_native->display.value[DISPLAY_TEXT_SIZE]||next.value[DISPLAY_ANIMATIONS]!=s_native->display.value[DISPLAY_ANIMATIONS];
-      background_changed|=next.value[DISPLAY_STATUS]!=s_native->display.value[DISPLAY_STATUS];
+      // Type and optical settings paint in the background layer as well as
+      // the activity layer. Invalidate both immediately after a verified save.
+      background_changed|=layout_changed||next.value[DISPLAY_STATUS]!=s_native->display.value[DISPLAY_STATUS];
       if(layout_changed){activity_navigation_update(&s_native->navigation,s_session.token,s_activities.snapshot.view_sequence,ACTIVITY_NAV_ABSENT,ACTIVITY_NAV_ABSENT,0,0,(uint32_t)time(NULL));}
       prv_display_apply(&next);
       prv_display_reply(&next,DISPLAY_APPLIED,request?0:DISPLAY_HELLO);

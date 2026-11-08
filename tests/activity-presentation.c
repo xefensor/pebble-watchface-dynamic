@@ -65,6 +65,17 @@ static void build(const char *main,const char *role,const char *support,const ch
   }
 }
 int main(void) {
+  // Loading/missing artwork uses precisely the same metadata and title geometry.
+  for(unsigned secondary=0;secondary<2;++secondary)for(unsigned artist=0;artist<2;++artist){
+    ActivityLayout pending,loaded;
+    activity_layout_build("A long song title that wraps across lines","","",artist?"Paused · Artist":"",
+        true,false,false,secondary,false,false,true,24,22,ACTIVITY_CONTENT_TOP,
+        measure,measure,NULL,&pending);
+    activity_layout_build("A long song title that wraps across lines","","",artist?"Paused · Artist":"",
+        true,false,false,secondary,true,false,true,24,22,ACTIVITY_CONTENT_TOP,
+        measure,measure,NULL,&loaded);
+    assert(pending.icon_size==28&&pending.main.count&&memcmp(&pending,&loaded,sizeof(pending))==0);
+  }
   ActivityLayout layout,alone;
   char protected[128]="5:12 /km";
   const int exact=measure(NULL,protected,24).width;
@@ -108,7 +119,7 @@ int main(void) {
   build("Better Than The Cyberpunk Soundtrack","","","The Midnight",true,false,false,false,true,false,92,&layout);
   assert(layout.main.count==3&&layout.footer_point==24);
   build("Track","","","",true,false,false,false,false,false,92,&layout);
-  assert(!layout.footer.count&&layout.footer_left==10);
+  assert(!layout.footer.count&&layout.footer_left==46);
   build("Petr","","","Messages",false,false,false,true,false,false,92,&alone);
   build("Petr","","I'm downstairs. Ready when you are?","Messages",false,false,false,true,false,false,92,&layout);
   assert(layout.main.count&&layout.support.count&&layout.icon_size==28);
