@@ -25,6 +25,13 @@ The current SDK target is **Pebble Time 2 / Emery**, using **Pebble SDK 4.33.1**
 emulator evidence is versioned; physical phone/watch checks retain their documented gaps.
 Existing screenshots keep their original version and provenance.
 
+## Setup and use
+
+Install the PBW and configure the first two global Complications choices in the Pebble phone app. Open the face’s gear settings for its saved appearance and context choices. Readings retain the selected provider’s units. See [current UI](docs/UI.md).
+
+The version notes below describe the published download. Development candidates
+remain separate; use [CONTRIBUTING](CONTRIBUTING.md) for local builds.
+
 ## Version 0.18.3
 
 - Adopt shared XOCE type roles, icons and phone settings styling while retaining the Fredoka clock and values.
