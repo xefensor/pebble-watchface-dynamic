@@ -65,3 +65,10 @@ test('native save failure remains pending; changing phone choices rejects previo
  const r=rig(saved());r.controller.reconcile(true);const old=frame(r),fail=old.slice();fail[2]=1;r.controller.receive(fail);assert.equal(r.controller.status().delivery.error,'watch_save_unconfirmed');
  assert.equal(state.save(r.storage,selected({APPEARANCE_MODE:2,MANUAL_APPEARANCE:1})).ok,true);r.controller.reconcile(false);r.controller.receive(old);assert.equal(r.controller.status().delivery.applied,false);r.controller.receive(frame(r));assert.equal(r.controller.status().delivery.applied,true);
 });
+
+test('all supported legacy Quiet Time boolean encodings preserve the selected mode',()=>{
+ for(const value of [true,1,'true','1',false,0,'false','0']){
+  const r=rig({'clay-settings':JSON.stringify({NIGHT_PALETTE:value})}),loaded=state.read(r.storage);
+  assert.equal(loaded.APPEARANCE_MODE,[true,1,'true','1'].includes(value)?1:2);
+ }
+});

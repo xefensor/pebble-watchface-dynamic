@@ -172,7 +172,8 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
             captures.append({'name':preset['name'],'file':path.name,'fixture_now_utc':preset.get('fixtureNow',plan['now']),'sha256':sha256(png),
                 'rgb_sha256':sha256(pixels),'pixels':[200,228],'native_pixels_modified':False,
                 'settling': 'stable except live timer value at x10..189/y124..183' if preset['state']=='timer' else 'all pixels stable',
-                'settled_native_rgb_equal':True})
+                'settled_native_rgb_equal':preset['state']!='timer',
+                'settled_static_rgb_equal':True,'running_activity_clock_changes_allowed':preset['state']=='timer'})
             print('Captured '+preset['name'],flush=True)
         if len({row['rgb_sha256'] for row in captures})!=24:
             raise RuntimeError('Expected 24 distinct native state/clock/theme images; inspect captures before embedding')

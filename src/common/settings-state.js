@@ -28,7 +28,7 @@ function normalize(source,strict) {
   Object.keys(defaults).forEach(function(name) {
     var input = value(source,name);
     // Old complete drafts and persisted numeric Clay keys remain valid.
-    if (input===undefined && name==='APPEARANCE_MODE') input=value(source,'NIGHT_PALETTE')===true || value(source,'NIGHT_PALETTE')===1 ? 1 : 2;
+    if (input===undefined && name==='APPEARANCE_MODE') input=result.NIGHT_PALETTE ? 1 : 2;
     if (input===undefined && (name==='TEXT_SIZE'||name==='MANUAL_APPEARANCE')) input=0;
     if (!strict && typeof defaults[name] === 'boolean' && ['true','false','0','1'].indexOf(input) >= 0) input = input === 'true' || input === '1';
     if (input === undefined && name === 'CLOCK_FORMAT') {

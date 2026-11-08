@@ -1,5 +1,7 @@
 # Dynamic preferences checkpoint — 2026-11-08
 
+The latest candidate is in the [legacy Quiet Time checkpoint](ui-preferences-migration-checkpoint.md). The evidence below describes the original preference candidate.
+
 Local candidate only. No version change, push or publication. The earlier
 [native type checkpoint](native-type-checkpoint.md) records the original
 supporting-type, clock/Peek and locale checks.
