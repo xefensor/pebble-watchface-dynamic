@@ -73,6 +73,12 @@ int main(void) {
     const size_t index = body_metric_index(cp);
     assert(index < BODY_METRIC_COUNT && body_metric_codepoints[index] == cp);
   }
+  size_t ordinal=0;
+  for(uint32_t cp=0;cp<=0x10ffff;++cp){
+    while(ordinal<BODY_METRIC_COUNT&&body_metric_codepoints[ordinal]<cp)++ordinal;
+    const size_t expected=ordinal<BODY_METRIC_COUNT&&body_metric_codepoints[ordinal]==cp?ordinal:BODY_METRIC_WILDCARD_INDEX;
+    assert(body_metric_index(cp)==expected);
+  }
   assert(body_metric_codepoints[body_metric_index(0x1f30d)] == 0x25af);
   assert(body_metric_codepoints[BODY_METRIC_WILDCARD_INDEX] == 0x25af);
   assert(body_metric_codepoints[body_metric_index(0xfffd)] == 0xfffd);

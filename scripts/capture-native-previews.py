@@ -56,6 +56,19 @@ def native_candidate(pbw,output):
         assert all(target.read(name)==data for name,data in native.items())
     return appinfo,{name:sha256(data) for name,data in native.items()}
 
+def preview_settled(previous,pixels,state):
+    if previous is None:return False
+    if previous==pixels:return True
+    if state!='timer':return False
+    # This fixture intentionally renders a running countdown. Its seconds can
+    # advance between Screenshot-service transfers; every other pixel must
+    # settle. Keep the captured PNG untouched, including its actual clock value.
+    first,last,stride=124,184,600
+    if previous[:first*stride]!=pixels[:first*stride] or previous[last*stride:]!=pixels[last*stride:]:return False
+    return all(previous[y*stride:y*stride+30]==pixels[y*stride:y*stride+30] and
+               previous[y*stride+570:(y+1)*stride]==pixels[y*stride+570:(y+1)*stride]
+               for y in range(first,last))
+
 def capture(pebble,pbw,output,preview=None,appmessage=None):
     """Install a native-only candidate, inject fixtures, capture and embed PNGs.
 
@@ -150,7 +163,7 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
             path=output/(preset['name']+'.png');previous=None
             for attempt in range(3):
                 pixels=screenshot(path)
-                if previous==pixels:break
+                if preview_settled(previous,pixels,preset['state']):break
                 previous=pixels;time.sleep(.15)
             else:raise RuntimeError('Native screenshot did not settle: '+preset['name'])
             png=path.read_bytes()
@@ -158,6 +171,7 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
                 'sha256':sha256(png),'preserve':preset['preserve']}
             captures.append({'name':preset['name'],'file':path.name,'fixture_now_utc':preset.get('fixtureNow',plan['now']),'sha256':sha256(png),
                 'rgb_sha256':sha256(pixels),'pixels':[200,228],'native_pixels_modified':False,
+                'settling': 'stable except live timer value at x10..189/y124..183' if preset['state']=='timer' else 'all pixels stable',
                 'settled_native_rgb_equal':True})
             print('Captured '+preset['name'],flush=True)
         if len({row['rgb_sha256'] for row in captures})!=24:

@@ -5,8 +5,9 @@ evidence retain their original typography and interfaces.
 
 Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Animated layouts, Peek response and genuine item transitions are part of Dynamic's design. Dynamic has no physical action rail.
 
-Dynamic follows the launch-time Pebble content size using its own supporting
-Roboto typography. Medium retains the established roles; the main Fredoka clock
+Dynamic has an independent Text Size choice: Follow Pebble, Small, Medium or
+Large. Follow Pebble reads the system size on launch; manual choices use the same
+profiles. All apply only to supporting Roboto typography. Medium retains the established roles; the main Fredoka clock
 keeps its original numerals, sizes, position, proportions and rasterization.
 
 | Effective size | Date | Text body | Roboto labels, captions and units |
@@ -83,11 +84,30 @@ of the motion correction.
 
 Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
+## Per-face display settings
+
+The phone page retains both Day and Night palettes independently. Appearance
+selects Follow Pebble, Follow Quiet Time or Manual. Manual Light selects Day;
+Manual Dark selects Night and exposes its editors. Quiet Time selects Night only
+while Quiet Time is active. Switching modes never overwrites either palette.
+The previous Quiet Time toggle migrates to Follow Quiet Time; other existing
+palettes migrate to Manual Light without changing their RGB values.
+
+SDK 4.33.1 has no supported system appearance API. Follow Pebble Appearance stays
+saved and uses the last Manual Light/Dark fallback; the page explains this limit.
+Global watch settings and Dynamic's main Fredoka clock remain independent.
+The page distinguishes a verified phone save from Applied on watch. A complete
+native snapshot, persisted and read back with the exact revision, confirms the
+latter. Transport ACKs and previous revisions do not. A phone-only save remains
+pending across reopening; Retry and reconnect use the same transport queue.
+Polling preserves unsaved drafts and never starts activity/source work.
+
 ## Native/phone verification
 
 The [native type checkpoint](native-type-checkpoint.md) records actual OS-size captures, locale lookup
-fixtures, clock-pixel comparisons and their verification limits. Manual size
-overrides and confirmed phone delivery remain a separate task stage.
+fixtures, clock-pixel comparisons and their verification limits. The
+[preferences checkpoint](ui-preferences-checkpoint.md) covers manual overrides,
+palette migration and native application receipts.
 
 Inspect actual affected compositions, full text, glyph/icon alignment, edges,
 light/dark and relevant critical states. Keep the actual packaged native payload

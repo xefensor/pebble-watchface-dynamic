@@ -29,6 +29,11 @@ Existing screenshots keep their original version and provenance.
 
 Install the PBW and configure the first two global Complications choices in the Pebble phone app. Open the face’s gear settings for its saved appearance and context choices. Readings retain the selected provider’s units. See [current UI](docs/UI.md).
 
+The local development candidate adds per-face Text Size and Appearance choices,
+including Manual Day/Night palettes and Follow Quiet Time. Follow Pebble Appearance
+is unavailable on the pinned SDK and retains the last manual palette as fallback.
+See [preferences verification](docs/ui-preferences-checkpoint.md) for evidence and limits.
+
 The version notes below describe the published download. Development candidates
 remain separate; use [CONTRIBUTING](CONTRIBUTING.md) for local builds.
 

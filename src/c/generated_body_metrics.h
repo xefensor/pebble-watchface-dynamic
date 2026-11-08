@@ -93,6 +93,85 @@ static const uint16_t body_metric_codepoints[BODY_METRIC_COUNT] = {
   0x2212,0x221a,0x221e,0x222b,0x2248,0x2260,0x2264,0x2265,0x25af,0x25ca,0xee01,0xee02,
   0xf6c3,0xfb01,0xfb02,0xfb03,0xfb04,0xfeff,0xfffc,0xfffd,
 };
+#define BODY_METRIC_RANGE_COUNT 76
+static const uint16_t body_metric_ranges[BODY_METRIC_RANGE_COUNT][3] = {
+  {32,126,0},
+  {160,383,95},
+  {399,399,319},
+  {402,402,320},
+  {416,417,321},
+  {431,432,323},
+  {496,496,325},
+  {506,511,326},
+  {536,539,332},
+  {567,567,336},
+  {601,601,337},
+  {700,700,338},
+  {710,711,339},
+  {713,713,341},
+  {728,733,342},
+  {755,755,348},
+  {768,769,349},
+  {771,771,351},
+  {777,777,352},
+  {783,783,353},
+  {803,803,354},
+  {900,906,355},
+  {908,908,362},
+  {910,929,363},
+  {931,974,383},
+  {977,978,427},
+  {982,982,429},
+  {1024,1158,430},
+  {1160,1299,565},
+  {7680,7681,705},
+  {7742,7743,707},
+  {7808,7813,709},
+  {7840,7929,715},
+  {8013,8013,805},
+  {8192,8203,806},
+  {8208,8209,818},
+  {8211,8213,820},
+  {8215,8222,823},
+  {8224,8226,831},
+  {8229,8231,834},
+  {8240,8240,837},
+  {8242,8243,838},
+  {8249,8250,840},
+  {8252,8252,842},
+  {8260,8260,843},
+  {8304,8304,844},
+  {8308,8334,845},
+  {8355,8356,872},
+  {8358,8364,874},
+  {8369,8369,881},
+  {8377,8378,882},
+  {8380,8381,884},
+  {8453,8453,886},
+  {8467,8467,887},
+  {8470,8470,888},
+  {8482,8482,889},
+  {8486,8486,890},
+  {8494,8494,891},
+  {8539,8542,892},
+  {8706,8706,896},
+  {8710,8710,897},
+  {8719,8719,898},
+  {8721,8722,899},
+  {8730,8730,901},
+  {8734,8734,902},
+  {8747,8747,903},
+  {8776,8776,904},
+  {8800,8800,905},
+  {8804,8805,906},
+  {9647,9647,908},
+  {9674,9674,909},
+  {60929,60930,910},
+  {63171,63171,912},
+  {64257,64260,913},
+  {65279,65279,917},
+  {65532,65533,918},
+};
 // Identical rows share storage; every glyph retains its exact FreeType metrics.
 static const uint8_t body_metric_descent_index[BODY_METRIC_COUNT] = {
   0,0,1,0,2,0,0,1,3,3,4,5,6,7,0,8,0,0,0,0,0,0,0,0,
@@ -441,42 +520,36 @@ static inline uint32_t body_metric_next_codepoint(const unsigned char **cursor) 
 }
 
 static inline size_t body_metric_index(uint32_t codepoint) {
-  size_t low = 0, high = BODY_METRIC_COUNT;
+  size_t low = 0, high = BODY_METRIC_RANGE_COUNT;
   while (low < high) {
     const size_t middle = low + (high - low) / 2;
-    if (body_metric_codepoints[middle] < codepoint) { low = middle + 1; }
+    if (body_metric_ranges[middle][1] < codepoint) { low = middle + 1; }
     else { high = middle; }
   }
-  if (low < BODY_METRIC_COUNT && body_metric_codepoints[low] == codepoint) { return low; }
+  if (low < BODY_METRIC_RANGE_COUNT && body_metric_ranges[low][0] <= codepoint) {
+    return body_metric_ranges[low][2] + codepoint - body_metric_ranges[low][0];
+  }
   return BODY_METRIC_WILDCARD_INDEX;
 }
 
-// Maximum visible ink below the baseline. Point is the exact resource size.
-static inline int body_text_descent(const char *utf8, int point) {
+// Both roles use the same exact glyph lookup and point-size column.
+static int body_text_metric(const char *utf8, int point, int ascent) {
   unsigned column = 0;
   while (column < BODY_METRIC_POINT_COUNT && body_metric_points[column] != point) { ++column; }
   if (utf8 == NULL || column == BODY_METRIC_POINT_COUNT) { return 0; }
   int maximum = 0;
   const unsigned char *cursor = (const unsigned char *)utf8;
   while (*cursor) {
-    const uint32_t codepoint = body_metric_next_codepoint(&cursor);
-    const int descent = body_metric_descent_rows[body_metric_descent_index[body_metric_index(codepoint)]][column];
-    if (descent > maximum) { maximum = descent; }
+    const size_t index = body_metric_index(body_metric_next_codepoint(&cursor));
+    const int value = ascent ? body_metric_ascent_rows[body_metric_ascent_index[index]][column] :
+        body_metric_descent_rows[body_metric_descent_index[index]][column];
+    if (value > maximum) { maximum = value; }
   }
   return maximum;
 }
-
-// Maximum visible ink above the baseline; empty glyphs contribute zero.
+static inline int body_text_descent(const char *utf8, int point) {
+  return body_text_metric(utf8,point,0);
+}
 static inline int body_text_ascent(const char *utf8, int point) {
-  unsigned column = 0;
-  while (column < BODY_METRIC_POINT_COUNT && body_metric_points[column] != point) { ++column; }
-  if (utf8 == NULL || column == BODY_METRIC_POINT_COUNT) { return 0; }
-  int maximum = 0;
-  const unsigned char *cursor = (const unsigned char *)utf8;
-  while (*cursor) {
-    const uint32_t codepoint = body_metric_next_codepoint(&cursor);
-    const int ascent = body_metric_ascent_rows[body_metric_ascent_index[body_metric_index(codepoint)]][column];
-    if (ascent > maximum) { maximum = ascent; }
-  }
-  return maximum;
+  return body_text_metric(utf8,point,1);
 }

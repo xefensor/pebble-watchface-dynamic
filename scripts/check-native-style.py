@@ -40,7 +40,7 @@ LEGACY_KEYS = (
     "SHOW_NOTIFICATIONS", "NOTIFICATION_PREVIEW", "NOTIFICATION_APPS",
     "SHOW_STATUS", "PANEL_TRANSITIONS", "ACCENT_COLOR",
 )
-APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js"}
+APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js", "display-controller.js", "display-state.js", "display-words.js"}
 CORE_MODULES = {
     "readings.js", "message-queue.js", "complications.js", "complication-data.js",
 }
@@ -557,7 +557,7 @@ def audit_body_metrics(root, resources, binary, sources):
                     for row in pool) and len(indices) == len(points) and
                 all(0 <= index < count for index in indices),
                 "Compressed body metric row/map shape changed: " + metric)
-        lookup = "body_metric_" + metric + "_rows[body_metric_" + metric + "_index[body_metric_index(codepoint)]][column]"
+        lookup = "body_metric_" + metric + "_rows[body_metric_" + metric + "_index[index]][column]"
         require(lookup in header, "Body metric helper bypasses its exact row map: " + metric)
         pools[metric], maps[metric] = pool, indices
     rows = [pools["descent"][index] for index in maps["descent"]]
@@ -590,8 +590,22 @@ def audit_body_metrics(root, resources, binary, sources):
             require(ascent_row[column] == ascent,
                     "Body ascent differs from exact packaged glyph: %dpx U+%04X" % (size, point))
             checks += 1
-    raw_points = struct.pack("<" + "H" * len(points), *points)
-    linked_tables = [raw_points]
+    require("const size_t index = body_metric_index(body_metric_next_codepoint(&cursor));" in header and
+            "return body_text_metric(utf8,point,0);" in header and
+            "return body_text_metric(utf8,point,1);" in header,
+            "Body metric roles bypass their shared exact glyph lookup")
+    ranges = [list(map(int,row.split(','))) for row in re.findall(r"\{([\d,]+)\}",
+        header.split('body_metric_ranges[BODY_METRIC_RANGE_COUNT][3] = {',1)[1].split('};',1)[0])]
+    expanded=[]
+    for first,last,start in ranges:
+        require(first<=last and start==len(expanded),"Invalid body metric range offset")
+        expanded.extend(range(first,last+1))
+    require(expanded==points and
+            "if (body_metric_ranges[middle][1] < codepoint)" in index_function and
+            "body_metric_ranges[low][0] <= codepoint" in index_function and
+            "return body_metric_ranges[low][2] + codepoint - body_metric_ranges[low][0];" in index_function,
+            "Body range lookup differs from the complete source glyph order")
+    linked_tables = [struct.pack('<'+'H'*len(ranges)*3,*[value for row in ranges for value in row])]
     for metric in ("descent", "ascent"):
         linked_tables.extend((bytes(maps[metric]),
                               bytes(value & 0xff for row in pools[metric] for value in row)))
@@ -815,6 +829,11 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
         # SDK 4.33.1 inject_metadata.py RESOURCE_TIMESTAMP_ADDR: a four-byte
         # bundle timestamp at 0x7c. Compare every other byte, including CRCs.
         normalized = preview["source"].get("normalizedNativeBinarySha256")
+        if normalized is not None and len(content) >= 128 and sha256(content[:124] + b'\0' * 4 + content[128:]) == normalized:
+            # Current development captures already prove every byte except the
+            # SDK resource timestamp. They need no older published renderer.
+            timestamp_only = True
+            continue
         if allow_sdk_build_id:
             # A different checkout changes the ELF debug paths and GNU build ID.
             # Prove all code/data/resources against the original capture first.
@@ -859,8 +878,8 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
     media = settings["resources"].get("media", [])
     require(media and all(item.get("type") == "font" for item in media),
             "Only the declared custom body fonts are expected")
-    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION"),
-            "Preserve existing keys and append the two navigation status keys")
+    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT"),
+            "Preserve the earlier key prefix and append only display preference keys")
     keys = {name: 10000 + index for index, name in enumerate(settings["messageKeys"])}
     generated = json.loads((root / "build/js/message_keys.json").read_text())
     require(generated == keys, "Generated JavaScript keys are stale")

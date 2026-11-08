@@ -19,6 +19,22 @@ spec.loader.exec_module(audit)
 
 class PreviewProvenanceTests(unittest.TestCase):
 
+    def test_live_timer_settling_never_hides_changes_outside_its_value(self):
+        capture_spec = importlib.util.spec_from_file_location('capture', ROOT / 'scripts/capture-native-previews.py')
+        capture = importlib.util.module_from_spec(capture_spec)
+        capture_spec.loader.exec_module(capture)
+        original = bytes(200 * 228 * 3)
+        tick = bytearray(original)
+        tick[(140 * 200 + 20) * 3] = 255
+        self.assertFalse(capture.preview_settled(None, original, 'timer'))
+        self.assertTrue(capture.preview_settled(original, original, 'music'))
+        self.assertTrue(capture.preview_settled(original, bytes(tick), 'timer'))
+        self.assertFalse(capture.preview_settled(original, bytes(tick), 'music'))
+        for x, y in [(9, 140), (190, 140), (20, 123), (20, 184), (20, 201)]:
+            changed = bytearray(tick)
+            changed[(y * 200 + x) * 3] = 255
+            self.assertFalse(capture.preview_settled(original, bytes(changed), 'timer'))
+
     def test_checkout_build_id_drift_preserves_code_resources_and_native_crc(self):
         reference = bytearray(range(200))
         struct.pack_into('<H', reference, 14, len(reference))
@@ -78,6 +94,9 @@ class PreviewProvenanceTests(unittest.TestCase):
             result = audit.audit_preview_identity(root, '1.0.0', rebuilt, resources, True)
             self.assertTrue(result['rendererMatchesExceptSdkResourceTimestamp'])
             self.assertFalse(result['freshCaptureClaimed'])
+            both = audit.audit_preview_identity(root, '1.0.0', rebuilt, resources, True, True)
+            self.assertTrue(both['rendererMatchesExceptSdkResourceTimestamp'])
+            self.assertFalse(both['rendererMatchesExceptSdkBuildMetadata'])
             for changed in [b'X' + rebuilt[1:], rebuilt[:128] + b'X' + rebuilt[129:],
                             rebuilt[:-1], rebuilt + b'X']:
                 with self.subTest(changed=changed), self.assertRaises(ValueError):

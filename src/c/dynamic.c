@@ -18,6 +18,7 @@
 #include "native_reading.h"
 #include "context_effects.h"
 #include "native_settings.h"
+#include "display_preferences.h"
 #include "activity_plan_cache.h"
 
 #define PERSIST_KEY_BACKGROUND_COLOR 2
@@ -69,6 +70,11 @@ static BatteryChargeState s_battery;
 // snapshots and raster scratch off BSS leaves the app's load image below the
 // SDK's16-bit virtual-size limit without adding any per-frame allocation.
 typedef struct {
+  DisplayPreferences display;
+  uint8_t display_reply[DISPLAY_BYTES];
+  unsigned display_attempts;
+  uint32_t display_generation,display_flight;
+  bool display_pending,outbox_display;
   WfcReadings core;
   WfcPhoneStatus legacy_context;
   DynamicContextSession session;
@@ -110,6 +116,7 @@ static const uint8_t s_body_points[] = {14,16,20,22,24,26,28,32};
 #define BODY_FONT_COUNT (sizeof(s_body_points)/sizeof(s_body_points[0]))
 static GFont s_body_fonts[BODY_FONT_COUNT];
 static DynamicType s_type;
+static unsigned s_system_text_size;
 static bool s_body_loaded[BODY_FONT_COUNT];
 static const uint32_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_14,
   RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_22,
@@ -124,6 +131,8 @@ static void prv_apply_unobstructed_layout(void);
 static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom);
 static void prv_sync_layers(void);
 static void prv_send_clock_format(void);
+static void prv_send_display(void);
+static void prv_display_reply(const DisplayPreferences *value,uint8_t status,uint8_t flags);
 static void prv_schedule_context_expiry(void);
 static void prv_context_expired(void *context);
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point);
@@ -1324,6 +1333,7 @@ static void prv_startup_request(void *context) {
 static void prv_phone_connection_changed(bool connected) {
   if (!wfc_readings_connection_changed(&s_core, connected)) { return; }
   dynamic_context_session_reset(&s_session,&s_context,connected);
+  if(connected)prv_display_reply(&s_native->display,DISPLAY_APPLIED,DISPLAY_HELLO);
   // Native public timers retain their original deadline as unconfirmed while
   // disconnected. Reconnect creates a new generation before accepting packets.
   pav_state_set_connected(&s_activities,connected);
@@ -1376,7 +1386,8 @@ static void prv_unobstructed_area_did_change(void *context) {
   prv_sync_layers();
 }
 static void prv_apply_colors(void) {
-  const GColor *palette=s_night_enabled&&quiet_time_is_active()?s_night_colors:s_day_colors;
+  const bool night=s_native->display.value[DISPLAY_MODE]==DISPLAY_QUIET?quiet_time_is_active():s_native->display.value[DISPLAY_MANUAL]!=0;
+  const GColor *palette=night?s_night_colors:s_day_colors;
   if(s_background_color.argb==palette[0].argb&&s_text_color.argb==palette[1].argb&&
       s_accent_color.argb==palette[2].argb)return;
   s_background_color=palette[0];s_text_color=palette[1];s_accent_color=palette[2];
@@ -1384,11 +1395,26 @@ static void prv_apply_colors(void) {
   prv_sync_layers();
 }
 
-static void prv_save_int(int key,int32_t value) {
-  if(!persist_exists(key)||persist_read_int(key)!=value)persist_write_int(key,value);
+static void prv_send_display(void){
+  if(!s_transport_ready||!s_phone_connected||!s_native->display_pending||s_native->display_attempts>=3)return;
+  DictionaryIterator *out;if(app_message_outbox_begin(&out)!=APP_MSG_OK)return;
+  ++s_native->display_attempts;
+  dict_write_data(out,MESSAGE_KEY_DISPLAY_PREFERENCES_RESULT,s_native->display_reply,DISPLAY_BYTES);
+  s_native->outbox_display=true;s_native->display_pending=false;s_native->display_flight=s_native->display_generation;
+  if(app_message_outbox_send()!=APP_MSG_OK){s_native->outbox_display=false;s_native->display_pending=true;}
 }
-static void prv_save_bool(int key,bool value) {
-  if(!persist_exists(key)||persist_read_bool(key)!=value)persist_write_bool(key,value);
+static void prv_display_reply(const DisplayPreferences *v,uint8_t status,uint8_t flags){
+  display_encode(v,status,flags,s_native->display_reply);++s_native->display_generation;
+  s_native->display_attempts=0;s_native->display_pending=true;prv_send_display();
+}
+static void prv_display_apply(const DisplayPreferences *v){
+  s_native->display=*v;
+  for(unsigned i=0;i<3;++i){s_day_colors[i]=GColorFromHEX(v->value[i]);s_night_colors[i]=GColorFromHEX(v->value[3+i]);}
+  s_clock_format=(uint8_t)v->value[DISPLAY_CLOCK];s_show_status=v->value[DISPLAY_STATUS];s_animations_enabled=v->value[DISPLAY_ANIMATIONS];s_vibration=(uint8_t)v->value[DISPLAY_VIBRATION];
+  s_night_enabled=v->value[DISPLAY_MODE]==DISPLAY_QUIET;
+  const DynamicType type=dynamic_type(xoce_ui_effective_text_size(v->value[DISPLAY_TEXT_SIZE],s_system_text_size));
+  if(memcmp(&type,&s_type,sizeof(type))){s_native->activity_plan.cache.valid=false;s_native->activity_plan.cache.drawn=false;}
+  s_type=type;
 }
 static void prv_focus_will_change(bool focused) {
   if(!focused) {
@@ -1488,50 +1514,31 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
       prv_remove_legacy_data();
     }
   }
-  Tuple *background = dict_find(iterator, MESSAGE_KEY_BACKGROUND_COLOR);
-  Tuple *text = dict_find(iterator, MESSAGE_KEY_TEXT_COLOR);
-  Tuple *accent = dict_find(iterator, MESSAGE_KEY_ACCENT_COLOR);
-  Tuple *twelve = dict_find(iterator, MESSAGE_KEY_USE_12_HOUR);
-  Tuple *clock_format = dict_find(iterator, MESSAGE_KEY_CLOCK_FORMAT);
-  Tuple *show_status = dict_find(iterator, MESSAGE_KEY_SHOW_STATUS);
-  Tuple *animations = dict_find(iterator, MESSAGE_KEY_ANIMATIONS);
-  uint32_t rgb,flag;
-  if(native_setting_value(background,&rgb)){s_day_colors[0]=GColorFromHEX(rgb);prv_save_int(PERSIST_KEY_BACKGROUND_COLOR,(int32_t)rgb);}
-  if(native_setting_value(text,&rgb)){s_day_colors[1]=GColorFromHEX(rgb);prv_save_int(PERSIST_KEY_TEXT_COLOR,(int32_t)rgb);}
-  uint32_t accent_value;
-  if (native_setting_value(accent,&accent_value)) {
-    s_day_colors[2] = GColorFromHEX(accent_value);
-    prv_save_int(PERSIST_KEY_ACCENT_COLOR,(int32_t)accent_value);
+  DisplayPreferences next=s_native->display;bool changed=false;
+  Tuple *request=dict_find(iterator,MESSAGE_KEY_DISPLAY_PREFERENCES);uint8_t status=0,flags=0;
+  bool valid=false;
+  if(request)valid=request->type==TUPLE_BYTE_ARRAY&&display_decode(request->value->data,request->length,&next,&status,&flags)&&next.revision&&!status&&!flags;
+  else {
+    const uint32_t keys[]={MESSAGE_KEY_BACKGROUND_COLOR,MESSAGE_KEY_TEXT_COLOR,MESSAGE_KEY_ACCENT_COLOR,MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,MESSAGE_KEY_NIGHT_TEXT_COLOR,MESSAGE_KEY_NIGHT_ACCENT_COLOR,MESSAGE_KEY_CLOCK_FORMAT,MESSAGE_KEY_SHOW_STATUS,MESSAGE_KEY_ANIMATIONS,MESSAGE_KEY_NOTIFICATION_VIBRATION};
+    for(unsigned i=0;i<10;++i){uint32_t value;if(!native_setting_value(dict_find(iterator,keys[i]),&value))continue;
+      DisplayPreferences candidate=next;candidate.value[i]=value;if(display_valid(&candidate))next=candidate;
+    }
+    uint32_t value;
+    if(!dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_USE_12_HOUR),&value)&&value<=1)next.value[DISPLAY_CLOCK]=value?12:24;
+    if(native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&value)&&value<=1)next.value[DISPLAY_MODE]=value?DISPLAY_QUIET:DISPLAY_EXPLICIT;
+    changed=memcmp(&next,&s_native->display,sizeof(next))!=0;valid=changed;
   }
   uint32_t format;
-  if(native_setting_value(clock_format,&format)&&format==WATCH_CLOCK_QUERY) {
-    s_format_reply_pending=true;prv_send_clock_format();
-  } else if(native_setting_value(clock_format,&format)&&
-      (format==WATCH_CLOCK_FOLLOW||format==WATCH_CLOCK_12||format==WATCH_CLOCK_24)) {
-    clock_changed=s_clock_format!=(uint8_t)format;
-    s_clock_format=(uint8_t)format;prv_save_int(PERSIST_KEY_CLOCK_FORMAT,s_clock_format);
-  } else if (native_setting_value(twelve,&flag)&&flag<=1) {
-    s_use_12_hour = flag != 0;
-    prv_save_bool(PERSIST_KEY_USE_12_HOUR, s_use_12_hour);
-    clock_changed=s_clock_format!=(s_use_12_hour?WATCH_CLOCK_12:WATCH_CLOCK_24);
-    s_clock_format=s_use_12_hour?WATCH_CLOCK_12:WATCH_CLOCK_24;
-    prv_save_int(PERSIST_KEY_CLOCK_FORMAT,s_clock_format);
-  }
-  if (native_setting_value(show_status,&flag)&&flag<=1) {
-    background_changed|=s_show_status!=(flag!=0);
-    s_show_status = flag != 0;
-    prv_save_bool(PERSIST_KEY_SHOW_STATUS, s_show_status);
-  }
-  if(native_setting_value(animations,&flag)&&flag<=1){layout_changed|=s_animations_enabled!=(flag!=0);s_animations_enabled=flag!=0;prv_save_bool(PERSIST_KEY_ANIMATIONS,s_animations_enabled);}
-  if(native_setting_value(dict_find(iterator,MESSAGE_KEY_NOTIFICATION_VIBRATION),&flag)&&flag<=2) {
-    s_vibration=(uint8_t)flag;prv_save_int(PERSIST_KEY_VIBRATION,(int32_t)flag);
-  }
-  if(native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&flag)&&flag<=1) {
-    s_night_enabled=flag!=0;prv_save_bool(PERSIST_KEY_NIGHT_ENABLED,s_night_enabled);
-  }
-  const uint32_t night_keys[]={MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,MESSAGE_KEY_NIGHT_TEXT_COLOR,MESSAGE_KEY_NIGHT_ACCENT_COLOR};
-  for(unsigned i=0;i<3;++i)if(native_setting_value(dict_find(iterator,night_keys[i]),&rgb)) {
-    s_night_colors[i]=GColorFromHEX(rgb);prv_save_int(PERSIST_KEY_NIGHT_BACKGROUND+i,(int32_t)rgb);
+  if(native_setting_value(dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT),&format)&&format==WATCH_CLOCK_QUERY){s_format_reply_pending=true;prv_send_clock_format();}
+  if(valid){
+    if(display_save(&next)){
+      clock_changed=next.value[DISPLAY_CLOCK]!=s_native->display.value[DISPLAY_CLOCK];
+      layout_changed|=next.value[DISPLAY_TEXT_SIZE]!=s_native->display.value[DISPLAY_TEXT_SIZE]||next.value[DISPLAY_ANIMATIONS]!=s_native->display.value[DISPLAY_ANIMATIONS];
+      background_changed|=next.value[DISPLAY_STATUS]!=s_native->display.value[DISPLAY_STATUS];
+      if(layout_changed){activity_navigation_update(&s_native->navigation,s_session.token,s_activities.snapshot.view_sequence,ACTIVITY_NAV_ABSENT,ACTIVITY_NAV_ABSENT,0,0,(uint32_t)time(NULL));}
+      prv_display_apply(&next);
+      prv_display_reply(&next,DISPLAY_APPLIED,request?0:DISPLAY_HELLO);
+    }else if(request)prv_display_reply(&next,DISPLAY_SAVE_FAILED,0);
   }
   if(clock_changed)prv_update_clock();
   else if(layout_changed)prv_apply_unobstructed_layout();
@@ -1543,17 +1550,19 @@ static void prv_inbox_dropped(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_WARNING, "Complication message dropped: %d", reason);
 }
 static void prv_outbox_failed(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  if(s_outbox_presentation){s_outbox_presentation=false;s_native->navigation.pending=true;return;}
-  if(s_outbox_format_only){s_outbox_format_only=false;prv_send_presentation();return;}
+  if(s_native->outbox_display){s_native->outbox_display=false;if(s_native->display_flight==s_native->display_generation)s_native->display_pending=true;prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
+  if(s_outbox_presentation){s_outbox_presentation=false;s_native->navigation.pending=true;prv_send_display();return;}
+  if(s_outbox_format_only){s_outbox_format_only=false;prv_send_display();prv_send_presentation();return;}
   dynamic_context_request_failed(&s_session);
   APP_LOG(APP_LOG_LEVEL_WARNING, "Complication request failed: %d", reason);
-  prv_send_clock_format();
+  prv_send_display();prv_send_clock_format();
 }
 static void prv_outbox_sent(DictionaryIterator *iterator, void *context) {
+  if(s_native->outbox_display){s_native->outbox_display=false;prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
   if(s_outbox_presentation)s_outbox_presentation=false;
   else if(s_outbox_format_only)s_outbox_format_only=false;
   else dynamic_context_request_acknowledged(&s_session);
-  prv_send_clock_format();prv_send_presentation();
+  prv_send_display();prv_send_clock_format();prv_send_presentation();
 }
 
 
@@ -1588,7 +1597,7 @@ static void prv_window_unload(Window *window) {
   }
 }
 static bool prv_init(void) {
-  const unsigned preferred=preferred_content_size();
+  const unsigned preferred=preferred_content_size();s_system_text_size=preferred;
   s_type=dynamic_type(xoce_ui_effective_text_size(0,preferred));
   APP_LOG(APP_LOG_LEVEL_INFO,"Text OS=%u date=%d body=%d secondary=%d",preferred,s_type.date,s_type.body,s_type.secondary);
   s_native=calloc(1,sizeof(*s_native));
@@ -1604,32 +1613,8 @@ static bool prv_init(void) {
   pav_state_init(&s_activities,s_session.token,s_phone_connected);
   persist_write_int(PERSIST_KEY_CONTEXT_SESSION,(int32_t)s_session.token);
   s_battery=battery_state_service_peek();
-  if(persist_exists(PERSIST_KEY_BACKGROUND_COLOR))s_background_color=GColorFromHEX(persist_read_int(PERSIST_KEY_BACKGROUND_COLOR));
-  if(persist_exists(PERSIST_KEY_TEXT_COLOR))s_text_color=GColorFromHEX(persist_read_int(PERSIST_KEY_TEXT_COLOR));
-  if(persist_exists(PERSIST_KEY_ACCENT_COLOR)) {
-    const int32_t color=persist_read_int(PERSIST_KEY_ACCENT_COLOR);
-    if(color>=0&&color<=0xffffff)s_accent_color=GColorFromHEX(color);
-  }
-  s_day_colors[0]=s_background_color;s_day_colors[1]=s_text_color;s_day_colors[2]=s_accent_color;
-  s_night_colors[0]=GColorBlack;s_night_colors[1]=GColorWhite;s_night_colors[2]=GColorFromHEX(0x55AAFF);
-  for(unsigned i=0;i<3;++i)if(persist_exists(PERSIST_KEY_NIGHT_BACKGROUND+i)) {
-    const int32_t color=persist_read_int(PERSIST_KEY_NIGHT_BACKGROUND+i);
-    if(color>=0&&color<=0xffffff)s_night_colors[i]=GColorFromHEX(color);
-  }
-  if(persist_exists(PERSIST_KEY_NIGHT_ENABLED))s_night_enabled=persist_read_bool(PERSIST_KEY_NIGHT_ENABLED);
-  if(persist_exists(PERSIST_KEY_VIBRATION)) {
-    const int32_t preference=persist_read_int(PERSIST_KEY_VIBRATION);
-    if(preference>=0&&preference<=2)s_vibration=(uint8_t)preference;
-  }
-  // The retired shadow effect had no rendering path. Keep its wire key
-  // reserved and remove stale state rather than accepting unused settings.
-  persist_delete(PERSIST_KEY_TEXT_SHADOW);
-  // Retire the old size preference; legacy live packets are also ignored.
-  persist_delete(PERSIST_KEY_LARGE_TEXT);
-  s_clock_format=watch_clock_format(persist_exists(PERSIST_KEY_CLOCK_FORMAT)?persist_read_int(PERSIST_KEY_CLOCK_FORMAT):-1,
-      persist_exists(PERSIST_KEY_USE_12_HOUR)?persist_read_bool(PERSIST_KEY_USE_12_HOUR):-1);
-  if(persist_exists(PERSIST_KEY_SHOW_STATUS))s_show_status=persist_read_bool(PERSIST_KEY_SHOW_STATUS);
-  if(persist_exists(PERSIST_KEY_ANIMATIONS))s_animations_enabled=persist_read_bool(PERSIST_KEY_ANIMATIONS);
+  DisplayPreferences saved;display_load(&saved);prv_display_apply(&saved);
+  persist_delete(PERSIST_KEY_TEXT_SHADOW);persist_delete(PERSIST_KEY_LARGE_TEXT);
   persist_delete(PERSIST_KEY_LAYOUT_STYLE);wfc_readings_load_cache(&s_core,time(NULL));
   prv_apply_colors();
   s_window=window_create();
@@ -1641,11 +1626,12 @@ static bool prv_init(void) {
   app_focus_service_subscribe_handlers((AppFocusHandlers){.will_focus=prv_focus_will_change,
       .did_focus=prv_focus_did_change});
   // One v4 snapshot is bounded at5206bytes, plus dictionary/setting overhead.
-  const AppMessageResult messaging=app_message_open(NATIVE_INBOX_BYTES,64);
+  const AppMessageResult messaging=app_message_open(NATIVE_INBOX_BYTES,128);
   s_transport_ready=messaging==APP_MSG_OK;
   if(!s_transport_ready)APP_LOG(APP_LOG_LEVEL_WARNING,"AppMessage unavailable: %d",messaging);
   tick_timer_service_subscribe(MINUTE_UNIT,prv_tick_handler);
   window_stack_push(s_window,false);
+  prv_display_reply(&s_native->display,DISPLAY_APPLIED,DISPLAY_HELLO);
   APP_LOG(APP_LOG_LEVEL_INFO,"Native state %lu bytes; free heap %lu",
       (unsigned long)sizeof(*s_native),(unsigned long)heap_bytes_free());
   connection_service_subscribe((ConnectionHandlers){.pebble_app_connection_handler=prv_phone_connection_changed});
