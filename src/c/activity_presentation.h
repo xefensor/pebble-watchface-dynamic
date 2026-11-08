@@ -67,7 +67,7 @@ typedef struct {
   int main_baseline[MUSIC_MAX_LINES],support_baseline[MUSIC_MAX_LINES];
   int footer_baseline[MUSIC_MAX_LINES];
   int top,point,left,width,role_baseline,footer_left,footer_width,footer_point,support_point;
-  int icon_top,icon_size,meter_top,secondary_baseline;
+  int icon_top,icon_size,meter_top,secondary_baseline,secondary_height;
   bool vector,scalar,secondary,meter,media;
 } ActivityLayout;
 
@@ -92,34 +92,38 @@ static inline void activity_footer_optional(char *caption,size_t capacity,const 
 
 /* All wrapping starts at byte zero. The last available line ellipsizes; no
  * continuation state or timer exists. A bounded plan is reused by draw/ticks. */
-static inline void activity_layout_build(const char *main,const char *role,
+static inline void activity_layout_build_type(const char *main,const char *role,
     const char *support,const char *footer,bool media,bool vector,bool scalar,
     bool secondary,bool image,bool meter,bool footer_symbol,int footer_point,int support_point,int top,MusicMeasure measure,
-    MusicMeasure scalar_measure,void *context,ActivityLayout *out) {
+    MusicMeasure scalar_measure,void *context,ActivityLayout *out,
+    int body_point,int secondary_point,int secondary_height) {
 layout_again:
   memset(out,0,sizeof(*out));out->top=top;out->media=media;out->secondary=secondary;
   out->vector=vector;out->scalar=scalar;out->left=10;out->width=180;
-  int content_top=top+(secondary?32:4);out->support_point=support_point;
-  out->secondary_baseline=top+4+measure(context,"Ag",XOCE_UI_SECONDARY_POINT).ascent;
+  out->secondary_height=secondary_height;
+  int content_top=top+(secondary?secondary_height+6:4);out->support_point=support_point;
+  out->secondary_baseline=top+4+measure(context,"Ag",secondary_point).ascent;
   out->icon_size=footer_symbol&&(image||!media)?28:0;
   out->footer_left=out->icon_size?46:10;
   out->footer_width=190-out->footer_left;out->footer_point=footer_point;
-  const int footer_lines=strchr(footer,'\n')?2:1;
+  const int footer_lines=footer_symbol?(strchr(footer,'\n')?2:1):
+      strchr(footer,'\n')||measure(context,footer,footer_point).width>out->footer_width?MUSIC_MAX_LINES:1;
   music_wrap(footer,out->footer_point,out->footer_width,footer_lines,false,measure,context,&out->footer);
   const int footer_height=music_line_offsets(&out->footer,out->footer_point,
       measure,context,out->footer_baseline);
-  const int footer_box=out->footer.count?(out->footer.count>1?footer_height+6:28):out->icon_size;
+  const int footer_box=out->footer.count?(out->footer.count>1?footer_height+6:
+      footer_height+4>28?footer_height+4:28):out->icon_size;
   out->icon_top=MUSIC_BOTTOM-footer_box+(footer_box-out->icon_size)/2;
   for(int i=0;i<out->footer.count;++i)
     out->footer_baseline[i]+=MUSIC_BOTTOM-footer_box+(footer_box-footer_height)/2;
   const int footer_top=MUSIC_BOTTOM-footer_box;
   const int limit=footer_top-(footer_top<MUSIC_BOTTOM?8:0);
-  if(content_top>=limit){out->secondary=false;return;}
+  if(content_top>=limit){if(secondary){secondary=false;goto layout_again;}return;}
   if(media) {
-    out->point=XOCE_UI_BODY_POINT;
+    out->point=body_point;
     for(int count=secondary&&top>=ACTIVITY_CONTENT_TOP?2:3;count>=1;--count) {
-      music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
-      const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
+      music_wrap(main,body_point,180,count,false,measure,context,&out->main);
+      const int height=music_line_offsets(&out->main,body_point,measure,context,out->main_baseline);
       if(content_top+height<=limit) {
         for(int i=0;i<out->main.count;++i)out->main_baseline[i]+=limit-height;
         return;
@@ -127,9 +131,9 @@ layout_again:
     }
     out->main.count=0;out->secondary=false;return;
   }
-  const int role_height=role[0]?measure(context,role,XOCE_UI_SECONDARY_POINT).ascent+
-      measure(context,role,XOCE_UI_SECONDARY_POINT).descent+4:0;
-  if(role[0]){out->role_baseline=content_top+measure(context,role,XOCE_UI_SECONDARY_POINT).ascent;content_top+=role_height;}
+  const int role_height=role[0]?measure(context,role,secondary_point).ascent+
+      measure(context,role,secondary_point).descent+4:0;
+  if(role[0]){out->role_baseline=content_top+measure(context,role,secondary_point).ascent;content_top+=role_height;}
   int support_height=0;
   if(support[0]) {
     music_wrap(support,support_point,180,secondary||vector||scalar?1:2,false,measure,context,&out->support);
@@ -137,7 +141,7 @@ layout_again:
   }
   int main_limit=limit-support_height-(meter?8:0);
   if(secondary&&out->support.count&&main_limit-content_top<(vector||scalar?26:
-      measure(context,main,XOCE_UI_BODY_POINT).ascent+measure(context,main,XOCE_UI_BODY_POINT).descent)) {
+      measure(context,main,body_point).ascent+measure(context,main,body_point).descent)) {
     secondary=false;goto layout_again;
   }
   if(main_limit-content_top<18){out->support.count=0;support_height=0;main_limit=limit-(meter?8:0);}
@@ -167,10 +171,10 @@ layout_again:
     if(vector)out->left=10+(180-value.width)/2;
     main_bottom=out->main_baseline[0]+value.descent;
   } else {
-    out->point=XOCE_UI_BODY_POINT;
+    out->point=body_point;
     for(int count=secondary&&top>=ACTIVITY_CONTENT_TOP?2:3;count>=1;--count) {
-      music_wrap(main,XOCE_UI_BODY_POINT,180,count,false,measure,context,&out->main);
-      const int height=music_line_offsets(&out->main,XOCE_UI_BODY_POINT,measure,context,out->main_baseline);
+      music_wrap(main,body_point,180,count,false,measure,context,&out->main);
+      const int height=music_line_offsets(&out->main,body_point,measure,context,out->main_baseline);
       if(content_top+height<=main_limit) {
         for(int i=0;i<out->main.count;++i)out->main_baseline[i]+=content_top;
         main_bottom=content_top+height;break;
@@ -192,4 +196,14 @@ layout_again:
   for(int i=0;i<out->support.count;++i)out->support_baseline[i]+=shift;
   if(out->role_baseline)out->role_baseline+=shift;
   out->meter_top=main_bottom+4+shift;
+}
+
+/* Existing callers/tests can request the established Medium composition. */
+static inline void activity_layout_build(const char *main,const char *role,
+    const char *support,const char *footer,bool media,bool vector,bool scalar,
+    bool secondary,bool image,bool meter,bool footer_symbol,int footer_point,int support_point,int top,MusicMeasure measure,
+    MusicMeasure scalar_measure,void *context,ActivityLayout *out) {
+  activity_layout_build_type(main,role,support,footer,media,vector,scalar,secondary,
+      image,meter,footer_symbol,footer_point,support_point,top,measure,scalar_measure,
+      context,out,XOCE_UI_BODY_POINT,XOCE_UI_SECONDARY_POINT,ACTIVITY_SECONDARY_HEIGHT);
 }

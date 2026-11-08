@@ -101,13 +101,6 @@
       "media": [
         {
           "type": "font",
-          "name": "FONT_BODY_11",
-          "file": "fonts/RobotoCondensed-Bold.ttf",
-          "extended": true,
-          "characterRegex": "[\\u0020-\\uFFFF]"
-        },
-        {
-          "type": "font",
           "name": "FONT_BODY_14",
           "file": "fonts/RobotoCondensed-Bold.ttf",
           "extended": true,
@@ -144,6 +137,13 @@
         {
           "type": "font",
           "name": "FONT_BODY_26",
+          "file": "fonts/RobotoCondensed-Bold.ttf",
+          "extended": true,
+          "characterRegex": "[\\u0020-\\uFFFF]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_BODY_28",
           "file": "fonts/RobotoCondensed-Bold.ttf",
           "extended": true,
           "characterRegex": "[\\u0020-\\uFFFF]"

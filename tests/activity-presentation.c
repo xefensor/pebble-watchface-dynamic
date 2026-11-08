@@ -24,7 +24,7 @@ static MusicTextMetrics clock_measure(void *context,const char *text,int point) 
 static void check(ActivityLayout *layout,bool secondary,int top) {
   secondary=layout->secondary;
   if(!layout->main.count)return;
-  assert(layout->main.count<=3&&layout->footer.count<=2);
+  assert(layout->main.count<=3&&layout->footer.count<=MUSIC_MAX_LINES);
   int bottom=top+(secondary?32:4);
   for(int i=0;i<layout->main.count;++i) {
     const MusicTextMetrics m=(layout->vector?clock_measure:measure)(NULL,layout->main.text[i],layout->point);

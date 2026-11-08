@@ -66,7 +66,7 @@ LEGACY_ENDPOINTS = (
     "api.open-meteo.com", "api.openweathermap.org", "forecast.weather.gov",
 )
 RESOURCE_TABLE_BYTES = 256 * 16
-BODY_SIZES = (11, 14, 16, 20, 22, 24, 26, 32)
+BODY_SIZES = (14, 16, 20, 22, 24, 26, 28, 32)
 CLOCK_CHARACTERS = "0123456789:.-+,/%°CF"
 # These are the reviewed three-codepoint prefixes from the original 17
 # language arrays. Norwegian shares Danish storage without losing a locale.

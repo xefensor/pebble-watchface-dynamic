@@ -83,7 +83,7 @@
     "maximumContourPoints": 145,
     "quadraticCubicFlatnessToleranceFontUnits": 2.0,
     "maximumCurveFlatnessPxAt80": 0.16,
-    "characters": "0123456789:.-+,/%°CF",
+    "characters": "0123456789:.-+,/%\u00b0CF",
     "holeContours": 8,
     "glyphAdvances": {
       "0": 565,
@@ -103,7 +103,7 @@
       ",": 223,
       "/": 489,
       "%": 779,
-      "°": 379,
+      "\u00b0": 379,
       "C": 631,
       "F": 613
     },
@@ -119,20 +119,20 @@
   },
   "generatedBodyMetrics": {
     "header": "src/c/generated_body_metrics.h",
-    "sha256": "b42cdaad10b83f580278fddfa3f429f2eeba66179d964000394c87e931393017",
+    "sha256": "4fb6a7e7c373374d757bf67850d9b7d4077d95058997bdbec182b9a27a82adcf",
     "generator": "scripts/generate-body-metrics.py",
     "verificationCommand": "python3 scripts/generate-body-metrics.py --check --json (requires freetype-py; the SDK Python environment provides it)",
     "fontSha256": "6e949e8aa3f6e0b4db88aacafccf0c0e55e708c4564c8f3d145792adbbf80ef6",
     "fontCodepointCount": 919,
     "metricCodepointCountIncludingWildcard": 920,
     "pointSizes": [
-      11,
       14,
       16,
       20,
       22,
       24,
       26,
+      28,
       32
     ],
     "freeTypeVersion": [
@@ -150,30 +150,23 @@
     "minimumBitmapAscentPx": -2,
     "maximumBitmapAscentPx": 34,
     "blankGlyphAscentPx": 0,
-    "ascentTable": "body_metric_ascent_rows[147][8]",
-    "ascentTableBytes": 1176,
+    "ascentTable": "body_metric_ascent_rows[150][8]",
+    "ascentTableBytes": 1200,
     "ascentDefinition": "FreeType bitmap_top for glyphs with actual bitmap ink; zero for blank glyphs. SDK PFO equivalent is font pixel size minus glyph top offset, with blank-bitmaps normalized to zero.",
     "ascentHelper": "body_text_ascent(const char *utf8, int point)",
     "ascentIndexTable": "body_metric_ascent_index[920]",
     "ascentIndexBytes": 920,
-    "descentTable": "body_metric_descent_rows[90][8]",
-    "descentTableBytes": 720,
+    "descentTable": "body_metric_descent_rows[93][8]",
+    "descentTableBytes": 744,
     "descentIndexTable": "body_metric_descent_index[920]",
     "descentIndexBytes": 920,
-    "compressedMetricBytes": 3736,
+    "compressedMetricBytes": 3784,
     "compression": "Exact identical metric rows share a uint8 row index; expanded ascent/descent values are unchanged."
   },
   "bodyResources": {
     "sdk": "4.33.1",
     "platform": "emery",
     "definitions": [
-      {
-        "type": "font",
-        "name": "FONT_BODY_11",
-        "file": "fonts/RobotoCondensed-Bold.ttf",
-        "extended": true,
-        "characterRegex": "[\\u0020-\\uFFFF]"
-      },
       {
         "type": "font",
         "name": "FONT_BODY_14",
@@ -218,6 +211,13 @@
       },
       {
         "type": "font",
+        "name": "FONT_BODY_28",
+        "file": "fonts/RobotoCondensed-Bold.ttf",
+        "extended": true,
+        "characterRegex": "[\\u0020-\\uFFFF]"
+      },
+      {
+        "type": "font",
         "name": "FONT_BODY_32",
         "file": "fonts/RobotoCondensed-Bold.ttf",
         "extended": true,
@@ -225,13 +225,6 @@
       }
     ],
     "standaloneSdkPfoSamples": [
-      {
-        "point": 11,
-        "bytes": 16052,
-        "lookupCodepoints": 920,
-        "sha256": "80e7c4e762bd7cf596484ab38e3746067b4f1645ca33c1e4d1e4a633429cf441",
-        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
-      },
       {
         "point": 14,
         "bytes": 18824,
@@ -272,6 +265,13 @@
         "bytes": 37088,
         "lookupCodepoints": 920,
         "sha256": "30f77c6c6c299b3c6fe9725117446f46c516b303322e0f775c74f106bad37b8f",
+        "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
+      },
+      {
+        "point": 28,
+        "bytes": 40848,
+        "lookupCodepoints": 920,
+        "sha256": "122ab2faea4dd055d1f7aeb1bfbf9039b26f8bb2285a1159017fa31798e6723b",
         "origin": "Exact SDK4.33.1 fontgen resource; glyphs independently checked against FreeType metrics"
       },
       {
@@ -1595,7 +1595,7 @@
         "missingCodepoints": []
       }
     },
-    "extraRequiredCharacters": "ČčĎďĚěŇňŘřŤťŮůŁłŐőŰűȘșȚțİıĞğŞş°…−КолесомΑθήναΕλληνικάTiếngViệt",
+    "extraRequiredCharacters": "\u010c\u010d\u010e\u010f\u011a\u011b\u0147\u0148\u0158\u0159\u0164\u0165\u016e\u016f\u0141\u0142\u0150\u0151\u0170\u0171\u0218\u0219\u021a\u021b\u0130\u0131\u011e\u011f\u015e\u015f\u00b0\u2026\u2212\u041a\u043e\u043b\u0435\u0441\u043e\u043c\u0391\u03b8\u03ae\u03bd\u03b1\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03acTi\u1ebfngVi\u1ec7t",
     "extraMissingCodepoints": [],
     "sourceAvailableBlocks": {
       "Greek": {

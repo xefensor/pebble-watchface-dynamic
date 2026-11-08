@@ -1,26 +1,43 @@
 # Dynamic: current UI
 
-The current release is 0.18.3. Earlier downloads and frozen evidence retain
-their original versions and interfaces.
+The development candidate retains version 0.18.3. Published downloads and frozen
+evidence retain their original typography and interfaces.
 
 Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Animated layouts, Peek response and genuine item transitions are part of Dynamic's design. Dynamic has no physical action rail.
 
-The shared `pebble-xoce-ui` package supplies the26px utility date/header,
-24px body and22px secondary role definitions, common timer/music/navigation/
-direction/battery/phone symbols and aspect-fit image geometry. Dynamic loads
-its own fonts and keeps its Fredoka display/value composition, semantic weather
-illustrations, palette and native Peek movement. Reading labels, textual states
-and activity roles use the readable22px secondary role. Non-vector unit fallbacks
-also use at least22px and are measured at the same size before choosing a layout.
-Activity icon boxes remain centered beside measured glyph ink. Shared helpers
-do not own activity selection, expiry, privacy, navigation or clock scheduling.
+Dynamic follows the launch-time Pebble content size using its own supporting
+Roboto typography. Medium retains the established roles; the main Fredoka clock
+keeps its original numerals, sizes, position, proportions and rasterization.
+
+| Effective size | Date | Text body | Roboto labels, captions and units |
+| --- | --- | --- | --- |
+| Small | 22 | 22 | 20 |
+| Medium | 26 | 24 | 22 |
+| Large | 28 | 28 | 26 |
+
+These are Dynamic's face-specific roles. Native watch apps use PebbleOS's native
+font table. The independently pinned UI library supplies the common OS-choice
+mapping, symbols and aspect-fit image geometry; the face owns font resources,
+measurements, state, expiry and layout. Emery's OS Small/Medium/Large correspond
+to SDK content-size values 1/2/3, read again after relaunch.
+
+Activity values retain Fredoka's numeric fitting, with corresponding vector-unit
+sizes; the main clock is independent of all supporting roles.
+
+The same selected fonts measure and draw text. Secondary row height follows its
+actual glyph ink. Primary blocks, footer heights, units and line counts fit the
+remaining area. Optional secondary activities yield before required state, value
+or units; a long required footer can wrap over three lines. An unfit secondary
+remains absent from both native paint and Open Activity navigation. The eight
+bundled Roboto sizes now include 28; the unused 11-point resource was removed.
+The complete source glyph repertoire and visible missing-glyph fallback remain.
 
 ## Complication layout
 
 The two global Pebble complication choices retain their positions in equal
 columns. Each reading combines a source symbol and its value/unit in one group.
 The idle value targets 40px; activity and Peek values target 28px. Units and
-meaningful captions use Roboto Condensed 22px. Clock/date geometry and the ACT3
+meaningful captions use the effective secondary Roboto role. Clock/date geometry and the ACT3
 activity composition remain independent of this reading layout.
 
 Ordinary temperature and rain captions are omitted when their symbols and units
@@ -44,7 +61,9 @@ other reading does not move into their place.
 
 Clock and reading groups animate between idle and activity layouts with bounded,
 monotonic Pebble timing. Native Peek follows the available height rather than
-snapping to another layout. The complete date moves/fades out before the clock
+snapping to another layout. Reading groups derive second-line leading from their
+actual text metrics and move upward when the unobstructed area requires it. The
+clock keeps its existing Peek endpoint and motion. The complete date moves/fades out before the clock
 crosses its row, then the target date enters; measured ink bounds prevent overlap.
 Genuine source/run or media-item replacements retain an incoming transition.
 Ordinary ticks and repeated data do not replay it. Expiry/privacy still clear
@@ -53,7 +72,7 @@ immediately, and covered views do not schedule decorative work.
 These animations are intentional. Improve their timing, paths and clipping;
 removing them is a separate user decision, not a substitute for fixing them.
 
-This release uses Core 0.5.2 for its optional
+This candidate keeps Core 0.5.2 for its optional
 public-label callback. The v4 wire, message-key numbering, saved preferences and
 global complication picker are unchanged. Forecast-series charts and new native
 health sources are separate features, not part of this layout change.
@@ -65,6 +84,10 @@ of the motion correction.
 Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
 ## Native/phone verification
+
+The [native type checkpoint](native-type-checkpoint.md) records actual OS-size captures, locale lookup
+fixtures, clock-pixel comparisons and their verification limits. Manual size
+overrides and confirmed phone delivery remain a separate task stage.
 
 Inspect actual affected compositions, full text, glyph/icon alignment, edges,
 light/dark and relevant critical states. Keep the actual packaged native payload

@@ -74,7 +74,7 @@ function readings(value) {
   assert.equal(at,bytes.length);return result;
 }
 test('focused complications cover real host values, identity, failures and active/Peek boundaries',()=>{
-  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,132);
+  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,138);
   assert.equal(plan.productionReadingHost,true);assert.equal(plan.dynamicLabelAdapter,true);
   for(const preset of plan.presets) {
     const slots=readings(preset.bytes.COMPLICATION_DATA);
@@ -113,6 +113,8 @@ test('focused complications cover real host values, identity, failures and activ
   assert.deepEqual(find('two-locations-qualifiers').slice(0,2).map(slot=>slot.label),['Praha','Brno']);
   assert.equal(find('czech-custom-labels')[0].label,'Doma');assert.equal(find('czech-custom-labels')[1].label,'Obývák');
   assert.equal(find('czech-custom-labels')[1].text,'Zapnuto');
+  assert.equal(find('accented-unit-caption')[0].label,'ČHMÚ');
+  assert.equal(find('accented-unit-caption')[1].label,'Žluťoučký');
   for(const[name,status]of [['loading',1],['unavailable',3],['expired',7]]) {
     slots=find(name);assert.deepEqual(slots.slice(0,2).map(slot=>slot.status),[status,status]);
     assert.ok(slots.slice(0,2).every(slot=>slot.text===''&&slot.observedAt===0&&slot.semanticFlags===0));

@@ -260,6 +260,7 @@ function complicationPresets(options) {
     {name:'two-weather-locations-expired',state:'expired',slots:[weather('temperature',0),weather('temperature',1)],sources:{'weather/location':[prague({temperature:temperature(),...observed}),brno({temperature:temperature(-2),...observed})]}},
     {name:'two-locations-qualifiers',slots:[weather('feels_like',0),weather('high',1)],sources:{'weather/location':[prague({feels_like:temperature(-12)}),brno({high:temperature(14),is_forecast:{boolean:{value:true}}})]}},
     {name:'czech-custom-labels',language:'cs',slots:[weather('feels_like',0,'Doma'),{category:'home',item:'light',property:'on',index:0,label:'Obývák'}],sources:{'weather/location':[prague({feels_like:temperature(-7)})],'home/light':[named('living','Obývák',{on:{boolean:{value:true}}})]}},
+    {name:'accented-unit-caption',language:'cs',slots:[weather('temperature',0,'ČHMÚ'),weather('feels_like',0,'Žluťoučký')],sources:{'weather/location':[prague({temperature:temperature(5),feels_like:temperature(-7)})]}},
     {name:'loading',state:'loading',...ordinary},
     {name:'unavailable',state:'unavailable',...ordinary},
     {name:'expired',state:'expired',...ordinary}

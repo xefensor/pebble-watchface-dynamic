@@ -9,7 +9,7 @@ Preserve UUID, appended message-key numbering, ACT3 source/run identity, observa
 
 ## Current interaction and product boundaries
 
-Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Incoming motion is bounded and only starts on a genuine run/item replacement. Dynamic has no physical action rail.
+Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. Supporting text follows the launch-time OS size through Dynamic’s own font roles; the main clock keeps its design. Required state/value/unit text can wrap and must yield optional secondary content first. A hidden secondary must not escape through the navigation source. Incoming motion is bounded and only starts on a genuine run/item replacement. Dynamic has no physical action rail.
 
 ## Source ownership
 

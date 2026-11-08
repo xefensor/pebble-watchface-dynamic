@@ -242,5 +242,45 @@ int main(void){
             subprocess.run([str(output)], check=True)
 
 
+    def test_primary_required_detail_wraps_while_unfit_secondary_stays_absent(self):
+        source = (ROOT / 'src/c/dynamic.c').read_text()
+        body = callback(source, 'prv_activity_line')
+        harness = r'''
+#include <assert.h>
+#include <stdio.h>
+#include "watch_layout.h"
+#define ACTIVITY_LINE_BYTES 128
+enum {PAV_TEXT=1,PAV_VALUE=2};
+typedef struct {unsigned type;}PavDatum;
+typedef struct {const char *value;}PavCard;
+typedef struct {int w;}GSize;
+static bool s_phone_connected=true;
+static struct {int secondary;}s_type={26};
+static bool pav_format_item(const PavCard *card,const PavDatum *datum,unsigned now,
+    bool connected,char *out,size_t capacity){(void)datum;(void)now;(void)connected;snprintf(out,capacity,"%s",card->value);return true;}
+static GSize prv_measure(const char *text,int point){return (GSize){(int)strlen(text)*point/2};}
+static void prv_activity_append(char *text,size_t capacity,const char *tail){(void)text;(void)capacity;(void)tail;}
+static const char *activity_role(const PavCard *card,const PavDatum *datum){(void)card;(void)datum;return "";}
+static void prv_ellipsize(char *text,size_t capacity,int point,int width){(void)text;(void)capacity;(void)point;(void)width;assert(false);}
+''' + body + r'''
+int main(void){
+ const PavCard card={"1111111111111 km"};const PavDatum detail={PAV_VALUE};char text[128];
+ assert(prv_activity_line(&card,&detail,1,180,true,NULL,NULL,text,sizeof(text)));
+ assert(!strcmp(text,card.value));
+ assert(!prv_activity_line(&card,&detail,1,180,false,NULL,NULL,text,sizeof(text)));
+ s_type.secondary=22;
+ assert(prv_activity_line(&card,&detail,1,180,false,NULL,NULL,text,sizeof(text)));
+ assert(!strcmp(text,card.value));return 0;
+}
+'''
+        with tempfile.TemporaryDirectory(prefix='dynamic-required-detail-') as tmp:
+            path = Path(tmp) / 'detail.c'
+            path.write_text(harness)
+            output = Path(tmp) / 'detail'
+            subprocess.run([os.environ.get('CC', 'cc'), '-std=c99', '-Wall', '-Wextra', '-Werror',
+                            '-I' + str(ROOT / 'src/c'), str(path), '-o', str(output)], check=True)
+            subprocess.run([str(output)], check=True)
+
+
 if __name__ == '__main__':
     unittest.main()
