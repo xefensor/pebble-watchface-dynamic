@@ -1,7 +1,7 @@
 {
   "product": "Dynamic",
   "version": "0.19.0",
-  "pbwSha256": "00ac21ebb53f7f81fb0be086202061134d082d2dc3963530eda59e4a9b043d1c",
+  "pbwSha256": "9edd1536896995f52ccb18d3a8b83cd895c38781449dd6c1f757042a5f5eadc3",
   "targets": [
     "emery",
     "gabbro"
@@ -33,5 +33,6 @@
       "nativeRendererSha256": "c6d59b4d8575326fda4463b2ad92813ea8e14b68d6d157782eef40071abec465",
       "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
     }
-  }
+  },
+  "buildReproducibility": "Settings generator reads the locked Clay ZIP on a fresh npm install, before SDK expansion; generated HTML is byte-identical. Native code/resources and public runtime remain identical across SDK metadata drift."
 }

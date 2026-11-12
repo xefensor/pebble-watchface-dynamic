@@ -2,7 +2,7 @@
   "version": "0.19.0",
   "nativePixelsModified": false,
   "scope": "Raw native emulator screenshots, synthetic sample data; no phone/provider or physical-device claim. SDK timestamp/build-ID differences alone are normalized, with independent exact native package audits.",
-  "candidateSha256": "00ac21ebb53f7f81fb0be086202061134d082d2dc3963530eda59e4a9b043d1c",
+  "candidateSha256": "9edd1536896995f52ccb18d3a8b83cd895c38781449dd6c1f757042a5f5eadc3",
   "renderer": {
     "emery": {
       "nativeRendererSha256": "e7b273b8ebb856bb15ae5ea1c0645020c334e932955944e4077ebb136599245f",

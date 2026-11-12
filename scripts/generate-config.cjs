@@ -2,8 +2,12 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),pkg=require(root+'/package.json');
 const keys=Object.fromEntries(pkg.pebble.messageKeys.map((name,index)=>[name,index]));
-const installed=path.join(root,'node_modules/@rebble/clay/dist/js/index.js');
-const source=fs.readFileSync(installed,'utf8');
+// Clean npm installs retain Clay in its SDK archive. Read that locked bundle
+// directly, just as the settings serializer tests do, without changing it.
+const installed=path.join(root,'node_modules/@rebble/clay/dist.zip');
+const source=require('node:child_process').execFileSync('python3',['-c',
+  'import sys, zipfile; sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read("js/index.js"))',
+  installed],{encoding:'utf8'});
 const box={module:{exports:{}},exports:{},require:name=>{if(name==='message_keys')return keys;throw Error(name);},Pebble:{platform:'config',addEventListener:()=>{}},localStorage:{getItem:()=>null},console};
 vm.runInNewContext(source,box,{filename:'clay.js'});
 const state=require('../src/common/settings-state');
