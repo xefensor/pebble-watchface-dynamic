@@ -2,7 +2,7 @@
 """Native loading-art geometry and observed Dynamic outgoing/incoming motion."""
 from pathlib import Path
 import argparse,hashlib,json,os,subprocess,sys,tempfile,threading,time,uuid,zipfile
-from repo_workflow import candidate
+from repo_workflow import candidate,qa_output
 from pebble_tool.commands.install import ToolAppInstaller
 from pebble_tool.commands.emucontrol import send_data_to_qemu
 from libpebble2.protocol.apps import AppRunState,AppRunStateStart
@@ -13,7 +13,7 @@ from libpebble2.services.screenshot import Screenshot
 from PIL import Image,ImageChops
 ROOT=Path(__file__).resolve().parents[1];FACE='Halftone'if'halftone'in ROOT.name else'Dynamic'
 parser=argparse.ArgumentParser();parser.add_argument('--size',type=int,choices=(1,2,3),default=2);parser.add_argument('--optics',type=int,choices=(0,1),default=0);parser.add_argument('--peek',action='store_true');args=parser.parse_args()
-PBW=candidate(ROOT,FACE);OUT=ROOT/'build/qa/media-motion'/f's{args.size}-o{args.optics}{"-peek"if args.peek else""}'
+PBW=candidate(ROOT,FACE);OUT=qa_output(ROOT,'media-motion')/f's{args.size}-o{args.optics}{"-peek"if args.peek else""}'
 OUT.mkdir(parents=True,exist_ok=True);os.environ['PEBBLE_QA_STATE']=tempfile.mkdtemp(prefix='face-media-motion-');sys.path.insert(0,str(ROOT.parent/'recovery-validation'))
 from pipe_emulator import connect
 with zipfile.ZipFile(PBW)as source,zipfile.ZipFile(OUT/'native.pbw','w')as native:
@@ -54,7 +54,7 @@ for theme in ('light','dark'):
  send('old-loading-'+theme);time.sleep(.7);pending=shot('old-loading-'+theme)
  send('old-ready-'+theme);time.sleep(.35);old=shot('old-ready-'+theme)
  # Inspect only permitted artwork pixels. Every other pixel must be unchanged.
- a=pending.copy();b=old.copy();art=(24,110 if args.peek else 160,52,171 if args.peek else 216)if FACE=='Halftone'else(10,110 if args.peek else 180,38,171 if args.peek else 216)
+ a=pending.copy();b=old.copy();art=(24,110 if args.peek else 160,52,171 if args.peek else 216)if FACE=='Halftone'else(10,119 if args.peek else 176,50,159 if args.peek else 216)
  for im in (a,b):im.paste((0,0,0),art)
  assert ImageChops.difference(a,b).getbbox()is None,(theme,'Artwork arrival moved text or replayed motion')
  if not args.peek:assert ImageChops.difference(pending.crop(art),old.crop(art)).getbbox()is not None,'Loading symbol and cover are identical'

@@ -55,17 +55,16 @@ static void music_ellipsis(char *text, int point, int width,
 // its punctuation: a band name containing a comma is not an artist array.
 static bool music_comma_lines(const char *source, int point, int width,
                                 MusicMeasure measure, void *context, MusicLines *out) {
-  for (size_t at = 0; source[at]; ++at) {
-    if (source[at] != ',' || at + 1 >= MUSIC_TEXT_BYTES) continue;
-    char first[MUSIC_TEXT_BYTES], second[MUSIC_TEXT_BYTES];
-    memcpy(first, source, at + 1); first[at + 1] = '\0'; music_trim(first);
-    const char *tail = source + at + 1;
+  for (const char *at = source; (at = strchr(at, ',')) != NULL; ++at) {
+    const size_t length = (size_t)(at - source) + 1;
+    if (length >= MUSIC_TEXT_BYTES) return false;
+    char *first=out->text[0],*second=out->text[1];
+    memcpy(first, source, length); first[length] = '\0';
+    const char *tail = at + 1;
     while (music_space(*tail)) ++tail;
-    watch_layout_copy_utf8(tail, second, sizeof(second)); music_trim(second);
-    if (first[0] && second[0] && measure(context, first, point).width <= width &&
+    watch_layout_copy_utf8(tail, second, MUSIC_TEXT_BYTES); music_trim(second);
+    if (second[0] && measure(context, first, point).width <= width &&
         measure(context, second, point).width <= width) {
-      memcpy(out->text[0], first, strlen(first) + 1);
-      memcpy(out->text[1], second, strlen(second) + 1);
       out->count = 2; out->complete = true; return true;
     }
   }

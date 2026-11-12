@@ -135,3 +135,15 @@ test('music loading fixtures preserve item identity across artwork and keep the 
     assert.ok(ready.length>pending.length);
   }
 });
+
+test('music layout fixtures use the Music adapter for artists, paused state and both row compositions',()=>{
+  const plan=fixtures.musicLayoutPresets({now:N,session:S});assert.equal(plan.presets.length,24);
+  for(const preset of plan.presets){
+    const cards=records(preset.bytes.ACTIVITY_DATA);
+    assert.equal(cards[0].presentation,2);
+    assert.equal(cards.length,preset.secondary?2:1);
+    assert.equal(cards[0].support,preset.artist);
+    assert.equal(cards[0].state,preset.case==='paused'?2:1);
+    assert.deepEqual(preset.preserve,[{x:10,y:176,width:40,height:40}]);
+  }
+});

@@ -4,10 +4,18 @@
 
 /* Dynamic keeps its own Roboto/Fredoka hierarchy. Medium is the established
  * composition; only supporting text responds to these three effective sizes. */
-typedef struct { int date,body,secondary,unit_delta; } DynamicType;
+/* Byte-sized role storage leaves room in Pebble's 16-bit native load image. */
+typedef struct {
+  uint8_t date,body,secondary;
+  int8_t unit_delta;
+  uint8_t music_artist;
+} DynamicType;
 static inline DynamicType dynamic_type(unsigned size) {
-  const DynamicType profiles[]={{22,22,20,-2},{26,24,22,0},{28,28,26,4}};
+  static const DynamicType profiles[]={{22,22,20,-2,16},{26,24,22,0,20},{28,28,26,4,22}};
   return profiles[size>2?2:size];
+}
+static inline int dynamic_music_artist_point(DynamicType type) {
+  return type.music_artist;
 }
 static inline int dynamic_unit_point(DynamicType type,int number_point) {
   return (number_point>32?20:14)+type.unit_delta;

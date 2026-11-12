@@ -10,11 +10,11 @@ Large. Follow Pebble reads the system size on launch; manual choices use the sam
 profiles. All apply only to supporting Roboto typography. Medium retains the established roles; the main Fredoka clock
 keeps its original numerals, sizes, position, proportions and rasterization.
 
-| Effective size | Date | Text body | Roboto labels, captions and units |
-| --- | --- | --- | --- |
-| Small | 22 | 22 | 20 |
-| Medium | 26 | 24 | 22 |
-| Large | 28 | 28 | 26 |
+| Effective size | Date | Text body | Roboto labels, captions and units | Music artist |
+| --- | --- | --- | --- | --- |
+| Small | 22 | 22 | 20 | 16 |
+| Medium | 26 | 24 | 22 | 20 |
+| Large | 28 | 28 | 26 | 22 |
 
 These are Dynamic's face-specific roles. Native watch apps use PebbleOS's native
 font table. The independently pinned UI library supplies the common OS-choice
@@ -159,3 +159,23 @@ existing transition and clears on expiry, privacy/focus changes and Peek.
 
 See [music and Text Size verification](music-font-checkpoint.md) for candidate
 hashes, regression checks, actual emulator frames and remaining device scope.
+
+## Music artwork and artist wrapping
+
+The primary music activity keeps its full-width song title above a 40×40 px
+artwork home at x=10, bottom-aligned at y=216. Artist text starts at x=58 in the
+remaining 132 px and uses the smaller music-artist role in the table above.
+Follow Pebble and manual text sizes select the same profiles. Up to two artist
+lines wrap from the beginning; useful comma breaks preserve provider punctuation,
+and only the final line ellipsizes. The artist block shares the artwork's bottom
+anchor, and measured accents/descenders can make its reserved row taller.
+
+The title retains its font and an 8 px gap above the measured footer. A secondary
+activity yields if necessary to keep the primary title visible. Music-note and
+artwork states reserve identical geometry, and both painted music blocks retain
+their existing outgoing/incoming slide. Other activity layouts and fonts keep
+their existing 28 px icon composition. Provider text, playback state, source
+validity, privacy and navigation contracts are unchanged.
+
+See the [music layout checkpoint](music-layout-checkpoint.md) for the candidate,
+non-music pixel comparisons and native verification scope.

@@ -106,19 +106,24 @@ layout_again:
   /* The artwork home exists before bytes arrive, so metadata never reflows
    * merely because an image finishes loading. Keep the legacy argument. */
   (void)image;
-  out->icon_size=footer_symbol?28:0;
-  out->footer_left=out->icon_size?46:10;
+  out->icon_size=footer_symbol?(media?40:28):0;
+  out->footer_left=out->icon_size?18+out->icon_size:10;
   out->footer_width=190-out->footer_left;out->footer_point=footer_point;
-  const int footer_lines=footer_symbol?(strchr(footer,'\n')?2:1):
+  const int footer_lines=media?2:footer_symbol?(strchr(footer,'\n')?2:1):
       strchr(footer,'\n')||measure(context,footer,footer_point).width>out->footer_width?MUSIC_MAX_LINES:1;
-  music_wrap(footer,out->footer_point,out->footer_width,footer_lines,false,measure,context,&out->footer);
+  music_wrap(footer,out->footer_point,out->footer_width,footer_lines,media,measure,context,&out->footer);
   const int footer_height=music_line_offsets(&out->footer,out->footer_point,
       measure,context,out->footer_baseline);
-  const int footer_box=out->footer.count?(out->footer.count>1?footer_height+6:
+  /* Music bottom-aligns both elements and reserves all artist ink, including
+   * Large accents. Other activities retain their centered 28px composition. */
+  const int footer_box=media?(footer_height>out->icon_size?footer_height:out->icon_size):
+      out->footer.count?(out->footer.count>1?footer_height+6:
       footer_height+4>28?footer_height+4:28):out->icon_size;
-  out->icon_top=MUSIC_BOTTOM-footer_box+(footer_box-out->icon_size)/2;
+  int icon_offset=footer_box-out->icon_size,text_offset=footer_box-footer_height;
+  if(!media){icon_offset/=2;text_offset/=2;}
+  out->icon_top=MUSIC_BOTTOM-footer_box+icon_offset;
   for(int i=0;i<out->footer.count;++i)
-    out->footer_baseline[i]+=MUSIC_BOTTOM-footer_box+(footer_box-footer_height)/2;
+    out->footer_baseline[i]+=MUSIC_BOTTOM-footer_box+text_offset;
   const int footer_top=MUSIC_BOTTOM-footer_box;
   const int limit=footer_top-(footer_top<MUSIC_BOTTOM?8:0);
   if(content_top>=limit){if(secondary){secondary=false;goto layout_again;}return;}
@@ -132,7 +137,8 @@ layout_again:
         return;
       }
     }
-    out->main.count=0;out->secondary=false;return;
+    if(secondary){secondary=false;goto layout_again;}
+    out->main.count=0;return;
   }
   const int role_height=role[0]?measure(context,role,secondary_point).ascent+
       measure(context,role,secondary_point).descent+4:0;

@@ -71,6 +71,8 @@ static BatteryChargeState s_battery;
 // snapshots and raster scratch off BSS leaves the app's load image below the
 // SDK's16-bit virtual-size limit without adding any per-frame allocation.
 typedef struct {
+  GFont body_fonts[BODY_METRIC_POINT_COUNT];
+  bool body_loaded[BODY_METRIC_POINT_COUNT];
   DisplayPreferences display;
   uint8_t display_reply[DISPLAY_BYTES];
   unsigned display_attempts;
@@ -86,6 +88,8 @@ typedef struct {
   FontRasterContour clock_raster_contours[CLOCK_GLYPH_MAX_CONTOURS];
   int32_t clock_intersections[CLOCK_GLYPH_MAX_POINTS];
   uint8_t clock_coverage[200];
+  // Three UTF-8 weekday scalars + separator + DD.MM. + NUL fit in24 bytes.
+  char compact_date[24],time_text[6],weekday[13],numeric_date[8];
   char activity_identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2];
   uint8_t activity_visual[8];
   ActivityPlan activity_plan;
@@ -95,6 +99,8 @@ typedef struct {
 } NativeState;
 static NativeState *s_native;
 #define s_core (s_native->core)
+#define s_body_fonts (s_native->body_fonts)
+#define s_body_loaded (s_native->body_loaded)
 #define s_pose (s_native->pose)
 #define s_pose_from (s_native->pose_from)
 #define s_pose_target (s_native->pose_target)
@@ -104,6 +110,10 @@ static NativeState *s_native;
 #define s_clock_raster_contours (s_native->clock_raster_contours)
 #define s_clock_intersections (s_native->clock_intersections)
 #define s_clock_coverage (s_native->clock_coverage)
+#define s_compact_date_buffer (s_native->compact_date)
+#define s_time_buffer (s_native->time_text)
+#define s_weekday_buffer (s_native->weekday)
+#define s_numeric_date_buffer (s_native->numeric_date)
 #define s_context (s_native->legacy_context)
 #define s_session (s_native->session)
 #define s_activities (s_native->activities)
@@ -111,16 +121,11 @@ static NativeState *s_native;
 #define s_has_complications s_core.has_complications
 #define s_phone_connected s_core.phone_connected
 static AppTimer *s_context_timer, *s_startup_timer, *s_motion_timer,*s_activity_timer,*s_presentation_timer;
-// Three UTF-8 weekday scalars + separator + DD.MM. + NUL fit in24 bytes.
-static char s_compact_date_buffer[24], s_time_buffer[6];
-static char s_weekday_buffer[13], s_numeric_date_buffer[8];
 static const uint8_t s_body_points[] = {14,16,20,22,24,26,28,32};
 #define BODY_FONT_COUNT (sizeof(s_body_points)/sizeof(s_body_points[0]))
-static GFont s_body_fonts[BODY_FONT_COUNT];
 static DynamicType s_type;
 static unsigned s_system_text_size;
-static bool s_body_loaded[BODY_FONT_COUNT];
-static const uint32_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_14,
+static const uint8_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_14,
   RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_22,
   RESOURCE_ID_FONT_BODY_24,RESOURCE_ID_FONT_BODY_26,RESOURCE_ID_FONT_BODY_28,RESOURCE_ID_FONT_BODY_32};
 static bool s_pose_ready, s_layout_active, s_slide_active, s_peek_transition;
@@ -1071,7 +1076,7 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
   const char *footer=media?activity_media_footer(card,now,s_phone_connected,
       language->paused,out->support,sizeof(out->support)):activity_identity(card);
   const char *layout_role=out->role,*layout_support=out->support;
-  bool footer_symbol=true;int footer_point=s_type.body;
+  bool footer_symbol=true;int footer_point=media?dynamic_music_artist_point(s_type):s_type.body;
   const bool fold_support=!media&&out->support[0]&&card->main.type!=PAV_TEXT;
   if(!media&&(out->role[0]||fold_support)) {
     char caption[sizeof(out->support)];caption[0]=0;

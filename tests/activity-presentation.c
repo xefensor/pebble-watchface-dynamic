@@ -48,7 +48,7 @@ static void check(ActivityLayout *layout,bool secondary,int top) {
     assert(layout->footer_baseline[i]+m.descent<=216);
     assert(m.width<=layout->footer_width);
   }
-  if((layout->media&&layout->footer_left==46)||(!layout->media&&layout->footer.count))
+  if(layout->media||layout->footer.count)
     if(layout->icon_top<footer_top)footer_top=layout->icon_top;
   assert(bottom==footer_top-(footer_top<216?8:0));
   assert(layout->icon_top+layout->icon_size==216);
@@ -56,7 +56,7 @@ static void check(ActivityLayout *layout,bool secondary,int top) {
 }
 static void build(const char *main,const char *role,const char *support,const char *footer,
     bool media,bool vector,bool scalar,bool secondary,bool image,bool meter,int top,ActivityLayout *layout) {
-  activity_layout_build(main,role,support,footer,media,vector,scalar,secondary,image,meter,true,24,22,top,
+  activity_layout_build(main,role,support,footer,media,vector,scalar,secondary,image,meter,true,media?20:24,22,top,
       measure,vector?clock_measure:measure,NULL,layout);check(layout,secondary,top);
   if(role[0]&&!media&&layout->main.count) {
     const MusicTextMetrics ink=(vector?clock_measure:measure)(NULL,layout->main.text[0],layout->point);
@@ -69,12 +69,12 @@ int main(void) {
   for(unsigned secondary=0;secondary<2;++secondary)for(unsigned artist=0;artist<2;++artist){
     ActivityLayout pending,loaded;
     activity_layout_build("A long song title that wraps across lines","","",artist?"Paused · Artist":"",
-        true,false,false,secondary,false,false,true,24,22,ACTIVITY_CONTENT_TOP,
+        true,false,false,secondary,false,false,true,20,22,ACTIVITY_CONTENT_TOP,
         measure,measure,NULL,&pending);
     activity_layout_build("A long song title that wraps across lines","","",artist?"Paused · Artist":"",
-        true,false,false,secondary,true,false,true,24,22,ACTIVITY_CONTENT_TOP,
+        true,false,false,secondary,true,false,true,20,22,ACTIVITY_CONTENT_TOP,
         measure,measure,NULL,&loaded);
-    assert(pending.icon_size==28&&pending.main.count&&memcmp(&pending,&loaded,sizeof(pending))==0);
+    assert(pending.icon_size==40&&pending.main.count&&memcmp(&pending,&loaded,sizeof(pending))==0);
   }
   ActivityLayout layout,alone;
   char protected[128]="5:12 /km";
@@ -114,12 +114,14 @@ int main(void) {
   build("08:42","Rest","Elapsed 24:18","Evening run",false,true,false,true,false,false,92,&layout);
   assert(layout.role_baseline&&layout.support.count);
   build("Flower In A Hurricane [from the soundtrack]","","","Justice, Tame Impala",true,false,false,true,true,false,92,&layout);
-  assert(layout.media&&layout.point==24&&layout.main.count<=2&&layout.icon_size==28&&layout.footer_left==46);
+  assert(layout.media&&layout.point==24&&layout.main.count<=2&&layout.icon_size==40&&layout.footer_left==58);
+  assert(layout.footer.count==2&&layout.footer.complete&&layout.footer_point==20);
+  assert(!strcmp(layout.footer.text[0],"Justice,")&&!strcmp(layout.footer.text[1],"Tame Impala"));
   assert(!layout.main.complete);
   build("Better Than The Cyberpunk Soundtrack","","","The Midnight",true,false,false,false,true,false,92,&layout);
-  assert(layout.main.count==3&&layout.footer_point==24);
+  assert(layout.main.count==3&&layout.footer_point==20);
   build("Track","","","",true,false,false,false,false,false,92,&layout);
-  assert(!layout.footer.count&&layout.footer_left==46);
+  assert(!layout.footer.count&&layout.footer_left==58);
   build("Petr","","","Messages",false,false,false,true,false,false,92,&alone);
   build("Petr","","I'm downstairs. Ready when you are?","Messages",false,false,false,true,false,false,92,&layout);
   assert(layout.main.count&&layout.support.count&&layout.icon_size==28);

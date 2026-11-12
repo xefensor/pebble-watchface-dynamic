@@ -18,14 +18,16 @@ int main(void) {
     assert((type.date==(int[]){22,26,28}[size]));
     assert((type.body==(int[]){22,24,28}[size]));
     assert((type.secondary==(int[]){20,22,26}[size]));
+    assert((dynamic_music_artist_point(type)==(int[]){16,20,22}[size]));
     assert(body_text_ascent("Čgj",type.date)>0&&body_text_ascent("Čgj",type.body)>0);
     for(unsigned i=0;i<sizeof(values)/sizeof(*values);++i) {
       ActivityLayout layout;
       const MusicTextMetrics secondary=measure(NULL,"Český název",type.secondary);
       const int secondary_height=secondary.ascent+secondary.descent+4>26?secondary.ascent+secondary.descent+4:26;
       activity_layout_build_type(values[i],"","","Artist",true,false,false,true,true,false,true,
-          type.body,type.secondary,106,measure,measure,NULL,&layout,type.body,type.secondary,secondary_height);
+          dynamic_music_artist_point(type),type.secondary,106,measure,measure,NULL,&layout,type.body,type.secondary,secondary_height);
       assert(layout.main.count&&layout.point==type.body&&layout.secondary_height==secondary_height);
+      assert(layout.footer_point==dynamic_music_artist_point(type)&&layout.icon_size==40);
       int bottom=106+(layout.secondary?secondary_height+6:4);
       for(int line=0;line<layout.main.count;++line) {
         const MusicTextMetrics ink=measure(NULL,layout.main.text[line],layout.point);

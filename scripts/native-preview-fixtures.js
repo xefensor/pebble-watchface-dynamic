@@ -21,7 +21,7 @@ function cover() {
 }
 // Exercise the actual production Music adapter, including its optional-field
 // rules. Handwritten clean cards would miss real Track/Artist regressions.
-function musicFromSource(now,session,title,artist,artwork) {
+function musicFromSource(now,session,title,artist,artwork,playing=true) {
   let request;
   const provider='7f635d12-7288-4d10-885d-41ea49f4d5a4';
   const client=library.createContext({musicAsActivity:true,
@@ -30,10 +30,12 @@ function musicFromSource(now,session,title,artist,artwork) {
     later:()=>1,cancelLater(){},send:(_payload,ok)=>ok(),
     getSettings:()=>({showMusic:true,showStatus:false,showNotifications:false})});
   client.refresh(true,session);
-  const properties={title:{shortText:{text:title}},artist:{shortText:{text:artist}},playing:{boolean:{value:true}}};
+  const properties={title:{shortText:{text:title}},artist:{shortText:{text:artist}},playing:{boolean:{value:playing}}};
   if(artwork)properties.artwork={image:{width:artwork.width,height:artwork.height,
     palette:Buffer.from(artwork.palette).toString('base64'),pixels:Buffer.from(artwork.pixels).toString('base64')}};
-  request.onData({pluginUuid:provider,validUntilMs:(now+120)*1000,instances:[{instanceId:'track',properties}]});
+  const envelope=()=>({pluginUuid:provider,validUntilMs:(now+120)*1000,instances:[{instanceId:'track',properties}]});
+  if(!playing){properties.playing.boolean.value=true;request.onData(envelope());properties.playing.boolean.value=false;}
+  request.onData(envelope());
   const card=client.musicActivity();client.stop();
   if(!card)throw Error('Production Music adapter rejected native fixture');
   return card;
@@ -100,7 +102,7 @@ function fixtures(options) {
     const dark=theme==='dark';
     presets.push({name:`${state}-${format}-${theme}`,state,format,theme,fixtureNow:now,
       preserve:state==='music'?
-        [{x:10,y:188,width:28,height:28}]:
+        [{x:10,y:176,width:40,height:40}]:
         state==='timeline'?[{x:0,y:171,width:200,height:57}]:[],
       integers:{BACKGROUND_COLOR:dark?0:0xffffff,TEXT_COLOR:dark?0xffffff:0,
         ACCENT_COLOR:0x55aaff,ANIMATIONS:0,CLOCK_FORMAT:format,SHOW_STATUS:1,
@@ -304,7 +306,7 @@ function musicMotionPresets(options){
     const title=item==='old'?'Old Music Title Ending':'New Music Title Ending';
     const image=loaded?cover():null;
     if(image&&item==='new')image.palette=image.palette.slice().reverse();
-    const card=presentation.project(musicFromSource(now,session,title,item==='old'?'Old Artist Ending':'New Artist Ending',image));
+    const card=presentation.project(musicFromSource(now,session,title,item==='old'?'Old Artist, Old Artist Ending':'New Artist, New Artist Ending',image));
     card.revision=++sequence;
     presets.push({name:item+'-'+(loaded?'ready':'loading')+'-'+theme,state:'music',theme,format:24,fixtureNow:now,
       integers:{BACKGROUND_COLOR:theme==='dark'?0:0xffffff,TEXT_COLOR:theme==='dark'?0xffffff:0,ACCENT_COLOR:0x55aaff,
@@ -314,11 +316,35 @@ function musicMotionPresets(options){
   }
   return {session,now,presets};
 }
-module.exports={musicMotionPresets,fixtures,activityPresets,summaryPresets,musicFromSource,notificationFromSource,complicationReading,complicationPresets};
+function musicLayoutPresets(options){
+  const {now,session}=options;let sequence=options.sequence||20000;
+  const base=fixtures(options),presets=[];
+  const specs=[
+    {name:'single',title:'Little Lies',artist:'Fleetwood Mac'},
+    {name:'pair',title:'Genesis',artist:'Justice, Tame Impala'},
+    {name:'long',title:'A long title that must wrap above the cover and artists',artist:'A remarkably long artist name, Another very long artist name'},
+    {name:'accented',title:'Česká píseň über die Brücke',artist:'Žluťoučký kůň, Die Ärzte'},
+    {name:'absent',title:'The Bug',artist:''},
+    {name:'paused',title:'Run To You (Classic Version)',artist:'Bryan Adams, Tina Turner',playing:false}
+  ];
+  for(const theme of ['light','dark'])for(const secondary of [false,true])for(const spec of specs){
+    const template=base.presets.find(p=>p.name==='idle-24-'+theme);
+    const card=presentation.project(musicFromSource(now,session,spec.title,spec.artist,cover(),spec.playing!==false));
+    const other=presentation.project(library.summary.toView({provider:'50e9ef12-a5ab-4369-a3b5-3447bfba5151',displayName:'Timer',revision:1,
+      observedAt:now,validUntil:now+600,record:{id:'static-secondary',type:'standard',name:'Secondary',icon:'timer',
+        headline:{type:'text',text:'STATIC SECONDARY'}}}));
+    card.revision=++sequence;
+    presets.push({...template,name:spec.name+'-'+(secondary?'secondary-':'alone-')+theme,state:'music',theme,
+      case:spec.name,artist:spec.artist,secondary,preserve:[{x:10,y:176,width:40,height:40}],
+      bytes:{...template.bytes,ACTIVITY_DATA:activity.encode(secondary?[card,other]:[card],{session,revision:sequence,sentAt:now})}});
+  }
+  return {session,now,presets};
+}
+module.exports={musicLayoutPresets,musicMotionPresets,fixtures,activityPresets,summaryPresets,musicFromSource,notificationFromSource,complicationReading,complicationPresets};
 if(require.main===module) {
   let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',value=>input+=value);
   process.stdin.on('end',()=>{
     const options=JSON.parse(input);
-    process.stdout.write(JSON.stringify(options.mode==='music-motion'?musicMotionPresets(options):options.mode==='complications'?complicationPresets(options):options.mode==='activities'||options.mode==='summary'?summaryPresets(options):fixtures(options)));
+    process.stdout.write(JSON.stringify(options.mode==='music-layout'?musicLayoutPresets(options):options.mode==='music-motion'?musicMotionPresets(options):options.mode==='complications'?complicationPresets(options):options.mode==='activities'||options.mode==='summary'?summaryPresets(options):fixtures(options)));
   });
 }
