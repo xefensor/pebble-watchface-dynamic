@@ -50,18 +50,18 @@ ACTIVITY_MODULES = {
 }
 UI_MODULES = {"settings-style.js"}
 ACTIVITY_RELEASE = {
-    "version": "0.4.4",
-    "sourceCommit": "df4f30f4a66419ce835959eeeec6de7999704fa0",
-    "archiveSha256": "dffec3e05041515fbf9385a641adf6b40aedda7e8460c0d11ecb4ed019cd5abe",
+    "version": "0.4.5",
+    "sourceCommit": "b7900bc4c9a2df044ceec314af899821792ef7d6",
+    "archiveSha256": "ac1381659a573e52c60176bef0be96635eb6d4ecb9882bbb1d1d7a3f1732844e",
 }
-PROCESS_INFO_BYTES = 130
-PROCESS_INFO_SIZE_LIMIT = 0xffff
+PROCESS_INFO_BYTES = 132
+PROCESS_INFO_SIZE_LIMIT = 0x1ffff
 EMERY_BINARY_SIZE_LIMIT = 0x20000
-SDK_PBW_FILES = {
-    "appinfo.json", "pebble-js-app.js", "pebble-js-app.js.map",
-    "emery/pebble-app.bin", "emery/app_resources.pbpack", "emery/manifest.json",
-}
-PBW_FILES = (SDK_PBW_FILES - {"pebble-js-app.js.map"}) | set(LICENSE_FILES) | {"plugin.js", "config.html"}
+SDK_PBW_FILES = {"appinfo.json", "pebble-js-app.js", "pebble-js-app.js.map", "plugin.js", "config.html"} | {
+    platform + "/" + name for platform in json.loads((ROOT / "package.json").read_text())["pebble"]["targetPlatforms"]
+    for name in ("pebble-app.bin", "app_resources.pbpack", "manifest.json")}
+PBW_FILES = (SDK_PBW_FILES - {"pebble-js-app.js.map"}) | set(LICENSE_FILES)
+
 LEGACY_ENDPOINTS = (
     "api.open-meteo.com", "api.openweathermap.org", "forecast.weather.gov",
 )
@@ -155,9 +155,9 @@ def read_elf_sections(elf):
 
 
 def audit_native_sizes(binary, elf):
-    """Check uint16 loaded/static sizes separately from Emery's file limit.
+    """Check wide loaded/static sizes separately from Emery's file limit.
 
-    SDK 4.33.1 stores 32-bit relocation entries after load_size; these bytes
+    SDK 4.44 stores 32-bit relocation entries after load_size; these bytes
     count towards the 128 KiB file limit, not the loaded image or static extent.
     ELF extents independently detect overflow instead of trusting uint16 fields.
     """
@@ -173,11 +173,11 @@ def audit_native_sizes(binary, elf):
     load_size = max(section["address"] + section["size"] for section in loaded)
     virtual_size = max(section["address"] + section["size"] for section in allocated)
     require(load_size <= PROCESS_INFO_SIZE_LIMIT,
-            "Native loaded image exceeds the SDK's 65,535-byte process-info limit")
+            "Native loaded image exceeds the SDK's 131,071-byte process-info limit")
     require(virtual_size <= PROCESS_INFO_SIZE_LIMIT,
-            "Native virtual size exceeds the SDK's 65,535-byte process-info limit")
-    require(struct.unpack_from("<H", binary, 14)[0] == load_size and
-            struct.unpack_from("<H", binary, 128)[0] == virtual_size,
+            "Native virtual size exceeds the SDK's 131,071-byte process-info limit")
+    require((struct.unpack_from("<H", binary, 14)[0] | binary[130] << 16) == load_size and
+            (struct.unpack_from("<H", binary, 128)[0] | binary[131] << 16) == virtual_size,
             "Native process-info sizes differ from the linked ELF")
     require(len(binary) <= EMERY_BINARY_SIZE_LIMIT,
             "Complete native binary exceeds Emery's 128 KiB SDK limit")
@@ -356,7 +356,7 @@ def source_matches(mapped, source, label):
 
 def audit_sdk_additions(root, source_map):
     record = json.loads((root / "licenses/sdk-bundled-provenance.json").read_text())
-    require(record["sdkVersion"] == "4.33.1" and
+    require(record["sdkVersion"] == "4.44" and
             record["sourceMapSource"] == "_pkjs_shared_additions.js",
             "Review SDK-injected JavaScript provenance for this SDK")
     matches = [content for name, content in zip(source_map["sources"], source_map["sourcesContent"])
@@ -447,7 +447,7 @@ def audit_body_fonts(root, media, resources, sources, binary):
     provenance = json.loads((root / "resources/fonts/font-provenance.json").read_text())
     require(provenance.get("schemaVersion") == 1, "Review the changed font provenance schema")
     expected_definitions = provenance["bodyResources"]["definitions"]
-    canonical = lambda item: {**item, "targetPlatforms": item.get("targetPlatforms", ["emery"])}
+    canonical = lambda item: {key:value for key,value in item.items() if key != "targetPlatforms"}
     require(list(map(canonical, media)) == list(map(canonical, expected_definitions)),
             "Manifest fonts differ from reviewed source definitions")
     source_record = provenance["bodyFont"]
@@ -461,7 +461,7 @@ def audit_body_fonts(root, media, resources, sources, binary):
     records = []
     source_files = set()
     for item, size in zip(media, sizes):
-        require(item.get("targetPlatforms", ["emery"]) == ["emery"],
+        require(item.get("targetPlatforms", ["emery"]) == ["emery", "gabbro"],
                 "A body font unexpectedly targets another platform")
         relative = item["file"]
         require(safe_name(relative) and relative.startswith("fonts/") and
@@ -751,7 +751,7 @@ def read_dependency(root, specification, active_modules):
             require(sdk_files[exported] == content,
                     "Source and exported SDK header differ: " + label + "/" + name)
     require({name for name in sdk_files if name.startswith("binaries/")} ==
-            {"binaries/emery/lib" + label + ".a"},
+            {"binaries/" + platform + "/lib" + label + ".a" for platform in pin["platforms"]},
             "Unexpected SDK binary inventory: " + label)
     sources = {}
     for name in active_modules:
@@ -798,10 +798,10 @@ def same_renderer_with_sdk_metadata(root, content, reference):
             'SDK build ID differs from the linked ELF or frozen note layout')
     normalized = []
     for binary in (content, reference):
-        load_size = struct.unpack_from('<H', binary, 14)[0]
+        load_size = struct.unpack_from('<H', binary, 14)[0] | binary[130] << 16
         require(address + 36 <= load_size <= len(binary) and
                 struct.unpack_from('<I', binary, 20)[0] ==
-                sdk_app_crc(binary[PROCESS_INFO_BYTES:load_size]), 'Invalid SDK native CRC')
+                sdk_app_crc(binary[130:load_size]), 'Invalid SDK native CRC')
         value = bytearray(binary)
         value[20:24] = b'\0' * 4
         value[124:128] = b'\0' * 4
@@ -818,6 +818,15 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
     preview = json.loads(exported.group(1))
     require(preview["version"] == version and len(preview["frames"]) == 24,
             "Native preview assets belong to a different release")
+    captured_renderer=preview['source'].get('nativeRendererIdentity')
+    if captured_renderer and allow_sdk_build_id:
+        from native_identity import renderer_identity
+        require(captured_renderer==renderer_identity(binary,resources),'Native preview executable/resources differ beyond SDK metadata')
+        exact=all(preview['source']['nativePayloadSha256'][name]==sha256(data) for name,data in
+            (('emery/pebble-app.bin',binary),('emery/app_resources.pbpack',resources)))
+        return {'samples':24,'nativeBinaryAndResourcesMatch':exact,
+            'rendererMatchesExceptSdkResourceTimestamp':False,
+            'rendererMatchesExceptSdkBuildMetadata':not exact,'freshCaptureClaimed':False}
     timestamp_only = False
     build_metadata_only = False
     for name, content in (("emery/pebble-app.bin", binary),
@@ -869,13 +878,15 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
 def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow_sdk_build_id=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
-    require(package["version"] == "0.18.3", "Review this auditor for a different release version")
+    require(package["version"] == "0.19.0", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
-    require(settings["targetPlatforms"] == ["emery"] and
-            settings["usesPermissions"] == ["ReadMusic"],
+    require(settings["targetPlatforms"] == ["emery", "gabbro"] and
+            [p["name"] for p in settings["usesPermissions"]] == ["ReadMusic", "Notifications", "Location", "ReadWatchSettings"] and
+            all(p["reason"] and p["required"] is False for p in settings["usesPermissions"]),
             "Unexpected platform or permission change")
-    media = settings["resources"].get("media", [])
+    media_all = settings["resources"].get("media", [])
+    media = [m for m in media_all if "emery" in m.get("targetPlatforms",settings["targetPlatforms"])]
     require(media and all(item.get("type") == "font" for item in media),
             "Only the declared custom body fonts are expected")
     require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT"),
@@ -914,14 +925,14 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
         expected["configPage"] = "config.html"
         require(info == expected, "Permission packaging changed unexpected app metadata")
         require(info["uuid"] == APP_UUID and info["versionLabel"] == package["version"] and
-                info["targetPlatforms"] == ["emery"] and
+                info["targetPlatforms"] == settings["targetPlatforms"] and
                 info["watchapp"] == {"watchface": True} and
-                info["usesPermissions"] == ["ReadMusic"], "Packaged metadata mismatch")
+                info["usesPermissions"] == settings["usesPermissions"], "Packaged metadata mismatch")
         require(info["appKeys"] == info["messageKeys"] == keys,
                 "Packaged AppMessage key mapping differs")
         packed_media = info.get("resources", {}).get("media", [])
-        require(len(packed_media) == len(media), "Packaged resource declarations differ")
-        for source, packed in zip(media, packed_media):
+        require(len(packed_media) == len(media_all), "Packaged resource declarations differ")
+        for source, packed in zip(media_all, packed_media):
             expected_resource = dict(source)
             expected_resource.setdefault("targetPlatforms", ["emery"])
             actual_resource = dict(packed)
@@ -1016,6 +1027,10 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
             "Body font resource loading or lifetime cleanup is missing")
     require(not any(value in sources for value in ("FIRA_SANS", "FONT_KEY_LECO")),
             "The old Fira/LECO presentation is still referenced")
+    from platform_audit import audit_platforms
+    from native_assets_audit import audit_assets
+    platform_report=audit_platforms(root,pbw)
+    asset_report=audit_assets(root,pbw)
     body_fonts = audit_body_fonts(root, media, resource_entries, sources, binary)
     body_metrics = audit_body_metrics(root, resource_entries, binary, sources)
     clock_outlines = audit_clock_outlines(root, binary, sources)
@@ -1030,7 +1045,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
                                 sdk_font_header.read_text(encoding="utf-8")))
         require(set(font_keys) <= catalog, "A font key is absent from the selected SDK catalog")
     return {
-        "result": "PASS", "version": package["version"], "uuid": APP_UUID,
+        "result": "PASS", "platformAudit": platform_report, "nativeAssetAudit": asset_report, "version": package["version"], "uuid": APP_UUID,
         "platform": "emery", "messageKeys": len(keys), "legacyKeysPreserved": True,
         "messageKeyCounts": {"package": len(keys), "generatedC": len(native_keys),
                              "generatedJavaScript": len(generated),

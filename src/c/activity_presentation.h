@@ -121,11 +121,16 @@ layout_again:
       footer_height+4>28?footer_height+4:28):out->icon_size;
   int icon_offset=footer_box-out->icon_size,text_offset=footer_box-footer_height;
   if(!media){icon_offset/=2;text_offset/=2;}
-  out->icon_top=MUSIC_BOTTOM-footer_box+icon_offset;
+  int footer_bottom=MUSIC_BOTTOM;
+#ifdef PBL_ROUND
+  /* Keep all four corners of the 40px music cover inside the circular screen. */
+  if(media)footer_bottom-=10;
+#endif
+  out->icon_top=footer_bottom-footer_box+icon_offset;
   for(int i=0;i<out->footer.count;++i)
-    out->footer_baseline[i]+=MUSIC_BOTTOM-footer_box+text_offset;
-  const int footer_top=MUSIC_BOTTOM-footer_box;
-  const int limit=footer_top-(footer_top<MUSIC_BOTTOM?8:0);
+    out->footer_baseline[i]+=footer_bottom-footer_box+text_offset;
+  const int footer_top=footer_bottom-footer_box;
+  const int limit=footer_top-(footer_top<footer_bottom?8:0);
   if(content_top>=limit){if(secondary){secondary=false;goto layout_again;}return;}
   if(media) {
     out->point=body_point;

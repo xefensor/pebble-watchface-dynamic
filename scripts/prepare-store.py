@@ -12,6 +12,9 @@ from release_licenses import license_payloads
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if json.loads((ROOT / 'package.json').read_text())['version'] != '0.16.0':
+    raise SystemExit('Historical 0.16.0 preparer; use npm run store:prepare and npm run store:check for the current kit.')
+
 SCREENSHOTS = {
     "emery_idle.png": "normal.png",
     "emery_music.png": "music.png",

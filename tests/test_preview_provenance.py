@@ -38,6 +38,7 @@ class PreviewProvenanceTests(unittest.TestCase):
     def test_checkout_build_id_drift_preserves_code_resources_and_native_crc(self):
         reference = bytearray(range(200))
         struct.pack_into('<H', reference, 14, len(reference))
+        reference[130:132]=b'\0\0'
         signature = struct.pack('<III', 4, 20, 3) + b'GNU\0'
         reference[132:168] = signature + b'A' * 20
         struct.pack_into('<I', reference, 20, audit.sdk_app_crc(reference[130:]))
@@ -49,9 +50,9 @@ class PreviewProvenanceTests(unittest.TestCase):
             root = Path(directory)
             elf_path = root / 'build/emery/pebble-app.elf'
             elf_path.parent.mkdir(parents=True)
-            elf_path.write_bytes(b'ELF fixture' + rebuilt[130:168])
-            note = {'.note.gnu.build-id': {'type': 7, 'flags': 2, 'size': 38,
-                    'address': 130, 'offset': len(b'ELF fixture')}}
+            elf_path.write_bytes(b'ELF fixture' + rebuilt[132:168])
+            note = {'.note.gnu.build-id': {'type': 7, 'flags': 2, 'size': 36,
+                    'address': 132, 'offset': len(b'ELF fixture')}}
             with patch.object(audit, 'read_elf_sections', return_value=note):
                 audit.same_renderer_with_sdk_metadata(root, rebuilt, reference)
                 corrupted = bytearray(rebuilt)

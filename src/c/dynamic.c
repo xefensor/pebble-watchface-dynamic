@@ -58,6 +58,9 @@ typedef struct {
 
 static Window *s_window;
 static Layer *s_window_layer, *s_background_layer, *s_context_layer;
+#ifdef PBL_ROUND
+static Layer *s_face_container;
+#endif
 static GColor s_background_color, s_text_color, s_accent_color;
 static GColor s_day_colors[3],s_night_colors[3];
 static bool s_night_enabled;
@@ -67,9 +70,9 @@ static bool s_use_12_hour,s_app_focused=true;
 static uint8_t s_clock_format;
 static bool s_show_status, s_animations_enabled;
 static BatteryChargeState s_battery;
-// Allocate this bounded block once. Keeping the shared engine, transient
-// snapshots and raster scratch off BSS leaves the app's load image below the
-// SDK's16-bit virtual-size limit without adding any per-frame allocation.
+// Allocate the shared engine, transient snapshots and raster scratch once.
+// Keeping this bounded block off BSS avoids per-frame allocations and gives
+// every owned resource one lifetime with explicit cleanup.
 typedef struct {
   GFont body_fonts[BODY_METRIC_POINT_COUNT];
   bool body_loaded[BODY_METRIC_POINT_COUNT];
@@ -1637,6 +1640,13 @@ static void prv_outbox_sent(DictionaryIterator *iterator, void *context) {
 static void prv_window_load(Window *window) {
   window_set_background_color(window,s_background_color);
   s_window_layer=window_get_root_layer(window);
+#ifdef PBL_ROUND
+  Layer *root=s_window_layer;
+  const GRect screen=layer_get_bounds(root);
+  s_face_container=layer_create(GRect((screen.size.w-200)/2,(screen.size.h-FULL_LAYOUT_HEIGHT)/2,200,FULL_LAYOUT_HEIGHT));
+  layer_add_child(root,s_face_container);
+  s_window_layer=s_face_container;
+#endif
   const GRect bounds=layer_get_bounds(s_window_layer);
   for(size_t i=0;i<BODY_FONT_COUNT;++i) {
     s_body_fonts[i]=fonts_load_custom_font(resource_get_handle(s_body_resources[i]));
@@ -1659,11 +1669,16 @@ static void prv_window_unload(Window *window) {
   (void)window;unobstructed_area_service_unsubscribe();prv_cancel_motion();prv_private_clear();
   layer_destroy(s_context_layer);layer_destroy(s_background_layer);
   s_context_layer=NULL;s_background_layer=NULL;s_window_layer=NULL;
+#ifdef PBL_ROUND
+  layer_destroy(s_face_container);s_face_container=NULL;
+#endif
   for(size_t i=0;i<BODY_FONT_COUNT;++i) {
     if(s_body_loaded[i])fonts_unload_custom_font(s_body_fonts[i]);
     s_body_fonts[i]=NULL;s_body_loaded[i]=false;
   }
 }
+/* Keep initialization scratch off the event-loop stack. */
+__attribute__((noinline))
 static bool prv_init(void) {
   const unsigned preferred=preferred_content_size();s_system_text_size=preferred;
   s_type=dynamic_type(xoce_ui_effective_text_size(0,preferred));

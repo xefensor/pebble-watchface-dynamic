@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.0
+
+Time 2 and Round 2 SDK 4.44 candidate; shared numeric fitting, saved text-size application, paired music transitions and stable loading-art geometry. Duo is deferred. Physical Time 2 and Android checks remain pending.
+
 ## 0.18.3
 
 - Adopt shared XOCE type roles, icons and phone settings styling while retaining the Fredoka clock and values.

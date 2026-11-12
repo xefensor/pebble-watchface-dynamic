@@ -1,19 +1,9 @@
-Dynamic keeps the time and your two Pebble readings visible while making room for compatible activities, music and notifications.
+An animated clock with two Pebble readings and compatible activities.
 
-The large rounded clock settles into a compact header when an activity is showing. Primary content groups at the bottom above its context footer, leaving spare space above shorter content. An optional secondary activity occupies exactly one static row above it, with a small identifying symbol when available. Timer uses an hourglass and a countdown. Music has its own title, artwork and artist composition.
+See your chosen readings together, with matching numeric sizes that keep complete values and units. Compatible activities can show a primary item and an optional secondary summary. Music shows track, artist and available artwork; a loading symbol keeps the artwork position stable. Notifications are optional.
 
-Compatible activity plugins publish standard or media summaries. Content can contain text, values or independent clocks; plugins supply meaning and Dynamic chooses the layout. Any activity can occupy either role. The primary expands when there is no secondary. Text starts at its beginning, truncates to the available space and never scrolls or automatically pages.
+Choose Small, Medium, Large or Follow Pebble text, your clock format and palettes. Track changes slide the old item out as the new item enters. The face responds to Timeline Peek.
 
-Reorder or show/hide activity apps in Dynamic’s settings. Music and Notifications follow the same order as compatible plugins and can take either role. Notifications starts first when no position has been saved; your explicit order wins. These choices belong to Dynamic, so other apps retain their own priorities.
+Requires the current Pebble mobile app with Plugins / permissions preview enabled and the permissions of your selected sources. Music and notification integration require Android. Providers control availability, units and original expiry. No developer weather server, account, advertisements or analytics.
 
-Each item keeps its original expiry, and unavailable private content clears. Timer's public snapshot can predict its countdown only through its original validity; the timer watchapp owns state and alarms. A countdown reaching zero does not certify an alarm. Other saved sources that need a trust annotation are omitted. Dynamic displays activity information without plugin action controls.
-
-The separate Open Activity helper can open an app associated with Dynamic's recently displayed primary or secondary activity. Dynamic retains only bounded destination metadata for this shortcut. The helper requires the phone connection and plugin support, and closes when the selected destination is unavailable. It can be launched from any watchface; it does not prove which face was immediately before it.
-
-Choose your background, text and accent colours, share a colour code, or use a separate palette during the watch's Quiet Time. Follow Pebble's time format or choose 12-hour or 24-hour time. Settings support 17 languages and phone light/dark appearances. Section shortcuts reach Appearance, Content & priority and Connection & help. The activity list is the single place to show or hide Music and Notifications, and hiding Notifications preserves its privacy choice.
-
-The optional Notifications activity can show only the app, an app/sender summary, or message text. It uses the same primary or one-row secondary layout in every privacy mode and defaults to Off. Its original eight-second window can be shortened by source expiry and does not extend on updates. Optional additional vibration also defaults to Off; these features do not replace PebbleOS notifications. Native Timeline Peek keeps priority over the face's content.
-
-Dynamic targets Pebble Time 2. Live readings use Pebble's plugin system; Android is required for music and notification integration. The clock and date continue without the phone. Use Pebble's Music app for playback controls.
-
-Version 0.16.0 is prepared locally for sideload testing with the plugin preview. Public store submission remains on hold.
+Free. For Pebble Time 2 and Round 2. Round 2 validation uses the emulator; physical Time 2 and Android checks are pending before publication.

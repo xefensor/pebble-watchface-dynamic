@@ -46,6 +46,7 @@ class PinnedDependenciesTests(unittest.TestCase):
         sdk = {"js/index.js": b"stale" if stale_sdk else source,
                "include/" + name + "/fixture.h": b"stale header" if stale_header else header,
                "binaries/emery/lib" + name + ".a": b"fixture library"}
+        sdk.update({"binaries/"+p+"/lib"+name+".a":b"fixture library" for p in ("gabbro",)})
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w") as archive:
             for path, data in sdk.items():
@@ -72,7 +73,7 @@ class PinnedDependenciesTests(unittest.TestCase):
         pin = {"package": name, "version": version, "artifact": artifact,
                "repository": repositories[name],
                "source_commit": "a" * 40, "sha256": hashlib.sha256(raw).hexdigest(),
-               "integrity": integrity, "sdk": "4.33.1", "platforms": ["emery"]}
+               "integrity": integrity, "sdk": "4.44", "platforms": ["emery", "gabbro"]}
         self.write_json("vendor/" + metadata_file, pin)
         reference = "file:vendor/" + artifact
         self.package["dependencies"][name] = reference
@@ -163,17 +164,28 @@ class PinnedDependenciesTests(unittest.TestCase):
 #define BODY_METRIC_ASCENT_ROW_COUNT 2
 #define BODY_METRIC_WILDCARD_INDEX 3
 #define BODY_FONT_SOURCE_SHA256 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-static const uint8_t body_metric_points[BODY_METRIC_POINT_COUNT] = {11,14,16,20,22,24,26,32};
+static const uint8_t body_metric_points[BODY_METRIC_POINT_COUNT] = {14,16,20,22,24,26,28,32};
 static const uint16_t body_metric_codepoints[BODY_METRIC_COUNT] = {0x0020,0x0021,0x0022,0x25af};
 static const uint8_t body_metric_descent_index[BODY_METRIC_COUNT] = {0,1,0,1};
 static const uint8_t body_metric_ascent_index[BODY_METRIC_COUNT] = {1,0,1,0};
 static const int8_t body_metric_descent_rows[BODY_METRIC_DESCENT_ROW_COUNT][BODY_METRIC_POINT_COUNT] = {{0,0,0,0,0,0,0,0},{1,1,1,1,1,1,1,1}};
 static const int8_t body_metric_ascent_rows[BODY_METRIC_ASCENT_ROW_COUNT][BODY_METRIC_POINT_COUNT] = {{3,3,3,3,3,3,3,3},{4,4,4,4,4,4,4,4}};
+static const uint16_t body_metric_ranges[BODY_METRIC_RANGE_COUNT][3] = {{32,34,0},{9647,9647,3}};
 static inline size_t body_metric_index(uint32_t codepoint) {
+  size_t low=0,high=2;
+  while(low<high) {
+    const size_t middle=(low+high)/2;
+    if (body_metric_ranges[middle][1] < codepoint) low=middle+1;else high=middle;
+  }
+  if(low<2 && body_metric_ranges[low][0] <= codepoint)
+    return body_metric_ranges[low][2] + codepoint - body_metric_ranges[low][0];
   return BODY_METRIC_WILDCARD_INDEX;
 }
-descent = body_metric_descent_rows[body_metric_descent_index[body_metric_index(codepoint)]][column];
-ascent = body_metric_ascent_rows[body_metric_ascent_index[body_metric_index(codepoint)]][column];
+descent = body_metric_descent_rows[body_metric_descent_index[index]][column];
+ascent = body_metric_ascent_rows[body_metric_ascent_index[index]][column];
+const size_t index = body_metric_index(body_metric_next_codepoint(&cursor));
+return body_text_metric(utf8,point,0);
+return body_text_metric(utf8,point,1);
 '''
         (self.root / "src/c").mkdir(parents=True, exist_ok=True)
         (self.root / "resources/fonts").mkdir(parents=True, exist_ok=True)
@@ -183,7 +195,7 @@ ascent = body_metric_ascent_rows[body_metric_ascent_index[body_metric_index(code
                 "header": "src/c/generated_body_metrics.h", "sha256": hashlib.sha256(header.encode()).hexdigest(),
                 "fontSha256": "a" * 64, "pointSizes": list(audit.BODY_SIZES),
                 "metricCodepointCountIncludingWildcard": 4, "fontCodepointCount": 3}})
-        binary = b"\x7f".join((b"\x20\x00\x21\x00\x22\x00\xaf\x25", b"\x00\x01\x00\x01", b"\x00" * 8 + b"\x01" * 8,
+        binary = b"\x7f".join((struct.pack("<6H",32,34,0,9647,9647,3), b"\x00\x01\x00\x01", b"\x00" * 8 + b"\x01" * 8,
                                   b"\x01\x00\x01\x00", b"\x03" * 8 + b"\x04" * 8))
         resources = {index + 1: {"data": bytes([size])} for index, size in enumerate(audit.BODY_SIZES)}
 
@@ -221,7 +233,7 @@ ascent = body_metric_ascent_rows[body_metric_ascent_index[body_metric_index(code
         source = '/** Copyright 2024 Google LLC\nLicensed under the Apache License, Version 2.0 */\n(function(){})();\n'
         (self.root / "licenses").mkdir(exist_ok=True)
         self.write_json("licenses/sdk-bundled-provenance.json", {
-            "sdkVersion": "4.33.1", "sourceMapSource": "_pkjs_shared_additions.js",
+            "sdkVersion": "4.44", "sourceMapSource": "_pkjs_shared_additions.js",
             "sourceBytes": len(source.encode()), "sourceSha256": hashlib.sha256(source.encode()).hexdigest(),
             "copyright": "Copyright 2024 Google LLC", "licenseFile": "licenses/Apache-2.0.txt",
             "licenseSha256": "a" * 64})
@@ -308,6 +320,7 @@ class NativeSizeTests(unittest.TestCase):
         struct.pack_into("<H", binary, 14, load_size & 0xffff)
         struct.pack_into("<I", binary, 100, relocations)
         struct.pack_into("<H", binary, 128, virtual_size & 0xffff)
+        binary[130]=load_size>>16;binary[131]=virtual_size>>16
         names = b"\x00.header\x00.text\x00.bss\x00.shstrtab\x00"
         payload_offset = 52
         names_offset = payload_offset + load_size
@@ -320,8 +333,8 @@ class NativeSizeTests(unittest.TestCase):
         elf[names_offset:directory_offset] = names
         sections = [
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            (1, 1, 2, 0, payload_offset, 130, 0, 0, 1, 0),
-            (9, 1, 6, 130, payload_offset + 130, load_size - 130, 0, 0, 1, 0),
+            (1, 1, 2, 0, payload_offset, 132, 0, 0, 1, 0),
+            (9, 1, 6, 132, payload_offset + 132, load_size - 132, 0, 0, 1, 0),
             (15, 8, 3, load_size, names_offset, virtual_size - load_size, 0, 0, 1, 0),
             (20, 3, 0, 0, names_offset, len(names), 0, 0, 1, 0),
         ]
@@ -336,16 +349,16 @@ class NativeSizeTests(unittest.TestCase):
         self.assertEqual(result["loadedBytes"], 65532)
         self.assertEqual(result["virtualBytes"], 65535)
         self.assertEqual(result["relocationBytes"], 4)
-        self.assertEqual(result["virtualHeadroomBytes"], 0)
+        self.assertEqual(result["virtualHeadroomBytes"], 65536)
 
-    def test_exact_uint16_and_emery_file_limits_are_inclusive(self):
-        binary, elf = self.fixture(load_size=65535, virtual_size=65535)
+    def test_wide_header_and_emery_file_limits_are_inclusive(self):
+        binary, elf = self.fixture(load_size=131071, virtual_size=131071,relocations=0)
         self.assertEqual(audit.audit_native_sizes(binary, elf)["loadedHeadroomBytes"], 0)
         binary, elf = self.fixture(relocations=16385)
         self.assertEqual(audit.audit_native_sizes(binary, elf)["fileBytes"], 131072)
 
     def test_elf_extents_detect_load_and_virtual_overflow_despite_wrapped_header(self):
-        cases = ((65536, 65536, "loaded image"), (65532, 65536, "virtual size"))
+        cases = ((131072, 131072, "loaded image"), (65532, 131072, "virtual size"))
         for load_size, virtual_size, message in cases:
             with self.subTest(load_size=load_size, virtual_size=virtual_size):
                 binary, elf = self.fixture(load_size=load_size, virtual_size=virtual_size)

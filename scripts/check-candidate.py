@@ -7,3 +7,6 @@ root=Path(__file__).resolve().parents[1]
 pbw=candidate(root,'Dynamic')
 check_build(root,pbw)
 subprocess.run(['python3',str(root/'scripts/check-native-style.py'),'--pbw',str(pbw),'--allow-sdk-timestamp','--allow-sdk-build-id'],cwd=root,check=True)
+
+from platform_audit import audit_platforms
+print(audit_platforms(root,pbw))

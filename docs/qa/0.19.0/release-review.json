@@ -1,0 +1,37 @@
+{
+  "product": "Dynamic",
+  "version": "0.19.0",
+  "pbwSha256": "00ac21ebb53f7f81fb0be086202061134d082d2dc3963530eda59e4a9b043d1c",
+  "targets": [
+    "emery",
+    "gabbro"
+  ],
+  "automated": [
+    "npm test PASS (pinned Node/Python)",
+    "Current configuration generation PASS",
+    "Exact candidate SDK/ELF/PBW audits PASS",
+    "Store prepare/check PASS",
+    "npm audit: zero known vulnerabilities"
+  ],
+  "emulatorAndLiveScope": "504 raw reading-matrix frames across both models, with normalized native code/resources proof to this PBW. Negative/decimal/long/100% values, reversed/single/bitmap/unavailable slots, all sizes, activity and Peek are covered. Packaged plugin/PKJS bridge verifies immediate Small/Medium/Large saves and persistence against conflicting OS size. Loading-art changes only its reserved region; observed intermediate frames exactly match simultaneous outgoing and incoming slides on both models. Large and Peek media geometry also pass. Twenty-four phone preview presets were refreshed from native Emery captures.",
+  "physicalWatchTested": false,
+  "physicalPhoneTested": false,
+  "remoteCiRun": false,
+  "published": false,
+  "remainingPublicationGates": [
+    "Physical Time 2 and current Android Pebble app checks (Round 2 is emulator-only)",
+    "Verify Developer Dashboard listing ownership, UUID and unused version",
+    "Publish and verify proposed privacy/support URLs",
+    "Explicit final publication approval"
+  ],
+  "renderer": {
+    "emery": {
+      "nativeRendererSha256": "e7b273b8ebb856bb15ae5ea1c0645020c334e932955944e4077ebb136599245f",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    },
+    "gabbro": {
+      "nativeRendererSha256": "c6d59b4d8575326fda4463b2ad92813ea8e14b68d6d157782eef40071abec465",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    }
+  }
+}

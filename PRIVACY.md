@@ -17,9 +17,12 @@ has no analytics, advertising, account service or separate weather server.
   follows the same primary/secondary order as other activities.
 - Phone battery and connection state support the optional status indicators.
 
-Music requires Pebble's `ReadMusic` permission. Notification sources require
-notification access; location-based readings may require location access.
-Pebble controls those permissions and the selected providers.
+The package declares optional `ReadMusic`, `Notifications`, `Location` and
+`ReadWatchSettings` permissions. They support music, notifications,
+location-dependent readings and watch display/unit preferences respectively.
+Pebble controls those permissions and the selected providers. Music and
+notification readings and private descriptor labels stay transient and are
+excluded from persistent reading caches.
 
 ## Storage and display choices
 

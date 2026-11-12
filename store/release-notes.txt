@@ -1,5 +1,5 @@
-Dynamic 0.17.0 is a local, unpublished shared UI candidate.
+Dynamic 0.19.0
 
-Phone settings use neutral light/dark surfaces with a blue accent. The bundled configuration stays open after Save and confirms exact phone persistence with a persistent Saved indicator. Discard restores the confirmed draft locally. Existing custom colours, privacy choices and activity priority survive save, reopen and runtime restart. The legacy close-URL settings fallback still closes on Save.
+SDK 4.44 builds for Time 2 and Round 2. Keeps the existing identity, saved settings, provider protocols, expiry rules and typography. Both numeric readings share a measured size; phone text-size choices apply immediately and survive reopening. Music retains its artwork position while loading. Track replacement slides the outgoing and incoming items together. Round 2 keeps the complete 40px cover inside the display.
 
-The native watchface layout and activity contracts are unchanged. Validated with portable tests, exact packaged browser workflows and native Emery previews using sample data. Physical watch and real phone verification remain separate. Public appstore submission remains held for the Pebble plugin preview.
+Prepared locally; not published. Real-device checks and final approval remain required.

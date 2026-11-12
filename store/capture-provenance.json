@@ -1,0 +1,78 @@
+{
+  "version": "0.19.0",
+  "nativePixelsModified": false,
+  "scope": "Raw native emulator screenshots, synthetic sample data; no phone/provider or physical-device claim. SDK timestamp/build-ID differences alone are normalized, with independent exact native package audits.",
+  "candidateSha256": "00ac21ebb53f7f81fb0be086202061134d082d2dc3963530eda59e4a9b043d1c",
+  "renderer": {
+    "emery": {
+      "nativeRendererSha256": "e7b273b8ebb856bb15ae5ea1c0645020c334e932955944e4077ebb136599245f",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    },
+    "gabbro": {
+      "nativeRendererSha256": "c6d59b4d8575326fda4463b2ad92813ea8e14b68d6d157782eef40071abec465",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    }
+  },
+  "screenshots": {
+    "emery-idle.png": {
+      "platform": "emery",
+      "sha256": "32668b3ececc700667836a6e87fe1318480f52d0c1bde652d4ec06f0ce44a49e",
+      "source": "recovery-validation/release-qa/dynamic/emery-previews/1794501461007476345/idle-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "emery-music.png": {
+      "platform": "emery",
+      "sha256": "6080def9e195bef71b5d662d781a48259f57fad1c7e9e77f69ccadf93cd7fbd1",
+      "source": "recovery-validation/release-qa/dynamic/emery-previews/1794501461007476345/music-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "emery-notification.png": {
+      "platform": "emery",
+      "sha256": "30ac3946eb27ef3070e3c54ef8feb6655b1792ee4777b469b8241a6e4241e842",
+      "source": "recovery-validation/release-qa/dynamic/emery-previews/1794501461007476345/notification-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "emery-dark.png": {
+      "platform": "emery",
+      "sha256": "372763135f5069079a0d15883cc78b9d6002c6fd2ea147e290d0d18f94111800",
+      "source": "recovery-validation/release-qa/dynamic/emery-previews/1794501461007476345/idle-24-dark.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "emery-peek.png": {
+      "platform": "emery",
+      "sha256": "91350687c3d679398445eabd7fa29635f07f05bfdbcd1b0ed59a44177b9b97e0",
+      "source": "recovery-validation/release-qa/dynamic/emery-previews/1794501461007476345/timeline-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "gabbro-idle.png": {
+      "platform": "gabbro",
+      "sha256": "2c166a9c8e832bb79955fef7dd2f62b6c5cec10779593c544b668e8c329b821c",
+      "source": "recovery-validation/release-qa/dynamic/gabbro/1794516475875272701/idle-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "gabbro-music.png": {
+      "platform": "gabbro",
+      "sha256": "f502b7322206a4b10cda150fc15780f9c3497857dcd43a74a7e7169e30c92cfd",
+      "source": "recovery-validation/release-qa/dynamic/gabbro/1794516475875272701/music-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "gabbro-notification.png": {
+      "platform": "gabbro",
+      "sha256": "3e35c68b1756743f3a31d53328cd839bc3e40dc905661ff5650e420eec8eed4c",
+      "source": "recovery-validation/release-qa/dynamic/gabbro/1794516475875272701/notification-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "gabbro-dark.png": {
+      "platform": "gabbro",
+      "sha256": "25b368c70e01e0537b8287806f326c9ef625df9d89ebdadd76d4b69cf25cf884",
+      "source": "recovery-validation/release-qa/dynamic/gabbro/1794516475875272701/idle-24-dark.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    },
+    "gabbro-peek.png": {
+      "platform": "gabbro",
+      "sha256": "d72aa1499d1dc27a8e7d5a6b8b38fe7fa7677536d265f5d173e0b91512d80f4b",
+      "source": "recovery-validation/release-qa/dynamic/gabbro/1794516475875272701/timeline-24-light.png",
+      "rendererProof": "Native source binary/resources match this candidate after identified SDK metadata normalization."
+    }
+  }
+}

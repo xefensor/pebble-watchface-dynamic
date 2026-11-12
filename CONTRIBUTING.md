@@ -22,7 +22,7 @@ with `npm ci --ignore-scripts` after selecting the runtimes.
 
 Use Node 22, Python 3.12 and a C99 compiler (`cc`, or set `CC`). Portable tests do not need a
 phone, watch or Pebble SDK. For native SDK builds install [Pebble SDK
-4.33.1](https://developer.repebble.com/sdk/) and make `pebble` available on PATH. This
+4.44](https://developer.repebble.com/sdk/) and make `pebble` available on PATH. This
 repository builds independently from its own committed dependencies.
 
 ```sh
@@ -33,7 +33,8 @@ npm run check:artifact
 ```
 
 `npm test` runs source/native, workflow, release-fixture and documentation checks. CI uses Node
-22 and Python 3.12; it does not claim SDK, emulator or physical-device coverage.
+22 and Python 3.12, with a separate pinned SDK build job. Emulator and physical-device
+coverage require separate runs.
 
 `src/c` owns the render plan, layout and motion; `src/pkjs` owns readings, activity delivery and
 privacy; `src/plugin` exposes recently presented destinations. Core, Activities and UI are
@@ -67,4 +68,28 @@ only the SDK timestamp and ELF GNU build ID plus its verified derived CRC to dif
 Different checkout paths affect debug information and therefore the build ID; code, data,
 resources and capture provenance still match exactly. Strict release checks are unchanged.
 See [GNU linker build-ID semantics](https://sourceware.org/binutils/docs/ld/Options.html#index-_002d_002dbuild_002did)
-and the SDK 4.33.1 `inject_metadata.py` process-info layout (CRC at 0x14, timestamp at 0x7c).
+and the SDK 4.44 `inject_metadata.py` process-info layout (CRC at 0x14, timestamp at 0x7c).
+
+
+## Pinned native build checks
+
+The native CI job uses Node/Python version files, `requirements-release.txt`,
+`.github/sdk-lock.json` and the SDK npm lock to build every declared platform.
+It downloads verified SDK 4.44 and matching Linux x86_64 toolchain archives into
+ignored `.build-tools/`. It does not log in, upload, publish or deploy.
+`python scripts/bootstrap-sdk.py --verify-only /path/to/SDKs/4.44` checks an
+existing installation without changing it. A new isolated installation needs
+a local venv with `requirements-release.txt` and its `bin` directory on PATH;
+set `XDG_DATA_HOME` to this checkout's `.build-tools/data` for subsequent builds.
+Historical root `dist.zip` files and released versions remain unchanged.
+
+## Freeze a reviewed Store candidate
+
+After current source, artifact, configuration and Store checks pass, run
+`python3 scripts/freeze-release.py` to copy the exact checked PBW, debug and Store
+kit bytes and make the standalone source ZIP. It refuses an existing version
+and writes `releases/SHA256SUMS-VERSION.txt`; old root checksums and artifacts
+remain untouched. Commit these files locally, then run `npm run release:prepare`
+to validate committed HEAD. No build, tag, upload or publication happens during
+freezing or preparation. The current candidate's physical-device and account
+gates remain in `docs/RELEASE-READINESS.md`.

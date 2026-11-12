@@ -9,7 +9,6 @@ Keep private notification text out of reports and screenshots.
 ## Downloads and verification
 
 Browse the [published GitHub releases](https://github.com/xefensor/pebble-watchface-dynamic/releases).
-The local 0.14.0 settings candidate has its own validation record.
 Download the PBW and `SHA256SUMS.txt`; the source ZIP is for building or inspecting
 the checked snapshot. Verify the files you downloaded with
 `sha256sum --ignore-missing -c SHA256SUMS.txt`, or download both PBW and source
@@ -18,7 +17,7 @@ across documentation updates.
 
 ## Setup
 
-Dynamic targets Pebble Time 2 (`emery`). Music and notification integration use
+The release being prepared targets Pebble Time 2 (`emery`) and Round 2 (`gabbro`) with SDK 4.44. Duo is deferred. Round 2 validation uses the emulator; physical Time 2 and Android checks remain pending before publication. Music and notification integration use
 the Android Pebble app's plugin preview. Enable it in the phone app, select
 complication slots 1 and 2, and allow the sources you want to use. Source and
 permission availability depend on your Pebble app and plugins.

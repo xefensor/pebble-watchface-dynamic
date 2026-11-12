@@ -21,7 +21,7 @@ Android. Install Timer and Open Activity separately for their optional integrati
 
 ## Compatibility
 
-The current SDK target is **Pebble Time 2 / Emery**, using **Pebble SDK 4.33.1**. Portable and
+The release candidate targets **Pebble Time 2 / Emery** and **Round 2 / Gabbro**, using **Pebble SDK 4.44**. Duo is deferred. Portable and
 emulator evidence is versioned; physical phone/watch checks retain their documented gaps.
 Existing screenshots keep their original version and provenance.
 
@@ -44,9 +44,15 @@ remain separate; use [CONTRIBUTING](CONTRIBUTING.md) for local builds.
 - Restore animated layout changes, Peek response and genuine item transitions. Keep accent complication icons, readable values and the expanded activity area.
 - Bundle Core 0.5.2 and UI 0.1.1. Preserve v1–v4 readings, ACT3 activity identity, preferences and private-content handling.
 
+## Version 0.19.0 — local release candidate
+
+Add Time 2 and Round 2 SDK 4.44 builds. Match numeric complication sizes, apply saved text size immediately, and retain paired music slides and reserved loading artwork.
+
+Physical Time 2 and Android validation and final publication approval remain pending.
+
 ## Development
 
-Use Node 22, Python 3.12 and a C compiler. SDK builds additionally need Pebble SDK 4.33.1 on
+Use Node 22, Python 3.12 and a C compiler. SDK builds additionally need Pebble SDK 4.44 on
 PATH.
 
 ```sh
