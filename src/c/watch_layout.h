@@ -6,6 +6,11 @@
 #include <string.h>
 
 #define WATCH_LAYOUT_SLOT_COUNT 5
+#ifdef PBL_ROUND
+#define WATCH_ROUND_ELSE(round,rect) (round)
+#else
+#define WATCH_ROUND_ELSE(round,rect) (rect)
+#endif
 
 enum { WATCH_CLOCK_FOLLOW=0, WATCH_CLOCK_12=12, WATCH_CLOCK_24=24, WATCH_CLOCK_QUERY=255 };
 static inline uint8_t watch_clock_format(int stored,int legacy) {
@@ -46,16 +51,25 @@ static inline float watch_incoming(float progress) {
 }
 
 static inline WatchPose watch_pose_idle(void) {
+#ifdef PBL_ROUND
+  return (WatchPose){130,112,80,130,40,158,40,31,0,0,0,0};
+#endif
   return (WatchPose){100,110,80,100,31,
     164,40,44,0,0,0,0};
 }
 
 static inline WatchPose watch_pose_context(bool notice) {
+#ifdef PBL_ROUND
+  return (WatchPose){130,77,52,130,33,105,28,25,1,notice?0:1,notice?1:0,0};
+#endif
   return (WatchPose){58,42,42,158,36,
     66,28,34,1,notice?0:1,notice?1:0,0};
 }
 
 static inline WatchPose watch_pose_peek(void) {
+#ifdef PBL_ROUND
+  return (WatchPose){130,83,60,130,34,118,28,27,0,0,0,1};
+#endif
   return (WatchPose){100,91,68,100,31,
     129,28,34,0,0,0,1};
 }
@@ -82,7 +96,13 @@ static inline WatchPose watch_pose_between(WatchPose a,WatchPose b,float amount)
 }
 // Follow the actual native unobstructed height while bounding Peek overshoot.
 static inline WatchPose watch_pose_at_height(WatchPose full,int height) {
-  return watch_pose_between(full,watch_pose_peek(),watch_clamp((228-height)/57.0f));
+  return watch_pose_between(full,watch_pose_peek(),watch_clamp((
+#ifdef PBL_ROUND
+      260-height)/65.0f
+#else
+      228-height)/57.0f
+#endif
+      ));
 }
 
 // Used while fitting text to a pixel width, never as a fixed character limit.

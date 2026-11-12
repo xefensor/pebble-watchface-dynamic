@@ -56,3 +56,16 @@ test('page preparation keeps all seventeen languages, literal source metadata an
     const words=localization.settingsStrings(language);assert.match(words.phoneSaved,/✓/);assert.ok(words.phoneSaveUncertain);
   }
 });
+
+
+test('settings snapshots use the connected watch shape without persisting it',()=>{
+  const before=global.Pebble;
+  try {
+    for(const platform of ['emery','gabbro']){
+      global.Pebble={getActiveWatchInfo:()=>({platform})};
+      assert.equal(page(state.read(store()),'en').platform,platform);
+    }
+    global.Pebble={getActiveWatchInfo:()=>{throw Error('Disconnected');}};
+    assert.equal(page(state.read(store()),'en').platform,null);
+  } finally {global.Pebble=before;}
+});

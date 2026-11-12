@@ -40,7 +40,8 @@
 #define PERSIST_KEY_NIGHT_TEXT 76
 #define PERSIST_KEY_NIGHT_ACCENT 77
 #define NATIVE_INBOX_BYTES 6144
-#define FULL_LAYOUT_HEIGHT 228
+#define FULL_LAYOUT_HEIGHT PBL_DISPLAY_HEIGHT
+#define FACE_WIDTH PBL_DISPLAY_WIDTH
 #define MOTION_FRAME_MS XOCE_UI_PRESS_FRAME_MS
 #define LAYOUT_DURATION_MS 250
 #define INCOMING_DURATION_MS 231
@@ -58,9 +59,6 @@ typedef struct {
 
 static Window *s_window;
 static Layer *s_window_layer, *s_background_layer, *s_context_layer;
-#ifdef PBL_ROUND
-static Layer *s_face_container;
-#endif
 static GColor s_background_color, s_text_color, s_accent_color;
 static GColor s_day_colors[3],s_night_colors[3];
 static bool s_night_enabled;
@@ -90,7 +88,7 @@ typedef struct {
   FontRasterPoint clock_raster_points[CLOCK_GLYPH_MAX_POINTS];
   FontRasterContour clock_raster_contours[CLOCK_GLYPH_MAX_CONTOURS];
   int32_t clock_intersections[CLOCK_GLYPH_MAX_POINTS];
-  uint8_t clock_coverage[200];
+  uint8_t clock_coverage[FACE_WIDTH];
   // Three UTF-8 weekday scalars + separator + DD.MM. + NUL fit in24 bytes.
   char compact_date[24],time_text[6],weekday[13],numeric_date[8];
   char activity_identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2];
@@ -435,7 +433,7 @@ static bool prv_raster_glyph(ClockPaint *paint,const ClockGlyph *glyph,
   const FontRasterScratch scratch={s_clock_coverage,sizeof(s_clock_coverage),
       s_clock_intersections,CLOCK_GLYPH_MAX_POINTS};
   return font_raster_rows(s_clock_raster_points,at,s_clock_raster_contours,
-      glyph->contour_count,200,FULL_LAYOUT_HEIGHT,scratch,prv_clock_row,paint);
+      glyph->contour_count,FACE_WIDTH,FULL_LAYOUT_HEIGHT,scratch,prv_clock_row,paint);
 }
 static void prv_vector(GContext *ctx,const char *text,float x,float baseline,float point,GColor color) {
   ClockPaint paint={.ctx=ctx};
@@ -477,7 +475,7 @@ static WatchPose prv_full_pose(void) {
   return prv_primary_activity()?watch_pose_context(false):watch_pose_idle();
 }
 static WatchPose prv_current_pose(void) {
-  const int height=s_window_layer ? layer_get_unobstructed_bounds(s_window_layer).size.h : 228;
+  const int height=s_window_layer ? layer_get_unobstructed_bounds(s_window_layer).size.h : FULL_LAYOUT_HEIGHT;
   return prv_reading_pose(watch_pose_at_height(s_pose,height),height,NULL);
 }
 static void prv_private_clear(void) {
@@ -521,7 +519,7 @@ static void prv_schedule_motion(void) {
 static void prv_apply_unobstructed_layout(void) {
   if(s_window_layer==NULL) return;
   const bool motion=s_app_focused && s_animations_enabled && !s_peek_transition &&
-      layer_get_unobstructed_bounds(s_window_layer).size.h>=228;
+      layer_get_unobstructed_bounds(s_window_layer).size.h>=FULL_LAYOUT_HEIGHT;
   const PavCard *activity=prv_primary_activity();
   char identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2]={0};
   if(activity)snprintf(identity,sizeof(identity),"%s|%s",activity->provider,activity->id);
@@ -566,10 +564,10 @@ static void prv_sync_layers(void) {
     const int clear=prv_round(bottom+0.499f);
     if(clear>top)top=clear;
   }
-  const int bottom=86+prv_round(142*reveal);
+  const int bottom=86+prv_round((WATCH_ROUND_ELSE(232,228)-86)*reveal);
   const int height=bottom>top?bottom-top:0;
-  layer_set_frame(s_context_layer,GRect(0,top,200,height));
-  layer_set_bounds(s_context_layer,GRect(0,top-86,200,height));
+  layer_set_frame(s_context_layer,GRect(0,top,FACE_WIDTH,height));
+  layer_set_bounds(s_context_layer,GRect(0,top-86,FACE_WIDTH,height));
   layer_set_hidden(s_context_layer,height<=0);
   prv_dirty(s_context_layer);
   if(!(s_slide_active&&!s_layout_active))prv_dirty(s_background_layer);
@@ -675,6 +673,21 @@ static int prv_reading_height(void) {
   return s_window_layer?layer_get_unobstructed_bounds(s_window_layer).size.h:FULL_LAYOUT_HEIGHT;
 }
 static ReadingNumberLayout s_reading_numbers[2];
+#ifdef PBL_ROUND
+static int s_reading_width=88,s_reading_centers[2];
+static void prv_reading_band(WatchPose pose) {
+  const int inset=6;
+  const int top=prv_round(pose.row_y-24),bottom=prv_round(pose.row_y+pose.label_y+10);
+  const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),
+      GRect(0,top,FACE_WIDTH,bottom-top),inset);
+  s_reading_width=band.size.w/2-10;
+  s_reading_centers[0]=band.origin.x+band.size.w/4;
+  s_reading_centers[1]=band.origin.x+3*band.size.w/4;
+}
+#define READING_WIDTH s_reading_width
+#else
+#define READING_WIDTH READING_CONTENT_WIDTH
+#endif
 static void prv_fit_reading_numbers(WatchPose pose) {
   ReadingNumberInput input[2]={0};
   const time_t now=time(NULL);
@@ -698,7 +711,13 @@ static void prv_fit_reading_numbers(WatchPose pose) {
       if(width>0)input[i]=(ReadingNumberInput){width,0,0,false,false,true};
     }
   }
+#ifdef PBL_ROUND
+  prv_reading_band(pose);
+  const int widths[]={s_reading_width,s_reading_width};
+  reading_number_pair_in(input,prv_round(pose.number_size),widths,s_reading_numbers);
+#else
   reading_number_pair(input,prv_round(pose.number_size),s_reading_numbers);
+#endif
 }
 static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
   prv_fit_reading_numbers(pose);
@@ -733,12 +752,12 @@ static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
       const ReadingNumberLayout fit=s_reading_numbers[i];overflow=fit.overflow;
       first=fit.overflow?prv_music_measure(NULL,reading_overflow_label(i18n_get_system_locale()),s_type.secondary):
           prv_activity_clock_measure(NULL,text,fit.point);
-    } else if(first.width>READING_CONTENT_WIDTH&&!has_second) {
+    } else if(first.width>READING_WIDTH&&!has_second) {
       second=text;has_second=true;
     }
     /* Overflow can wrap just like a text-only value. Reserve its second
      * line before placing the clock/activity, using the same fit as paint. */
-    if(overflow&&!has_second&&first.width>READING_CONTENT_WIDTH){
+    if(overflow&&!has_second&&first.width>READING_WIDTH){
       second=reading_overflow_label(i18n_get_system_locale());has_second=true;
     }
     if(first.ascent+first.descent>first_height)first_height=first.ascent+first.descent;
@@ -760,14 +779,14 @@ static void prv_reading_caption(GContext *ctx,const char *caption,const char *qu
       baseline+body_text_descent(caption,s_type.secondary)>prv_reading_height()-2)return;
   char fitted[COMPLICATION_MAX_LABEL_BYTES+16];
   watch_layout_copy_utf8(caption,fitted,sizeof(fitted));
-  prv_ellipsize(fitted,sizeof(fitted),s_type.secondary,READING_CONTENT_WIDTH);
+  prv_ellipsize(fitted,sizeof(fitted),s_type.secondary,READING_WIDTH);
   // Keep the full qualifier. A separator plus an ellipsis adds no identity.
   const size_t qualifier_length=strlen(qualifier);
   if(qualifier[0]&&(strncmp(fitted,qualifier,qualifier_length)||
       (strcmp(fitted,caption)&&strlen(fitted)<=qualifier_length+7)))
     watch_layout_copy_utf8(qualifier,fitted,sizeof(fitted));
-  prv_utility_text(ctx,fitted,false,center-READING_CONTENT_WIDTH/2,baseline,
-      READING_CONTENT_WIDTH,prv_muted_text(1),GTextAlignmentCenter);
+  prv_utility_text(ctx,fitted,false,center-READING_WIDTH/2,baseline,
+      READING_WIDTH,prv_muted_text(1),GTextAlignmentCenter);
 }
 static void prv_age_mark(GContext *ctx,int center,const WatchPose *p) {
   const GPoint at=GPoint(center+47,prv_round(p->row_y+p->label_y)-3);
@@ -783,7 +802,7 @@ static int prv_reading_text(GContext *ctx,const char *text,int center,const Watc
   const int second=prv_round(p->row_y+p->label_y);
   second_line=second_line&&second+body_text_descent(text,s_type.secondary)<=prv_reading_height()-2;
   MusicLines lines;
-  music_wrap(text,s_type.secondary,READING_CONTENT_WIDTH,second_line?2:1,false,
+  music_wrap(text,s_type.secondary,READING_WIDTH,second_line?2:1,false,
       prv_music_measure,NULL,&lines);
   if(complete&&!lines.complete)return 0;
   for(int i=0;i<lines.count;++i) {
@@ -792,15 +811,19 @@ static int prv_reading_text(GContext *ctx,const char *text,int center,const Watc
     const int descent=body_text_descent(line,s_type.secondary);
     const int baseline=i?second:prv_round(p->row_y+(ascent-descent)/2.0f);
     if(baseline+descent>prv_reading_height()-2)return 0;
-    prv_text(ctx,line,s_type.secondary,center-READING_CONTENT_WIDTH/2,baseline,
-        READING_CONTENT_WIDTH,color,GTextAlignmentCenter);
+    prv_text(ctx,line,s_type.secondary,center-READING_WIDTH/2,baseline,
+        READING_WIDTH,color,GTextAlignmentCenter);
   }
   return lines.count;
 }
 static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
   if(!s_has_complications||!complication_is_selected(&s_complications.slots[index]))return;
   const ComplicationSlot *slot=&s_complications.slots[index];
+  #ifdef PBL_ROUND
+  const int center=s_reading_centers[index],icon_size=18;
+#else
   const int center=index?150:50,icon_size=18;
+#endif
   const char *locale=i18n_get_system_locale();
   const ReadingState state=reading_state(slot,time(NULL));
   char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];
@@ -892,6 +915,15 @@ static void prv_draw_status(GContext *ctx,WatchPose p) {
   }
 }
 static void prv_draw_date(GContext *ctx,WatchPose p) {
+#ifdef PBL_ROUND
+  {
+  const int baseline=prv_round(p.date_y),height=body_text_ascent(s_compact_date_buffer,s_type.date)+body_text_descent(s_compact_date_buffer,s_type.date);
+  const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),GRect(0,baseline-body_text_ascent(s_compact_date_buffer,s_type.date),FACE_WIDTH,height),6);
+  const char *date=prv_measure(s_compact_date_buffer,s_type.date).w<=band.size.w?s_compact_date_buffer:s_numeric_date_buffer;
+  prv_utility_text(ctx,date,true,band.origin.x,baseline,band.size.w,s_text_color,GTextAlignmentCenter);
+  return;
+  }
+#endif
   // Move the complete date out before the clock crosses its row, then bring
   // the compact date in from the right. Reverse motion follows the same path.
   const float context=watch_clamp(p.context);
@@ -920,7 +952,13 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   graphics_context_set_antialiased(ctx,true);
   const WatchPose p=prv_current_pose();
   float point=p.clock_size,width=prv_vector_width(s_time_buffer,point);
+  #ifdef PBL_ROUND
+  const GRect clock_band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),
+      GRect(0,prv_round(p.clock_y-point*.8f),FACE_WIDTH,prv_round(point*.9f)),6);
+  const float available=clock_band.size.w;
+#else
   const float available=watch_lerp(184,108,watch_clamp(p.context));
+#endif
   if(width>available){point*=available/width;width=available;}
   prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
   prv_draw_date(ctx,p);
@@ -1022,6 +1060,9 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
 static int prv_activity_top(void) {
   int bottom=0;
   prv_reading_pose(watch_pose_context(false),FULL_LAYOUT_HEIGHT,&bottom);
+#ifdef PBL_ROUND
+  return bottom+4;
+#endif
   const int detailed_top=bottom+1>ACTIVITY_CONTENT_TOP?bottom+1:ACTIVITY_CONTENT_TOP;
   if(s_has_complications)for(unsigned i=0;i<2;++i) {
     const ComplicationSlot *slot=&s_complications.slots[i];
@@ -1061,6 +1102,12 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
         !prv_activity_line(card,&card->support,now,card->support.type==PAV_TEXT?2048:180,true,
             NULL,NULL,out->support,sizeof(out->support)))out->support[0]=0;
   }
+  int secondary_width=180;
+#ifdef PBL_ROUND
+  const GRect secondary_band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),
+      GRect(0,top,FACE_WIDTH,32),6);
+  secondary_width=secondary_band.size.w;
+#endif
   out->alternate=pav_state_select(&s_activities,now,1);
   if(out->alternate) {
     const PavDatum *datum=activity_compact_datum(out->alternate);
@@ -1068,7 +1115,7 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
     const bool glyph=out->alternate->directions[selected]||out->alternate->identity_symbol||
         ((out->alternate->flags&PAV_HAS_IMAGE)&&out->alternate->presentation!=PAV_PRESENTATION_MEDIA);
     if(!pav_datum_visible(out->alternate,datum,now,s_phone_connected)||
-        !prv_activity_line(out->alternate,datum,now,glyph?148:180,false,
+        !prv_activity_line(out->alternate,datum,now,secondary_width-(glyph?32:0),false,
             out->alternate->source_state==PAV_PAUSED?reading_language(i18n_get_system_locale())->paused:NULL,
             pav_qualifier(out->alternate),out->secondary,sizeof(out->secondary)))out->alternate=NULL;
   }
@@ -1115,14 +1162,34 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
   const MusicTextMetrics secondary_ink=prv_music_measure(NULL,out->secondary,s_type.secondary);
   const int secondary_height=secondary_ink.ascent+secondary_ink.descent+4>ACTIVITY_SECONDARY_HEIGHT?
       secondary_ink.ascent+secondary_ink.descent+4:ACTIVITY_SECONDARY_HEIGHT;
+#ifdef PBL_ROUND
+  const int bottom=232;
+  const int inset=6;
+  const GRect surface=GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT);
+  const GRect main_band=xoce_ui_circle_band(surface,GRect(0,top,FACE_WIDTH,bottom-50-top>1?bottom-50-top:1),inset);
+  const GRect footer_band=xoce_ui_circle_band(surface,GRect(0,bottom-40,FACE_WIDTH,40),inset);
+  const ActivityGeometry geometry={main_band.origin.x,main_band.size.w,bottom,footer_band.origin.x,footer_band.size.w};
+  activity_layout_build_in(out->main,layout_role,layout_support,footer,media,vector,scalar,
+      out->alternate!=NULL,(card->flags&PAV_HAS_IMAGE)!=0,
+      pav_meter_visible(card,now,s_phone_connected),footer_symbol,footer_point,
+      s_type.secondary,top,prv_music_measure,
+      vector?prv_activity_clock_measure:scalar?prv_activity_value_measure:prv_music_measure,out,&out->layout,s_type.body,s_type.secondary,secondary_height,geometry);
+#else
   activity_layout_build_type(out->main,layout_role,layout_support,footer,media,vector,scalar,
       out->alternate!=NULL,(card->flags&PAV_HAS_IMAGE)!=0,
       pav_meter_visible(card,now,s_phone_connected),footer_symbol,footer_point,
       s_type.secondary,top,prv_music_measure,
       vector?prv_activity_clock_measure:scalar?prv_activity_value_measure:prv_music_measure,out,&out->layout,s_type.body,s_type.secondary,secondary_height);
+#endif
   out->layout.secondary_baseline=activity_centered_baseline(top,
       secondary_height,secondary_ink);
-  if(scalar&&card->directions[0]){out->layout.left=50;out->layout.width=140;}
+  if(scalar&&card->directions[0]){
+#ifdef PBL_ROUND
+    out->layout.left=out->layout.content_left+40;out->layout.width=out->layout.content_width-40;
+#else
+    out->layout.left=50;out->layout.width=140;
+#endif
+  }
   out->needs_tick=out->layout.main.count&&activity_view_needs_tick(card,
       out->layout.support.count>0||(fold_support&&out->layout.footer.count>0),out->alternate,out->layout.secondary,now,s_phone_connected);
   // Preserve a single plan; a clock changes once per displayed second, while
@@ -1210,13 +1277,13 @@ static void prv_paint_media(GContext *ctx,const PavCard *card,const ActivityLayo
       x+layout->left,y+layout->main_baseline[i],layout->width,s_text_color,GTextAlignmentLeft);
   for(int i=0;i<layout->footer.count;++i)prv_text(ctx,layout->footer.text[i],layout->footer_point,
       x+layout->footer_left,y+layout->footer_baseline[i],layout->footer_width,prv_muted_text(1),GTextAlignmentLeft);
-  if(layout->icon_size>0)prv_draw_activity_image(ctx,card,x+10,y+layout->icon_top,layout->icon_size);
+  if(layout->icon_size>0)prv_draw_activity_image(ctx,card,x+layout->icon_left,y+layout->icon_top,layout->icon_size);
 }
 static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
   const uint32_t now=(uint32_t)time(NULL);ActivityPlan *plan=&s_native->activity_plan;
   prv_prepare_activity(card,now,plan);const ActivityLayout *layout=&plan->layout;
   if(!layout->main.count)return;
-  const int x=s_slide_active?prv_round(200*(1-s_slide_amount)):0;
+  const int x=s_slide_active?prv_round(FACE_WIDTH*(1-s_slide_amount)):0;
   if(layout->media){
     MediaTransition *motion=&s_native->media_motion;
     if(s_slide_active&&media_paint_visible(&motion->outgoing,now,s_phone_connected))
@@ -1232,7 +1299,7 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
     if(layout->vector)prv_vector(ctx,layout->main.text[i],x+layout->left,
         y+layout->main_baseline[i],layout->point,s_text_color);
     else if(plan->numeric) {
-      const int width=card->directions[0]?140:180,center=card->directions[0]?120:100;
+      const int width=card->directions[0]?layout->content_width-40:layout->content_width,center=layout->content_left+layout->content_width/2+(card->directions[0]?20:0);
       prv_draw_number(ctx,&plan->number,x+center,y+layout->main_baseline[i],layout->point,
           dynamic_unit_point(s_type,layout->point),width,true);
     } else prv_text(ctx,layout->main.text[i],layout->point,x+layout->left,
@@ -1243,36 +1310,36 @@ static void prv_draw_activity(GContext *ctx,const PavCard *card,int y) {
     prv_activity_symbol(ctx,0,card->directions[0],x+10,
         y+layout->main_baseline[0]+(ink.descent-ink.ascent-32)/2,32);
   }
-  if(layout->role_baseline)prv_text(ctx,plan->role,s_type.secondary,x+10,y+layout->role_baseline,180,
+  if(layout->role_baseline)prv_text(ctx,plan->role,s_type.secondary,x+layout->content_left,y+layout->role_baseline,layout->content_width,
       prv_muted_text(1),GTextAlignmentLeft);
-  for(int i=0;i<layout->support.count;++i)prv_text(ctx,layout->support.text[i],layout->support_point,x+10,
-      y+layout->support_baseline[i],180,s_text_color,GTextAlignmentLeft);
+  for(int i=0;i<layout->support.count;++i)prv_text(ctx,layout->support.text[i],layout->support_point,x+layout->content_left,
+      y+layout->support_baseline[i],layout->content_width,s_text_color,GTextAlignmentLeft);
   for(int i=0;i<layout->footer.count;++i)prv_text(ctx,layout->footer.text[i],layout->footer_point,
       x+layout->footer_left,y+layout->footer_baseline[i],layout->footer_width,
       prv_muted_text(1),GTextAlignmentLeft);
   if(layout->icon_size>0&&(layout->media||((card->flags&PAV_HAS_IMAGE)&&layout->footer.count)))
-    prv_draw_activity_image(ctx,card,x+10,y+layout->icon_top,layout->icon_size);
+    prv_draw_activity_image(ctx,card,x+layout->icon_left,y+layout->icon_top,layout->icon_size);
   else if(layout->icon_size>0&&!layout->media&&layout->footer.count)prv_activity_symbol(ctx,card->identity_symbol,0,
-      x+10,y+layout->icon_top,layout->icon_size);
+      x+layout->icon_left,y+layout->icon_top,layout->icon_size);
   if(layout->meter) {
-    graphics_context_set_stroke_color(ctx,prv_muted_text(1));graphics_draw_rect(ctx,GRect(x+10,y+layout->meter_top,180,4));
+    graphics_context_set_stroke_color(ctx,prv_muted_text(1));graphics_draw_rect(ctx,GRect(x+layout->content_left,y+layout->meter_top,layout->content_width,4));
     graphics_context_set_fill_color(ctx,prv_accent_color());
-    const int fill=((uint32_t)card->meter*178u+32767u)/65535u;
-    if(fill)graphics_fill_rect(ctx,GRect(x+11,y+layout->meter_top+1,fill,2),0,GCornerNone);
+    const int fill=((uint32_t)card->meter*(layout->content_width-2)+32767u)/65535u;
+    if(fill)graphics_fill_rect(ctx,GRect(x+layout->content_left+1,y+layout->meter_top+1,fill,2),0,GCornerNone);
   }
  secondary:
   if(layout->secondary&&plan->alternate) {
     graphics_context_set_stroke_color(ctx,prv_muted_text(1));
     graphics_context_set_stroke_width(ctx,1);
-    graphics_draw_line(ctx,GPoint(10,y+layout->top+layout->secondary_height+2),GPoint(190,y+layout->top+layout->secondary_height+2));
+    graphics_draw_line(ctx,GPoint(layout->content_left,y+layout->top+layout->secondary_height+2),GPoint(layout->content_left+layout->content_width,y+layout->top+layout->secondary_height+2));
     const PavCard *other=plan->alternate;const unsigned selected=other->compact_item?1:0;
     const bool bitmap=(other->flags&PAV_HAS_IMAGE)&&other->presentation!=PAV_PRESENTATION_MEDIA&&!other->directions[selected];
     const bool glyph=bitmap||other->directions[selected]||other->identity_symbol;
-    const int left=glyph?42:10;
-    if(bitmap)prv_draw_activity_image(ctx,other,10,y+layout->top+1,24);
-    else if(glyph)prv_activity_symbol(ctx,other->identity_symbol,other->directions[selected],10,
+    const int left=layout->content_left+(glyph?32:0);
+    if(bitmap)prv_draw_activity_image(ctx,other,layout->content_left,y+layout->top+1,24);
+    else if(glyph)prv_activity_symbol(ctx,other->identity_symbol,other->directions[selected],layout->content_left,
         y+layout->top+1,24);
-    prv_text(ctx,plan->secondary,s_type.secondary,left,y+layout->secondary_baseline,190-left,
+    prv_text(ctx,plan->secondary,s_type.secondary,left,y+layout->secondary_baseline,layout->content_left+layout->content_width-left,
         prv_muted_text(1),GTextAlignmentLeft);
   }
 }
@@ -1640,13 +1707,6 @@ static void prv_outbox_sent(DictionaryIterator *iterator, void *context) {
 static void prv_window_load(Window *window) {
   window_set_background_color(window,s_background_color);
   s_window_layer=window_get_root_layer(window);
-#ifdef PBL_ROUND
-  Layer *root=s_window_layer;
-  const GRect screen=layer_get_bounds(root);
-  s_face_container=layer_create(GRect((screen.size.w-200)/2,(screen.size.h-FULL_LAYOUT_HEIGHT)/2,200,FULL_LAYOUT_HEIGHT));
-  layer_add_child(root,s_face_container);
-  s_window_layer=s_face_container;
-#endif
   const GRect bounds=layer_get_bounds(s_window_layer);
   for(size_t i=0;i<BODY_FONT_COUNT;++i) {
     s_body_fonts[i]=fonts_load_custom_font(resource_get_handle(s_body_resources[i]));
@@ -1657,7 +1717,7 @@ static void prv_window_load(Window *window) {
   s_background_layer=layer_create(bounds);
   layer_set_update_proc(s_background_layer,prv_draw_background);
   layer_add_child(s_window_layer,s_background_layer);
-  s_context_layer=layer_create(GRect(0,86,200,0));
+  s_context_layer=layer_create(GRect(0,86,FACE_WIDTH,0));
   layer_set_clips(s_context_layer,true);layer_set_update_proc(s_context_layer,prv_draw_context);
   layer_add_child(s_window_layer,s_context_layer);
   prv_update_clock();
@@ -1669,9 +1729,6 @@ static void prv_window_unload(Window *window) {
   (void)window;unobstructed_area_service_unsubscribe();prv_cancel_motion();prv_private_clear();
   layer_destroy(s_context_layer);layer_destroy(s_background_layer);
   s_context_layer=NULL;s_background_layer=NULL;s_window_layer=NULL;
-#ifdef PBL_ROUND
-  layer_destroy(s_face_container);s_face_container=NULL;
-#endif
   for(size_t i=0;i<BODY_FONT_COUNT;++i) {
     if(s_body_loaded[i])fonts_unload_custom_font(s_body_fonts[i]);
     s_body_fonts[i]=NULL;s_body_loaded[i]=false;

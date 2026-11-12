@@ -1,5 +1,10 @@
 #pragma once
 #include "activity_presentation.h"
+#ifdef PBL_ROUND
+#define MEDIA_SLIDE_WIDTH 260
+#else
+#define MEDIA_SLIDE_WIDTH 200
+#endif
 
 /* Bounded copies of actually painted primary media only. They own no source,
  * live render plan, navigation receipt, timer or persistence. */
@@ -19,7 +24,7 @@ static inline bool media_paint_visible(const MediaPaint *paint,uint32_t now,bool
 }
 static inline void media_paint_capture(MediaPaint *paint,const PavCard *card,
     const ActivityLayout *layout,int x){
-  if(card->presentation!=PAV_PRESENTATION_MEDIA||!layout->main.count||x>=200){media_paint_clear(paint);return;}
+  if(card->presentation!=PAV_PRESENTATION_MEDIA||!layout->main.count||x>=MEDIA_SLIDE_WIDTH){media_paint_clear(paint);return;}
   paint->card=*card;paint->layout=*layout;paint->x=x;paint->valid=true;
 }
 static inline void media_transition_start(MediaTransition *motion,const PavCard *incoming,
@@ -31,5 +36,5 @@ static inline void media_transition_start(MediaTransition *motion,const PavCard 
       strcmp(incoming->provider,motion->outgoing.card.provider))media_paint_clear(&motion->outgoing);
 }
 static inline int media_outgoing_x(const MediaPaint *paint,float progress){
-  return paint->x-(int)((200+paint->x)*progress+.5f);
+  return paint->x-(int)((MEDIA_SLIDE_WIDTH+paint->x)*progress+.5f);
 }

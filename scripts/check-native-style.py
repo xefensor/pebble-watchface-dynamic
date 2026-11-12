@@ -40,7 +40,7 @@ LEGACY_KEYS = (
     "SHOW_NOTIFICATIONS", "NOTIFICATION_PREVIEW", "NOTIFICATION_APPS",
     "SHOW_STATUS", "PANEL_TRANSITIONS", "ACCENT_COLOR",
 )
-APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js", "display-controller.js", "display-state.js", "display-words.js"}
+APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "settings-preview-all.js", "settings-preview-round.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js", "display-controller.js", "display-state.js", "display-words.js"}
 CORE_MODULES = {
     "readings.js", "message-queue.js", "complications.js", "complication-data.js",
 }
