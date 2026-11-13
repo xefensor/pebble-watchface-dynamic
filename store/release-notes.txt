@@ -1,5 +1,7 @@
-Dynamic 0.19.0
+Dynamic 0.19.1
 
 SDK 4.44 builds for Time 2 and Round 2. Keeps the existing identity, saved settings, provider protocols, expiry rules and typography. Both numeric readings share a measured size; phone text-size choices apply immediately and survive reopening. Music retains its artwork position while loading. Track replacement slides the outgoing and incoming items together. Round 2 keeps the complete 40px cover inside the display.
 
-Prepared locally; not published. Real-device checks and final approval remain required.
+Stable release preparation of the reviewed Round 2 implementation. Existing frozen releases remain unchanged; publication is a separate step.
+
+Use the full circular display for the centered clock, complete readings and lower activities. Preserve the 40px music cover, simultaneous track slides and native Peek. Time 2 retains its established composition.

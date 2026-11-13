@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.1
+
+- Prepare the reviewed full-circle Round 2 layouts for stable publication.
+- Preserve complete readings, music artwork and simultaneous track transitions.
+- Keep Time 2, saved settings, provider identities and expiry unchanged.
+
 ## 0.19.0
 
 Time 2 and Round 2 SDK 4.44 candidate; shared numeric fitting, saved text-size application, paired music transitions and stable loading-art geometry. Duo is deferred. Physical Time 2 and Android checks remain pending.

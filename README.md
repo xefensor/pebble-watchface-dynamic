@@ -44,11 +44,11 @@ remain separate; use [CONTRIBUTING](CONTRIBUTING.md) for local builds.
 - Restore animated layout changes, Peek response and genuine item transitions. Keep accent complication icons, readable values and the expanded activity area.
 - Bundle Core 0.5.2 and UI 0.1.1. Preserve v1–v4 readings, ACT3 activity identity, preferences and private-content handling.
 
-## Version 0.19.0 — local release candidate
+## Version 0.19.1 — stable release preparation
 
 Add Time 2 and Round 2 SDK 4.44 builds. Match numeric complication sizes, apply saved text size immediately, and retain paired music slides and reserved loading artwork.
 
-Physical Time 2 and Android validation and final publication approval remain pending.
+Xef accepted the reviewed implementation for stable release preparation on 2026-11-13. Actual test coverage remains recorded separately; no physical-device result is implied. Publication is a separate step.
 
 ## Development
 

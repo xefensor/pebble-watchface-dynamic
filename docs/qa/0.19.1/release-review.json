@@ -1,0 +1,43 @@
+{
+  "product": "Dynamic",
+  "version": "0.19.1",
+  "channel": "stable",
+  "pbwSha256": "c5b3de037721778499d236ba694d7dfae446f658c2e6f7c2774b5d4cac851f19",
+  "targets": [
+    "emery",
+    "gabbro"
+  ],
+  "reviewAcceptance": {
+    "reviewer": "Xef",
+    "date": "2026-11-13",
+    "decision": "Reviewed and accepted for stable public release preparation; no additional physical-device review prerequisite."
+  },
+  "automated": [
+    "npm test PASS",
+    "SDK 4.44 build and exact artifact audit PASS",
+    "Generated configuration check PASS",
+    "All ten accepted revision-2 native renderer/resources identities retained; no code/version bytes normalized away",
+    "Store prepare/check PASS. Standalone source reconstruction is recorded after freezing in the external launch verification report."
+  ],
+  "sourceTestsLogSha256": "459018fe9e34323b789aedf0f1e83b99fea4c3385a02a9ceffc260db5e42c926",
+  "renderer": {
+    "emery": {
+      "nativeRendererSha256": "afa3272e232349e386dc2834849bdffaa1ed7e4133bee9d785a172941e6be05d",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    },
+    "gabbro": {
+      "nativeRendererSha256": "e3725287bbd76372cd7ec65a9eb39f9b9d5fd7041ad1b6a0871e7cb3e1bc5702",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    }
+  },
+  "emulatorScope": "Exact stable package captures on Emery and Gabbro. Fresh size/theme cases, source labels, menu/editor/reopening/alarm or face reading/media/Peek cases are indexed in the launch bundle. Locale overrides are diagnostic fixtures, not public packages.",
+  "physicalWatchTested": false,
+  "physicalPhoneTested": false,
+  "remoteCiRun": false,
+  "published": false,
+  "remainingPublicationGates": [
+    "Verify signed-in Developer Dashboard ownership, listing and unused numeric version",
+    "Publish matching stable GitHub assets and upload exact frozen PBW",
+    "Verify public Store/GitHub hashes before website activation"
+  ]
+}
