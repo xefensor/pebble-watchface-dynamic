@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0
+
+- Number the first stable public release 1.0.0.
+- Retain the reviewed Round 2 and Time 2 implementation, identity, settings and protocols.
+
 ## 0.19.1
 
 - Prepare the reviewed full-circle Round 2 layouts for stable publication.

@@ -1,0 +1,45 @@
+{
+  "product": "Dynamic",
+  "version": "1.0.0",
+  "channel": "stable",
+  "pbwSha256": "2c13fae81107fe793c0df3a23270eb1b1463dd1518dac2f68cdf0625f755f3f3",
+  "targets": [
+    "emery",
+    "gabbro"
+  ],
+  "reviewAcceptance": {
+    "reviewer": "Xef",
+    "date": "2026-11-13",
+    "decision": "Reviewed and accepted for stable public release preparation; no additional physical-device review prerequisite."
+  },
+  "automated": [
+    "npm test PASS",
+    "SDK 4.44 build and exact artifact audit PASS",
+    "Generated configuration check PASS",
+    "Cross-version binary comparison PASS: exact SDK major/minor fields become 1.0; all application code/resources otherwise unchanged after normal SDK build metadata normalization. Per-version auditors retain strict version identity.",
+    "Store prepare/check PASS. Standalone source reconstruction is recorded after freezing in the external launch verification report."
+  ],
+  "sourceTestsLogSha256": "8073350bc44b001f938933001c60a413d9e0198bb288ecad0be937a4f3eca202",
+  "renderer": {
+    "emery": {
+      "nativeRendererSha256": "3d79520b38f287beacea986e4bd0ea65f9ea9f4f5cca701d414bcec92aa7e689",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    },
+    "gabbro": {
+      "nativeRendererSha256": "7671e0201048ad0e1889c34a9dbc87c567cf6d4d05eeff2287a86822700f24fb",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    }
+  },
+  "emulatorScope": "Fresh 1.0.0 native captures on Emery/Gabbro: Timer editor/list/reopen/alarm, Dashboard overview/actions, Open Activity passive setup and Dynamic native preview presets. Existing detailed locale/media/size evidence is retained as prior behavior coverage, backed by the explicit version-only binary comparison.",
+  "physicalWatchTested": false,
+  "physicalPhoneTested": false,
+  "remoteCiRun": false,
+  "published": false,
+  "remainingPublicationGates": [
+    "Verify signed-in Developer Dashboard ownership, listing and unused numeric version",
+    "Publish matching stable GitHub assets and upload exact frozen PBW",
+    "Verify public Store/GitHub hashes before website activation"
+  ],
+  "previousPreparedVersion": "0.19.1",
+  "versioningDecision": "Xef selected 1.0.0 for the first stable public release; earlier prepared versions remain frozen."
+}

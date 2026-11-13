@@ -878,7 +878,7 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
 def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow_sdk_build_id=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
-    require(package["version"] == "0.19.1", "Review this auditor for a different release version")
+    require(package["version"] == "1.0.0", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
     require(settings["targetPlatforms"] == ["emery", "gabbro"] and

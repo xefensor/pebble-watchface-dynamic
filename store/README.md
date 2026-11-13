@@ -1,6 +1,6 @@
 # Store review kit
 
-This directory prepares Dynamic 0.19.1 for Time 2 and Round 2. Duo is deferred.
+This directory prepares Dynamic 1.0.0 for Time 2 and Round 2. Duo is deferred.
 The kit is local and has not been submitted or published.
 
 Run `npm run store:prepare`, then `npm run store:check`. Both use the exact
