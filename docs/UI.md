@@ -185,8 +185,10 @@ non-music pixel comparisons and native verification scope.
 
 The default remains the existing two-column face. Split clock/details adds an
 independent lower background and text palette for day and night. Its boundary
-follows the measured reading band through motion and Peek, nudged up by six
-pixels where clock clearance permits. Stacked rows put
+sits halfway between the bottom of the clock ink and the top of the visible
+reading ink, including symbols and images. It follows the current animated pose,
+reading page, text size and Peek height. Empty homes do not reserve ink; with no
+visible readings, the expected reading home supplies the fallback. Stacked rows put
 identity/symbols on the left and complete numeric values and units on the right;
 optional titles may yield space, required qualifiers and unavailable states may
 not. Hiding reading titles does not hide Activities, units or state labels.
@@ -203,3 +205,10 @@ text and cards never rotate. PebbleOS excludes watchfaces from its touch API.
 Phone previews for these optional layouts are labelled approximate example-data
 previews. The default 24 presets per shape are actual native captures. Source
 and issue URLs are available in Help & connection.
+
+The split renderer collects reading ink bounds during the ordinary paint pass,
+then fills the clear upper panel and paints the clock/date on its own palette.
+The phone example uses the same visual-gap rule with Canvas text ink metrics
+([HTML TextMetrics](https://html.spec.whatwg.org/multipage/canvas.html#textmetrics));
+older engines without ink bounds use font-size estimates. Phone examples remain
+labelled approximate because they use browser fonts and example data.

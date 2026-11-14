@@ -12,6 +12,7 @@
 #include "reading_presentation.h"
 #include "reading_layout.h"
 #include "reading_pages.h"
+#include "split_layout.h"
 #include "generated_clock_glyphs.h"
 #include "generated_body_metrics.h"
 #include "font_raster.h"
@@ -72,6 +73,11 @@ static bool s_gesture_subscribed,s_gesture_seen;
 static uint32_t s_gesture_at;
 static bool s_split,s_rows,s_hide_titles,s_shake;
 static GColor s_lower_background,s_lower_text;
+static int *s_reading_ink_top;
+static void prv_note_reading_ink(int top) {
+  if(top<0)top=0;
+  if(s_reading_ink_top&&top<*s_reading_ink_top)*s_reading_ink_top=top;
+}
 static void prv_sync_gesture(void);
 
 
@@ -292,6 +298,7 @@ static void prv_draw_bitmap(GContext *ctx, const ComplicationSlot *slot,
       if(!(color&0xc0))color=0;
       if(color!=previous) {
         if(previous&0xc0) {
+          if(previous!=s_background_color.argb)prv_note_reading_ink(y+row);
           graphics_context_set_fill_color(ctx,(GColor){.argb=previous});
           graphics_fill_rect(ctx,GRect(x+start,y+row,column-start,1),0,GCornerNone);
         }
@@ -319,6 +326,8 @@ static GSize prv_measure(const char *text,int point) {
 static void prv_text(GContext *ctx,const char *text,int point,int x,int baseline,
                      int width,GColor color,GTextAlignment alignment) {
   point=prv_point(point);
+  if(width>0&&color.argb!=s_background_color.argb&&body_text_ascent(text,point)>0)
+    prv_note_reading_ink(baseline-body_text_ascent(text,point));
   graphics_context_set_text_color(ctx,color);
   graphics_draw_text(ctx,text,prv_body(point),GRect(x,baseline-point,width,point+12),
       GTextOverflowModeFill,alignment,NULL);
@@ -402,6 +411,7 @@ static unsigned prv_pixel_polygon(unsigned count) {
 }
 static void prv_gpath_glyph(GContext *ctx,const ClockGlyph *glyph,float x,float baseline,
                             float scale,GColor color) {
+    prv_note_reading_ink(prv_round(baseline-glyph->y_max*scale));
     for(unsigned i=0;i<glyph->contour_count;++i) {
       const ClockContour *contour=&clock_contours[glyph->first_contour+i];
       for(unsigned j=0;j<contour->point_count;++j) {
@@ -422,6 +432,7 @@ static void prv_clock_row(void *context,int y,int first,int end,const uint8_t *c
     const int begin=x++;
     while(x<end&&paint->colors[coverage[x]].argb==color.argb)++x;
     if(color.argb==s_background_color.argb)continue;
+    prv_note_reading_ink(y);
     graphics_context_set_fill_color(paint->ctx,color);
     graphics_fill_rect(paint->ctx,GRect(begin,y,x-begin,1),0,GCornerNone);
   }
@@ -622,6 +633,18 @@ static void prv_draw_symbol(GContext *ctx,const ComplicationSlot *slot,int cx,in
   const GColor ink=prv_accent_color();
   graphics_context_set_stroke_color(ctx,ink);graphics_context_set_fill_color(ctx,ink);
   graphics_context_set_stroke_width(ctx,2);
+  if(!(slot->flags&COMPLICATION_FLAG_BITMAP)) {
+    int top=cy;
+    if(kind==COMPLICATION_SEMANTIC_TEMPERATURE||kind==COMPLICATION_SEMANTIC_UV)top=cy-9;
+    else if(kind==COMPLICATION_SEMANTIC_HUMIDITY)top=cy-(size/2<4?4:size/2);
+    else if(kind==COMPLICATION_SEMANTIC_PRECIPITATION)top=cy-8;
+    else if(kind==COMPLICATION_SEMANTIC_WIND)top=cy-6;
+    else if(kind==COMPLICATION_SEMANTIC_BATTERY) {
+      const bool phone=slot->source_kind==COMPLICATION_SOURCE_PHONE||slot->detail==COMPLICATION_DETAIL_PHONE_BATTERY;
+      top=cy+((phone?-8:-4)*size/20)-1;
+    } else if(kind==COMPLICATION_SEMANTIC_CONDITION)top=cy-3*size/20-4*size/20-1;
+    if(top<cy)prv_note_reading_ink(top);
+  }
   if(slot->flags&COMPLICATION_FLAG_BITMAP)prv_draw_bitmap(ctx,slot,cx-size/2,cy-size/2,size,ink,false);
   else if(kind==COMPLICATION_SEMANTIC_HUMIDITY)prv_draw_drop(ctx,cx,cy,size/2,ink);
   else if(kind==COMPLICATION_SEMANTIC_PRECIPITATION) {
@@ -817,6 +840,7 @@ static void prv_reading_caption(GContext *ctx,const char *caption,const char *qu
 static void prv_age_mark(GContext *ctx,int center,const WatchPose *p) {
   const GPoint at=GPoint(center+47,prv_round(p->row_y+p->label_y)-3);
   if(at.y+2>prv_reading_height()-2)return;
+  prv_note_reading_ink(at.y-3);
   // The outer column margin keeps this marker clear of a full-width qualifier.
   graphics_context_set_stroke_width(ctx,1);graphics_context_set_stroke_color(ctx,prv_muted_text(1));
   graphics_draw_circle(ctx,at,2);
@@ -1022,7 +1046,7 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
       prv_faded_text(alpha),GTextAlignmentCenter);
 }
 static void prv_draw_background(Layer *layer,GContext *ctx) {
-  graphics_context_set_fill_color(ctx,s_background_color);
+  graphics_context_set_fill_color(ctx,s_split?s_lower_background:s_background_color);
   graphics_fill_rect(ctx,layer_get_bounds(layer),0,GCornerNone);
   graphics_context_set_antialiased(ctx,true);
   const WatchPose p=prv_current_pose();
@@ -1035,24 +1059,30 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   const float available=watch_lerp(184,108,watch_clamp(p.context));
 #endif
   if(width>available){point*=available/width;width=available;}
-  prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
-  prv_draw_date(ctx,p);
-  if(s_split){
-    const int original_divider=prv_round(p.row_y-(s_rows?p.label_y:p.number_size)*.5f-6);
-    int divider=original_divider-6;
-    const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
-    const int clock_bottom=prv_round(p.clock_y)+clock.descent+1;
-    // Tight Peek layouts retain their existing boundary rather than cover
-    // clock ink. Other poses gain six pixels of lower-panel background.
-    if(divider<clock_bottom)divider=clock_bottom<original_divider?clock_bottom:original_divider;
-    if(divider<0)divider=0;
-    if(divider>FULL_LAYOUT_HEIGHT)divider=FULL_LAYOUT_HEIGHT;
-    graphics_context_set_fill_color(ctx,s_lower_background);graphics_fill_rect(ctx,GRect(0,divider,FACE_WIDTH,FULL_LAYOUT_HEIGHT-divider),0,GCornerNone);
+  if(!s_split){
+    prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
+    prv_draw_date(ctx,p);
   }
+  int reading_top=FULL_LAYOUT_HEIGHT;
+  if(s_split)s_reading_ink_top=&reading_top;
   GColor background,text;prv_lower_palette(true,&background,&text);
   if(s_rows){prv_draw_reading_row(ctx,0,p);prv_draw_reading_row(ctx,1,p);}
   else {prv_draw_reading(ctx,0,&p);prv_draw_reading(ctx,1,&p);}
-  s_background_color=background;s_text_color=text;prv_draw_status(ctx,p);
+  s_reading_ink_top=NULL;
+  s_background_color=background;s_text_color=text;
+  if(s_split){
+    const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
+    const int clock_bottom=prv_round(p.clock_y)+clock.descent;
+    if(reading_top==FULL_LAYOUT_HEIGHT)reading_top=prv_round(p.row_y-p.number_size*.35f);
+    const int divider=split_boundary(clock_bottom,reading_top,FULL_LAYOUT_HEIGHT);
+    // Readings are already painted on their palette. Fill only the clear
+    // upper region, then paint the clock/date on the upper palette.
+    graphics_context_set_fill_color(ctx,s_background_color);
+    graphics_fill_rect(ctx,GRect(0,0,FACE_WIDTH,divider),0,GCornerNone);
+    prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
+    prv_draw_date(ctx,p);
+  }
+  prv_draw_status(ctx,p);
 }
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point) {
   (void)context;point=prv_point(point);
