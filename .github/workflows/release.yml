@@ -25,6 +25,8 @@ jobs:
           python-version-file: .python-version
       - run: npm run check:setup
       - run: npm ci --ignore-scripts
+      - name: Install pinned image audit dependency
+        run: python3 -m pip install pillow==13.0.0
       - run: npm test
       - run: npm run release:prepare
       - run: npm run release:publish
