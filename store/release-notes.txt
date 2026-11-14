@@ -1,9 +1,9 @@
 Dynamic 1.0.0
 
-SDK 4.44 builds for Time 2 and Round 2. Keeps the existing identity, saved settings, provider protocols, expiry rules and typography. Both numeric readings share a measured size; phone text-size choices apply immediately and survive reopening. Music retains its artwork position while loading. Track replacement slides the outgoing and incoming items together. Round 2 keeps the complete 40px cover inside the display.
+First stable preparation for Pebble Time 2 and Round 2.
 
-Stable release preparation of the reviewed Round 2 implementation. Existing frozen releases remain unchanged; publication is a separate step.
+Choose Columns, Stacked rows or Four when idle. The compact four-reading grid returns to the selected pair during an activity or Timeline Peek. Split the clock and detail colours, hide optional titles, or enable shake switching. Complete percentages, including 100%, stay together.
 
-Use the full circular display for the centered clock, complete readings and lower activities. Preserve the 40px music cover, simultaneous track slides and native Peek. Time 2 retains its established composition.
+Phone settings now have four category screens, a compact expandable preview and one Save/Discard bar. Day/night palette editing is separate from the active appearance.
 
-First stable public release numbered 1.0.0. The reviewed implementation, public UUID, saved state and provider protocols are unchanged.
+Compatible Activities include music, optional notifications and Timer countdowns. Timer owns its countdown controls and alarm; source sharing needs Pebble plugin support and a connected phone.

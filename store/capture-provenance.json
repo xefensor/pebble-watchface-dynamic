@@ -1,88 +1,88 @@
 {
   "version": "1.0.0",
   "nativePixelsModified": false,
-  "scope": "Raw emulator screenshots from the exact stable candidate; synthetic example data. No physical phone/watch claim.",
-  "candidateSha256": "2c13fae81107fe793c0df3a23270eb1b1463dd1518dac2f68cdf0625f755f3f3",
+  "scope": "Fresh native emulator captures from the exact PBW; synthetic example data; no physical phone/watch claim.",
+  "candidateSha256": "9e80b5e57fe44793a886f2fad04ba556aeb96967dc4d2f629235625bbd116190",
   "renderer": {
     "emery": {
-      "nativeRendererSha256": "3d79520b38f287beacea986e4bd0ea65f9ea9f4f5cca701d414bcec92aa7e689",
+      "nativeRendererSha256": "2a36b457347b918265b32615ee00931565c64dc4769c79c8e685afb31c5cc427",
       "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
     },
     "gabbro": {
-      "nativeRendererSha256": "7671e0201048ad0e1889c34a9dbc87c567cf6d4d05eeff2287a86822700f24fb",
+      "nativeRendererSha256": "4247a6fb980f1d8a27150392c8ad7542c815f24f28262b193095cfcac36fef98",
       "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
     }
   },
   "screenshots": {
-    "emery-idle.png": {
+    "emery-store-20261114-columns.png": {
       "platform": "emery",
-      "sha256": "03e9258cabb7415821a02dad8e73a3d0a061d2fa608bced4db38bc53b81d9a69",
-      "source": "Round2-Development/qa/dynamic/emery/1794533573530192994/idle-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/emery/1794533573530192994/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "21573d768d0882a028263af759399fba56d78c078f9baf0bb71aa5c6f450e81d",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/columns.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "emery-music.png": {
+    "emery-store-20261114-four-split.png": {
       "platform": "emery",
-      "sha256": "dfa2aa5223694605bcc34eb1d0d1e6b78ee41cba7e1778fc4bc82ddf44eb644e",
-      "source": "Round2-Development/qa/dynamic/emery/1794533573530192994/music-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/emery/1794533573530192994/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "8dd3eb1a4a4a648b1aef7847d43c7363215d9f4988b75e96407bd5e8219cc445",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/four-split.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "emery-notification.png": {
+    "emery-store-20261114-rows-dark.png": {
       "platform": "emery",
-      "sha256": "8433665b9377275312409e9621123be08ae6d697ac92f849d0c4a62cf5773356",
-      "source": "Round2-Development/qa/dynamic/emery/1794533573530192994/notification-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/emery/1794533573530192994/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "afe8f172bdd170ed8fd2c923300a14edb03c85b6aa78ac72febd4d6e200339a9",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/rows-dark.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "emery-dark.png": {
+    "emery-store-20261114-activities.png": {
       "platform": "emery",
-      "sha256": "372763135f5069079a0d15883cc78b9d6002c6fd2ea147e290d0d18f94111800",
-      "source": "Round2-Development/qa/dynamic/emery/1794533573530192994/idle-24-dark.png",
-      "sourceReport": "Round2-Development/qa/dynamic/emery/1794533573530192994/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "b270af311ad908c1a5ff8e2580499c8c4a53a086f1b0035eea3a8239af29a870",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/activities.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "emery-peek.png": {
+    "emery-store-20261114-peek.png": {
       "platform": "emery",
-      "sha256": "de8bde44d9a2fa60e2906b0b6e2e0f51751632113aaf16f49144c976c7231714",
-      "source": "Round2-Development/qa/dynamic/emery/1794533573530192994/timeline-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/emery/1794533573530192994/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "ca4105b0d624f16c67492492c2da53af2056ae23d543fec178ee5eeb64b87fcc",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/peek.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "gabbro-idle.png": {
+    "gabbro-store-20261114-columns.png": {
       "platform": "gabbro",
-      "sha256": "ede1101d09657dfacea3e8afb0caa1d8816f60e49cb3a153f96035f40ed21e16",
-      "source": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/idle-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "87603ba2af218973c6bd4bed853c1918c66904f6cc2bac80c5b5e60ed97187a8",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/columns.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "gabbro-music.png": {
+    "gabbro-store-20261114-four-split.png": {
       "platform": "gabbro",
-      "sha256": "c1ba3739b5011492a71b38d0daa7c5ae80e1e5f7a6ba3e9e821888929d7cdafc",
-      "source": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/music-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "8cc1f983854b5bd4f3b009a0de671e339903842a7440df5b3f300303ae8bcca6",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/four-split.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "gabbro-notification.png": {
+    "gabbro-store-20261114-rows-dark.png": {
       "platform": "gabbro",
-      "sha256": "6666af184a4d4250374b19266f007fecff43b5dd3afe873263c0b1aab3f98c57",
-      "source": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/notification-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "9566b6d705eecfdde1cd07a2be4a9e03807a9a0a89f6c3c564aa6d1df67b41a3",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/rows-dark.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "gabbro-dark.png": {
+    "gabbro-store-20261114-activities.png": {
       "platform": "gabbro",
-      "sha256": "42e945798fcc78f81865db1d94f4ee8b1a9371291e9563385a8a8a88caee4aa2",
-      "source": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/idle-24-dark.png",
-      "sourceReport": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "18a635dae278eff8e1c6846f221b548d9f4ac2fb395c58315957d2326bca8364",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/activities.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     },
-    "gabbro-peek.png": {
+    "gabbro-store-20261114-peek.png": {
       "platform": "gabbro",
-      "sha256": "210be42b925b54d70a14ee36c7f0646e088e8ac627be79293897390790a97d23",
-      "source": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/timeline-24-light.png",
-      "sourceReport": "Round2-Development/qa/dynamic/gabbro/1794533573530186356/report.json",
-      "rendererProof": "Exact stable PBW captured in native emulator; original PNG bytes unchanged."
+      "sha256": "d0e93f84e39258af0cb77a5163c206896ba86da9554bc90ca8db3231543b0804",
+      "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/peek.png",
+      "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
+      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
     }
   }
 }

@@ -1,27 +1,23 @@
-# Store review kit
+# Dynamic 1.0.0 — current Store preparation
 
-This directory prepares Dynamic 1.0.0 for Time 2 and Round 2. Duo is deferred.
-The kit is local and has not been submitted or published.
+The active listing is `listing.json`. Descriptions and release notes are plain
+text; native screenshots and banner filenames are listed per platform. Upload
+standalone native PNGs as screenshots and the 720×320 family PNG as each platform’s
+banner. SVGs, product marks, provenance and licence files are editable/review
+material, not extra screenshots.
 
-Run `npm run store:prepare`, then `npm run store:check`. Both use the exact
-checked candidate PBW. `listing.json` contains the proposed fields;
-`capture-provenance.json` binds the current raw screenshots to its native code
-and resources. Screenshots contain synthetic sample data, with no added frame,
-labels or modified pixels. Each target has its own native dimensions.
+The raw native screenshots are unframed and retain their original pixels. Time 2 is 200×228; Round 2 is 260×260.
 
-Pebble now documents plugin publishing in its
-[publishing guide](https://developer.repebble.com/guides/plugins/publishing-plugins/).
-The former blanket preview restriction is historical. Current phone versions
-still require enabling Plugins / permissions preview as described in the
-[preview guide](https://developer.repebble.com/guides/plugins/preview/).
-Music and notification integration requires Android.
+The coordinated family artwork is original XOCE work. Inter text is outlined in
+SVG, with its SIL OFL notice in `ARTWORK-LICENSES.txt`. Official hardware frames
+are not used in these Store banners. Native app UI, UUID and version are unchanged.
 
-Xef accepted this reviewed implementation for stable release preparation on
-2026-11-13. Physical coverage remains recorded separately. Before publication,
-verify Dashboard ownership, an unused version and live app-owned GitHub
-support/privacy URLs. Upload the exact frozen PBW after GitHub publication.
-A successful local kit check establishes package consistency only.
+Prepare/check a kit with `python3 scripts/store-kit.py --pbw /path/to/checked.pbw`
+and the same command with `--check`. Outputs stay under ignored `build/store/`.
+The six-product review bundle is `Watch/Store-Update-2026-11-14/` in the workspace.
+Keep old `dist/`, `releases/` and prior review bundles unchanged.
 
-Files with the old `emery_` naming and the old asset manifest/provenance belong
-to earlier releases; they are excluded from the new kit. Historical archives,
-checksums and download links remain unchanged. Current capture names use hyphens.
+This preparation does not upload, publish or deploy anything. Existing review
+acceptance is retained; emulator/browser checks do not establish physical phone
+or watch testing. Verify the Dashboard listing/ownership and exact public
+release bytes before activating website installation links.
