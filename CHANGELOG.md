@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 — 2026-11-14
+## 1.0.1
 
 - Package the current reviewed implementation and updated Store assets under a new numeric version, preserving the public UUID and saved settings.
 - Earlier released binaries and archives remain unchanged.
