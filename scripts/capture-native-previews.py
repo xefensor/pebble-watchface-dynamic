@@ -139,6 +139,9 @@ def capture(pebble,pbw,output,preview=None,appmessage=None):
         # The phone bridge replaces cached JS with a PBW whose JS source is
         # absent. Loading it stops the old JS runtime before native startup.
         send_data_to_qemu(pebble.transport,QemuBluetoothConnection(connected=True))
+        # Initialize time before native startup caches its clock/date. A later
+        # SetUTC need not produce an immediate minute tick on every firmware.
+        set_time()
         ToolAppInstaller(pebble,str(native_pbw),quiet=True).install()
         # Some SDK bridge installs complete while the launcher/previous face
         # remains visible. Explicitly start this exact installed native UUID.

@@ -9,7 +9,7 @@ import tarfile
 
 
 DEPENDENCIES = (
-    ("CORE.json", "pebble-watchface-core", "0.6.0"),
+    ("CORE.json", "pebble-watchface-core", "0.6.1-dev.0"),
     ("ACTIVITIES.json", "pebble-activities", "0.4.5"),
 )
 

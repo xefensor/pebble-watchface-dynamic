@@ -2,18 +2,18 @@
 
 var settings=require('./settings-state');
 var KEY='dynamic-settings-delivery-v1';
-var fields=['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','CLOCK_FORMAT','SHOW_STATUS','ANIMATIONS','NOTIFICATION_VIBRATION','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'];
+var fields=['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','CLOCK_FORMAT','SHOW_STATUS','ANIMATIONS','NOTIFICATION_VIBRATION','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE','SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR'];
 function equal(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function values(value){return fields.map(function(key){return Number(value[key]);});}
-function valid(v){return Array.isArray(v)&&v.length===13&&v.every(function(n,i){return Number.isInteger(n)&&n>=0&&(i<6?n<=0xffffff:i===6?[0,12,24].indexOf(n)>=0:i===9||i===11?n<=2:i===10?n<=3:n<=1);});}
+function valid(v){return Array.isArray(v)&&(v.length===13||v.length===21)&&v.every(function(n,i){return Number.isInteger(n)&&n>=0&&(i<6||i>=17?n<=0xffffff:i===6?[0,12,24].indexOf(n)>=0:i===9||i===11?n<=2:i===10?n<=3:n<=1);});}
 function put(b,at,n){for(var i=0;i<4;i++)b[at+i]=(n>>>(8*i))&255;}
 function get(b,at){return (b[at]|b[at+1]<<8|b[at+2]<<16|b[at+3]<<24)>>>0;}
-function encode(v,revision,status,hello){var b=[1,13,status||0,hello?1:0];put(b,4,revision);v.forEach(function(n,i){put(b,8+4*i,n);});return b;}
+function encode(v,revision,status,hello){var b=[v.length===13?1:2,v.length,status||0,hello?1:0];put(b,4,revision);v.forEach(function(n,i){put(b,8+4*i,n);});return b;}
 function decode(input){
-  if(!input||input.length!==60)return null;
+  if(!input||input.length!==60&&input.length!==92)return null;
   var b=Array.prototype.slice.call(input);
-  if(!b.every(function(n){return Number.isInteger(n)&&n>=0&&n<=255;})||b[0]!==1||b[1]!==13||b[2]>1||b[3]>1)return null;
-  var v=fields.map(function(_,i){return get(b,8+4*i);});
+  if(!b.every(function(n){return Number.isInteger(n)&&n>=0&&n<=255;})||!((b[0]===1&&b[1]===13&&b.length===60)||(b[0]===2&&b[1]===21&&b.length===92))||b[2]>1||b[3]>1)return null;
+  var v=fields.slice(0,b[1]).map(function(_,i){return get(b,8+4*i);});
   return valid(v)?{values:v,revision:get(b,4),status:b[2],hello:b[3]===1}:null;
 }
 function next(n){return ((n+1)>>>0)||1;}
@@ -42,7 +42,7 @@ function hasNative(storage){
 }
 function adopt(storage,v){
   var current=settings.read(storage);if(!current)return false;
-  fields.forEach(function(key,i){current[key]=typeof settings.defaults[key]==='boolean'?!!v[i]:v[i];});
+  fields.slice(0,v.length).forEach(function(key,i){current[key]=typeof settings.defaults[key]==='boolean'?!!v[i]:v[i];});
   current.NIGHT_PALETTE=current.APPEARANCE_MODE===1;
   return settings.save(storage,current).ok;
 }

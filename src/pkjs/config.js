@@ -12,17 +12,25 @@ module.exports = [
     {type:'select',messageKey:'MANUAL_APPEARANCE',defaultValue:0,label:'Manual palette',serializeValueAs:'integer',options:[{label:'Light',value:0},{label:'Dark',value:1}]},
     {type:'text',id:'dynamic-appearance-unavailable',defaultValue:'Follow Pebble appearance is unavailable on this build. It uses your last Light or Dark choice.'},
     {type:'text',id:'dynamic-display-status',defaultValue:'Saved on phone · Pending on watch'},
+    {type:'toggle',messageKey:'SCREEN_SPLIT',defaultValue:false,label:'Split clock and details'},
+    {type:'select',messageKey:'READING_LAYOUT',defaultValue:0,label:'Reading layout',serializeValueAs:'integer',options:[{label:'Columns',value:0},{label:'Stacked rows',value:1}]},
+    {type:'toggle',messageKey:'HIDE_READING_TITLES',defaultValue:false,label:'Hide reading titles',description:'Units, required qualifiers and unavailable states stay visible.'},
+    {type:'toggle',messageKey:'SHAKE_READINGS',defaultValue:false,label:'Shake to switch readings',description:'Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake.'},
     {type:'text',id:'dynamic-preview',defaultValue:'Layout & colour preview'},
     {type:'text',id:'dynamic-theme',defaultValue:'Theme'},
     {type:'color',messageKey:'BACKGROUND_COLOR',defaultValue:'0xFFFFFF',label:'Background color',layout:'COLOR',sunlight:false},
     {type:'color',messageKey:'TEXT_COLOR',defaultValue:'0x000000',label:'Text color',layout:'COLOR',sunlight:false},
     {type:'color',messageKey:'ACCENT_COLOR',defaultValue:'0x55AAFF',label:'Accent color',description:'Color for reading symbols and rain gauges.',layout:'COLOR',sunlight:false},
+    {type:'color',messageKey:'LOWER_BACKGROUND_COLOR',defaultValue:'0x000000',label:'Details background',layout:'COLOR',sunlight:false},
+    {type:'color',messageKey:'LOWER_TEXT_COLOR',defaultValue:'0xFFFFFF',label:'Details text',layout:'COLOR',sunlight:false},
     {type:'text',id:'dynamic-contrast',defaultValue:''},
     {type:'text',id:'dynamic-palette-code',defaultValue:'Share colours'},
     {type:'toggle',messageKey:'NIGHT_PALETTE',defaultValue:false,label:'Quiet Time colours',description:'Use these watch colours while Pebble Quiet Time is active.'},
     {type:'color',messageKey:'NIGHT_BACKGROUND_COLOR',defaultValue:'0x000000',label:'Night background',layout:'COLOR',sunlight:false},
     {type:'color',messageKey:'NIGHT_TEXT_COLOR',defaultValue:'0xFFFFFF',label:'Night text',layout:'COLOR',sunlight:false},
     {type:'color',messageKey:'NIGHT_ACCENT_COLOR',defaultValue:'0x55AAFF',label:'Night accent',layout:'COLOR',sunlight:false},
+    {type:'color',messageKey:'NIGHT_LOWER_BACKGROUND_COLOR',defaultValue:'0xFFFFFF',label:'Night details background',layout:'COLOR',sunlight:false},
+    {type:'color',messageKey:'NIGHT_LOWER_TEXT_COLOR',defaultValue:'0x000000',label:'Night details text',layout:'COLOR',sunlight:false},
     {type:'select',messageKey:'CLOCK_FORMAT',defaultValue:0,label:'Time format',serializeValueAs:'integer',options:[
       {label:'Follow Pebble',value:0},{label:'12-hour time',value:12},{label:'24-hour time',value:24}
     ]},
@@ -60,8 +68,10 @@ module.exports = [
     {type:'text',defaultValue:'Status when settings opened. Reopen settings to refresh.'},
     {type:'text',id:'dynamic-source-status',defaultValue:'Dynamic content: waiting for Pebble'},
     {type:'text',id:'complications-status',defaultValue:'Complications: waiting for Pebble'},
+    {type:'text',id:'dynamic-repository',defaultValue:'Source code: https://github.com/xefensor/pebble-watchface-dynamic'},
+    {type:'text',id:'dynamic-issues',defaultValue:'Feedback: https://github.com/xefensor/pebble-watchface-dynamic/issues'},
     {type:'text',id:'context-status',defaultValue:'Dynamic content: waiting for Pebble'},
-    {type:'text',defaultValue:'Timeline Peek keeps the clock and complications 1 and 2. Its event panel takes priority over music and notifications.'}
+    {type:'text',defaultValue:'Timeline Peek keeps the clock and complications. Its event panel takes priority over music and notifications.'}
   ]},
   {type:'submit',defaultValue:'Save'},
   // Transport components have no preference keys and are never submitted.

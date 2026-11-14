@@ -10,6 +10,14 @@ Start a countdown in Timer, then return to Dynamic to see the time remaining on 
 
 Sharing needs plugin support in the official Pebble phone app, the required permissions and a connected phone. Weather and battery readings use separate reading settings. Music and notification integration requires Android. Open Activity is optional; you can always open Timer from the watch’s app list.
 
+## Development reading options
+
+The local feedback candidate adds an optional split clock/details palette,
+stacked reading rows and hidden titles. Shake paging can cycle global Pebble
+slots 1–2, 3–4 and 5; it is off by default. Units and unavailable states remain
+visible. PebbleOS does not expose touch events to watchfaces. See [current
+UI](docs/UI.md) for behaviour and verification scope.
+
 ## Download
 
 [Version 0.18.3](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.18.3) is a development prerelease.

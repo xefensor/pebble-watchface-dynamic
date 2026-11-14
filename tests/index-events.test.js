@@ -416,7 +416,7 @@ test('new appearance keys extend the original wire contract without renumbering 
     'WEATHER_CONDITION','COMPLICATION_DATA','REQUEST_COMPLICATIONS','CONTEXT_DATA','REQUEST_CONTEXT',
     'SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APPS','SHOW_STATUS','PANEL_TRANSITIONS'];
   assert.deepEqual(packageInfo.pebble.messageKeys.slice(0,31),legacy);
-  assert.equal(packageInfo.pebble.messageKeys.length,51);
+  assert.equal(packageInfo.pebble.messageKeys.length,59);
   assert.equal(keys.ACCENT_COLOR,10031);
   assert.equal(keys.ANIMATIONS,10032);
   assert.equal(keys.CLOCK_FORMAT,10033);

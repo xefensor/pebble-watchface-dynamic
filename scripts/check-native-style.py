@@ -889,7 +889,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
     media = [m for m in media_all if "emery" in m.get("targetPlatforms",settings["targetPlatforms"])]
     require(media and all(item.get("type") == "font" for item in media),
             "Only the declared custom body fonts are expected")
-    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT"),
+    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT", "SCREEN_SPLIT", "READING_LAYOUT", "HIDE_READING_TITLES", "SHAKE_READINGS", "LOWER_BACKGROUND_COLOR", "LOWER_TEXT_COLOR", "NIGHT_LOWER_BACKGROUND_COLOR", "NIGHT_LOWER_TEXT_COLOR"),
             "Preserve the earlier key prefix and append only display preference keys")
     keys = {name: 10000 + index for index, name in enumerate(settings["messageKeys"])}
     generated = json.loads((root / "build/js/message_keys.json").read_text())

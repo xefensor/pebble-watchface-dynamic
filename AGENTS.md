@@ -13,7 +13,7 @@ Dynamic's animated clock/readings layouts, Peek response and genuine item
 transitions are intentional. Correct their motion without removing them unless
 Xef explicitly requests that change.
 
-Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
+Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, activity/text paging or silent rotation. Optional explicit shake paging changes only the selected reading pair. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
 ## Read only what the task needs
 

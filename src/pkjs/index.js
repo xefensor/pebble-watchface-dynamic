@@ -105,7 +105,7 @@ var complications = createComplications({
   cancelLater: function(timer) { clearTimeout(timer); }, log: log,
   getSettings: function() {
     var format = clockFormat(savedSettings());
-    return {use12Hour: format === 12, clockFormat: format, language: settingsLanguage()};
+    return {use12Hour: format === 12, clockFormat: format, language: settingsLanguage(),complicationSlotCount:savedSettings().SHAKE_READINGS?5:2};
   },
   localizeBoolean: function(value) {
     return localization.t(value ? 'stateOn' : 'stateOff', settingsLanguage());
@@ -341,10 +341,10 @@ function settingsMetadata(status, dynamic) {
   }
   var slots = status.slots || [];
   var delivery=display.status();
-  return {slots:[0,1].map(function(index) {
+  return {slots:(savedSettings().SHAKE_READINGS?[0,1,2,3,4]:[0,1]).map(function(index) {
     var slot = slots[index] || {};
     var privateValue = privateReading(slot);
-    return {side:index ? 'right' : 'left', label:privateValue ? slot.property || '' : slot.label || slot.property || '',
+    return {side:index%2 ? 'right' : 'left', label:privateValue ? slot.property || '' : slot.label || slot.property || '',
       value:privateValue ? '' : slot.text || '',
       status:slot.status || (status.available === false ? 'disabled' : 'empty'), help:privateValue ? '' : slot.message || '',
       receivedAgeSec:typeof slot.receivedAgeSec === 'number' && isFinite(slot.receivedAgeSec) && slot.receivedAgeSec >= 0 ? slot.receivedAgeSec : null,

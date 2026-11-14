@@ -17,7 +17,7 @@ source=r'''
 #include <time.h>
 #include "reading_layout.h"
 #define READING_WIDTH READING_CONTENT_WIDTH
-typedef struct {float clock_size,number_size,row_y,label_y,peek;} WatchPose;
+typedef struct {float clock_size,number_size,row_y,label_y,peek,clock_y;} WatchPose;
 typedef struct {WatchPose pose;} HalftoneView;
 typedef struct {int width,ascent,descent;} MusicTextMetrics;
 typedef struct {int w;} Size;
@@ -26,8 +26,10 @@ typedef struct {char number[32],unit[32];} ReadingParts;
 typedef int ReadingState;
 typedef int PavCard;
 enum {COMPLICATION_MAX_TEXT_BYTES=64,COMPLICATION_MAX_LABEL_BYTES=32,READING_PART_BYTES=32,READING_VALUE=2,COMPLICATION_FLAG_BITMAP=4};
+static bool s_rows;
 static bool s_has_complications=true,s_depth_effect_enabled=false,s_large_text_enabled=false,s_text_shadow_enabled=false;
 static struct {ComplicationSlot slots[2];} s_complications={{{1},{0}}};
+static const ComplicationSlot *prv_reading_slot(unsigned index){return &s_complications.slots[index];}
 static struct {int secondary,date;} s_type={26,26};
 static char s_time_buffer[]="13:05",s_numeric_date_buffer[]="1.11.",s_compact_date_buffer[]="SUN 1.11.";
 static ReadingNumberLayout s_reading_numbers[2];
@@ -43,7 +45,7 @@ static const char *i18n_get_system_locale(void){return "en";}
 static const char *reading_state_label(ReadingState s,const char *l){(void)s;(void)l;return "No data";}
 static bool reading_parts(const char *s,ReadingParts *p){snprintf(p->number,sizeof(p->number),"%s",s);p->unit[0]=0;return true;}
 static unsigned reading_semantic(const ComplicationSlot *s,const ReadingParts *p,bool n){(void)s;(void)p;(void)n;return 0;}
-static void reading_caption(const ComplicationSlot *s,unsigned k,unsigned i,const char *l,char *out,size_t cap){(void)s;(void)k;(void)i;(void)l;snprintf(out,cap,"%s",caption?"TEMP":"");}
+static void prv_caption(const ComplicationSlot *s,unsigned k,unsigned i,const char *l,char *out,size_t cap){(void)s;(void)k;(void)i;(void)l;snprintf(out,cap,"%s",caption?"TEMP":"");}
 static MusicTextMetrics prv_music_measure(void *c,const char *t,int p){(void)c;(void)p;return (MusicTextMetrics){!strcmp(t,"Too long")&&wide?100:20,18,5};}
 static void reading_native_number(const char *s,char *out,size_t cap){snprintf(out,cap,"%s",s);}
 static const char *reading_overflow_label(const char *l){(void)l;return "Too long";}
@@ -59,7 +61,7 @@ static HalftoneView halftone_supporting_view(WatchPose p,int h,int i,int s,int r
 call='prv_view(p,228)'if face=='halftone'else'prv_reading_pose(p,228,NULL)'
 source+=native[a:b]+'''
 int main(void){
- WatchPose p={40,40,100,20,0};
+ WatchPose p={40,40,100,20,0,50};
  s_reading_numbers[0].overflow=true;CALL;assert(measured_second);
  wide=false;CALL;assert(!measured_second);
  wide=true;s_reading_numbers[0].overflow=false;CALL;assert(!measured_second);

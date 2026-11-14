@@ -89,7 +89,7 @@ static inline const char *reading_label(const ComplicationSlot *slot,unsigned ki
   if(slot->label[0]&&(kind==COMPLICATION_SEMANTIC_GENERIC||kind==COMPLICATION_SEMANTIC_NUMBER||
       kind==COMPLICATION_SEMANTIC_RANGE||kind==COMPLICATION_SEMANTIC_BOOLEAN||
       kind==COMPLICATION_SEMANTIC_TIMESTAMP))return slot->label;
-  if(kind==COMPLICATION_SEMANTIC_GENERIC)return index?language->second:language->first;
+  if(kind==COMPLICATION_SEMANTIC_GENERIC)return index>1?language->labels[0]:index?language->second:language->first;
   return language->labels[kind];
 }
 

@@ -45,6 +45,9 @@ class NativeLifecycleTests(unittest.TestCase):
 #define LAYOUT_DURATION_MS 250
 #define INCOMING_DURATION_MS 231
 #define FULL_LAYOUT_HEIGHT 228
+typedef int GColor;
+static GColor s_background_color,s_text_color;
+static void prv_lower_palette(bool active,GColor *background,GColor *text){(void)active;*background=s_background_color;*text=s_text_color;}
 typedef struct { int value; } Layer, AppTimer, GContext;
 typedef struct { struct { int y; } origin; struct { int h; } size; } GRect;
 #define GRect(x,y,w,h) ((GRect){{y},{h}})

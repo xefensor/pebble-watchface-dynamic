@@ -27,7 +27,7 @@ var MESSAGES = {
     "statusHelp": "Status & help",
     "complicationsWaiting": "Complications: waiting for Pebble",
     "contextWaiting": "Dynamic content: waiting for Pebble",
-    "adaptivePeek": "Timeline Peek keeps the clock and complications 1 and 2. Its event panel takes priority over music and notifications.",
+    "adaptivePeek": "Timeline Peek keeps the clock and complications. Its event panel takes priority over music and notifications.",
     "save": "Save settings",
     "complicationsStatus": "Complications: {ready}/{configured} ready",
     "complicationsDisabled": "Enable plugins in Pebble to use complications.",
@@ -65,7 +65,7 @@ var MESSAGES = {
     "statusHelp": "Stav a nápověda",
     "complicationsWaiting": "Komplikace: čeká se na Pebble",
     "contextWaiting": "Dynamický obsah: čeká se na Pebble",
-    "adaptivePeek": "Timeline Peek zachová čas a komplikace 1 a 2. Panel události má přednost před hudbou a oznámeními.",
+    "adaptivePeek": "Timeline Peek zachová čas a komplikace. Panel události má přednost před hudbou a oznámeními.",
     "save": "Uložit nastavení",
     "complicationsStatus": "Komplikace: připraveno {ready}/{configured}",
     "complicationsDisabled": "Pro používání komplikací zapněte pluginy v Pebble.",
@@ -103,7 +103,7 @@ var MESSAGES = {
     "statusHelp": "Stav a pomocník",
     "complicationsWaiting": "Komplikácie: čaká sa na Pebble",
     "contextWaiting": "Dynamický obsah: čaká sa na Pebble",
-    "adaptivePeek": "Timeline Peek zachová čas a komplikácie 1 a 2. Panel udalosti má prednosť pred hudbou a oznámeniami.",
+    "adaptivePeek": "Timeline Peek zachová čas a komplikácie. Panel udalosti má prednosť pred hudbou a oznámeniami.",
     "save": "Uložiť nastavenia",
     "complicationsStatus": "Komplikácie: pripravených {ready}/{configured}",
     "complicationsDisabled": "Na používanie komplikácií zapnite pluginy v Pebble.",
@@ -141,7 +141,7 @@ var MESSAGES = {
     "statusHelp": "Status und Hilfe",
     "complicationsWaiting": "Komplikationen: Warten auf Pebble",
     "contextWaiting": "Dynamische Inhalte: Warten auf Pebble",
-    "adaptivePeek": "Timeline Peek behält die Uhr und die Komplikationen 1 und 2 bei. Das Ereignisfeld hat Vorrang vor Musik und Mitteilungen.",
+    "adaptivePeek": "Timeline Peek behält die Uhr und die Komplikationen  bei. Das Ereignisfeld hat Vorrang vor Musik und Mitteilungen.",
     "save": "Einstellungen speichern",
     "complicationsStatus": "Komplikationen: {ready}/{configured} bereit",
     "complicationsDisabled": "Aktiviere Plugins in Pebble, um Komplikationen zu nutzen.",
@@ -179,7 +179,7 @@ var MESSAGES = {
     "statusHelp": "État et aide",
     "complicationsWaiting": "Complications : en attente de Pebble",
     "contextWaiting": "Contenu dynamique : en attente de Pebble",
-    "adaptivePeek": "Timeline Peek conserve l’heure et les complications 1 et 2. Le panneau d’événement est prioritaire sur la musique et les notifications.",
+    "adaptivePeek": "Timeline Peek conserve l’heure et les complications. Le panneau d’événement est prioritaire sur la musique et les notifications.",
     "save": "Enregistrer les réglages",
     "complicationsStatus": "Complications : {ready}/{configured} prêtes",
     "complicationsDisabled": "Activez les plugins dans Pebble pour utiliser les complications.",
@@ -217,7 +217,7 @@ var MESSAGES = {
     "statusHelp": "Estado y ayuda",
     "complicationsWaiting": "Complicaciones: esperando a Pebble",
     "contextWaiting": "Contenido dinámico: esperando a Pebble",
-    "adaptivePeek": "Timeline Peek conserva el reloj y las complicaciones 1 y 2. El panel de eventos tiene prioridad sobre la música y las notificaciones.",
+    "adaptivePeek": "Timeline Peek conserva el reloj y las complicaciones. El panel de eventos tiene prioridad sobre la música y las notificaciones.",
     "save": "Guardar ajustes",
     "complicationsStatus": "Complicaciones: {ready}/{configured} listas",
     "complicationsDisabled": "Activa los plugins en Pebble para usar complicaciones.",
@@ -255,7 +255,7 @@ var MESSAGES = {
     "statusHelp": "Stato e aiuto",
     "complicationsWaiting": "Complicazioni: in attesa di Pebble",
     "contextWaiting": "Contenuti dinamici: in attesa di Pebble",
-    "adaptivePeek": "Timeline Peek mantiene l’orologio e le complicazioni 1 e 2. Il pannello eventi ha la precedenza su musica e notifiche.",
+    "adaptivePeek": "Timeline Peek mantiene l’orologio e le complicazioni. Il pannello eventi ha la precedenza su musica e notifiche.",
     "save": "Salva impostazioni",
     "complicationsStatus": "Complicazioni: {ready}/{configured} pronte",
     "complicationsDisabled": "Abilita i plugin in Pebble per usare le complicazioni.",
@@ -293,7 +293,7 @@ var MESSAGES = {
     "statusHelp": "Estado e ajuda",
     "complicationsWaiting": "Complicações: à espera do Pebble",
     "contextWaiting": "Conteúdo dinâmico: à espera do Pebble",
-    "adaptivePeek": "O Timeline Peek mantém o relógio e as complicações 1 e 2. O painel de eventos tem prioridade sobre música e notificações.",
+    "adaptivePeek": "O Timeline Peek mantém o relógio e as complicações. O painel de eventos tem prioridade sobre música e notificações.",
     "save": "Salvar configurações",
     "complicationsStatus": "Complicações: {ready}/{configured} prontas",
     "complicationsDisabled": "Ative os plugins no Pebble para usar complicações.",
@@ -331,7 +331,7 @@ var MESSAGES = {
     "statusHelp": "Status en hulp",
     "complicationsWaiting": "Complicaties: wachten op Pebble",
     "contextWaiting": "Dynamische inhoud: wachten op Pebble",
-    "adaptivePeek": "Timeline Peek behoudt de klok en complicaties 1 en 2. Het afsprakenpaneel heeft voorrang op muziek en meldingen.",
+    "adaptivePeek": "Timeline Peek behoudt de klok en complicaties. Het afsprakenpaneel heeft voorrang op muziek en meldingen.",
     "save": "Instellingen opslaan",
     "complicationsStatus": "Complicaties: {ready}/{configured} gereed",
     "complicationsDisabled": "Schakel plugins in Pebble in om complicaties te gebruiken.",
@@ -369,7 +369,7 @@ var MESSAGES = {
     "statusHelp": "Stan i pomoc",
     "complicationsWaiting": "Komplikacje: oczekiwanie na Pebble",
     "contextWaiting": "Treść dynamiczna: oczekiwanie na Pebble",
-    "adaptivePeek": "Timeline Peek zachowuje zegar i komplikacje 1 i 2. Panel wydarzenia ma pierwszeństwo przed muzyką i powiadomieniami.",
+    "adaptivePeek": "Timeline Peek zachowuje zegar i komplikacje. Panel wydarzenia ma pierwszeństwo przed muzyką i powiadomieniami.",
     "save": "Zapisz ustawienia",
     "complicationsStatus": "Komplikacje: gotowe {ready}/{configured}",
     "complicationsDisabled": "Włącz wtyczki w Pebble, aby korzystać z komplikacji.",
@@ -407,7 +407,7 @@ var MESSAGES = {
     "statusHelp": "Status og hjælp",
     "complicationsWaiting": "Komplikationer: venter på Pebble",
     "contextWaiting": "Dynamisk indhold: venter på Pebble",
-    "adaptivePeek": "Timeline Peek beholder uret og komplikation 1 og 2. Begivenhedspanelet har forrang over musik og notifikationer.",
+    "adaptivePeek": "Timeline Peek beholder uret og komplikation. Begivenhedspanelet har forrang over musik og notifikationer.",
     "save": "Gem indstillinger",
     "complicationsStatus": "Komplikationer: {ready}/{configured} klar",
     "complicationsDisabled": "Aktivér plugins i Pebble for at bruge komplikationer.",
@@ -445,7 +445,7 @@ var MESSAGES = {
     "statusHelp": "Status och hjälp",
     "complicationsWaiting": "Komplikationer: väntar på Pebble",
     "contextWaiting": "Dynamiskt innehåll: väntar på Pebble",
-    "adaptivePeek": "Timeline Peek behåller klockan och komplikation 1 och 2. Händelsepanelen har företräde framför musik och aviseringar.",
+    "adaptivePeek": "Timeline Peek behåller klockan och komplikation. Händelsepanelen har företräde framför musik och aviseringar.",
     "save": "Spara inställningar",
     "complicationsStatus": "Komplikationer: {ready}/{configured} klara",
     "complicationsDisabled": "Aktivera insticksprogram i Pebble för att använda komplikationer.",
@@ -483,7 +483,7 @@ var MESSAGES = {
     "statusHelp": "Status og hjelp",
     "complicationsWaiting": "Komplikasjoner: venter på Pebble",
     "contextWaiting": "Dynamisk innhold: venter på Pebble",
-    "adaptivePeek": "Timeline Peek beholder klokken og komplikasjon 1 og 2. Hendelsespanelet prioriteres fremfor musikk og varsler.",
+    "adaptivePeek": "Timeline Peek beholder klokken og komplikasjon. Hendelsespanelet prioriteres fremfor musikk og varsler.",
     "save": "Lagre innstillinger",
     "complicationsStatus": "Komplikasjoner: {ready}/{configured} klare",
     "complicationsDisabled": "Aktiver programtillegg i Pebble for å bruke komplikasjoner.",
@@ -521,7 +521,7 @@ var MESSAGES = {
     "statusHelp": "Tila ja ohje",
     "complicationsWaiting": "Lisätiedot: odotetaan Pebbleä",
     "contextWaiting": "Muuttuva sisältö: odotetaan Pebbleä",
-    "adaptivePeek": "Timeline Peek säilyttää kellon ja lisätiedot 1 ja 2. Tapahtumapaneeli on etusijalla musiikkiin ja ilmoituksiin nähden.",
+    "adaptivePeek": "Timeline Peek säilyttää kellon ja lisätiedot. Tapahtumapaneeli on etusijalla musiikkiin ja ilmoituksiin nähden.",
     "save": "Tallenna asetukset",
     "complicationsStatus": "Lisätiedot: {ready}/{configured} valmiina",
     "complicationsDisabled": "Ota lisäosat käyttöön Pebblessä, jotta voit näyttää lisätietoja.",
@@ -559,7 +559,7 @@ var MESSAGES = {
     "statusHelp": "Állapot és súgó",
     "complicationsWaiting": "Komplikációk: várakozás a Pebble-re",
     "contextWaiting": "Változó tartalom: várakozás a Pebble-re",
-    "adaptivePeek": "A Timeline Peek megtartja az órát és az 1. és 2. komplikációt. Az eseménypanel elsőbbséget élvez a zenével és az értesítésekkel szemben.",
+    "adaptivePeek": "A Timeline Peek megtartja az órát és az. komplikációt. Az eseménypanel elsőbbséget élvez a zenével és az értesítésekkel szemben.",
     "save": "Beállítások mentése",
     "complicationsStatus": "Komplikációk: {ready}/{configured} kész",
     "complicationsDisabled": "A komplikációk használatához engedélyezd a bővítményeket a Pebble-ben.",
@@ -597,7 +597,7 @@ var MESSAGES = {
     "statusHelp": "Stare și ajutor",
     "complicationsWaiting": "Complicații: se așteaptă Pebble",
     "contextWaiting": "Conținut dinamic: se așteaptă Pebble",
-    "adaptivePeek": "Timeline Peek păstrează ceasul și complicațiile 1 și 2. Panoul evenimentului are prioritate față de muzică și notificări.",
+    "adaptivePeek": "Timeline Peek păstrează ceasul și complicațiile. Panoul evenimentului are prioritate față de muzică și notificări.",
     "save": "Salvează setările",
     "complicationsStatus": "Complicații: {ready}/{configured} pregătite",
     "complicationsDisabled": "Activează extensiile în Pebble pentru a folosi complicații.",
@@ -635,7 +635,7 @@ var MESSAGES = {
     "statusHelp": "Durum ve yardım",
     "complicationsWaiting": "Komplikasyonlar: Pebble bekleniyor",
     "contextWaiting": "Dinamik içerik: Pebble bekleniyor",
-    "adaptivePeek": "Timeline Peek saati ve 1 ve 2. komplikasyonları korur. Etkinlik paneli müzik ve bildirimlerden önce gelir.",
+    "adaptivePeek": "Timeline Peek saati ve. komplikasyonları korur. Etkinlik paneli müzik ve bildirimlerden önce gelir.",
     "save": "Ayarları kaydet",
     "complicationsStatus": "Komplikasyonlar: {ready}/{configured} hazır",
     "complicationsDisabled": "Komplikasyonları kullanmak için Pebble’da eklentileri etkinleştirin.",
@@ -3375,5 +3375,355 @@ Object.keys(ACTIVITY_INTRO).forEach(function(language) {
   });
 });
 
+var LAYOUT_KEYS=["readingPage", "layoutApproximation", "Split clock and details", "Reading layout", "Columns", "Stacked rows", "Hide reading titles", "Shake to switch readings", "Details background", "Details text", "Night details background", "Night details text"];
+var LAYOUT_WORDS={
+  "en": [
+    "Preview reading page",
+    "Approximate layout preview with example data.",
+    "Split clock and details",
+    "Reading layout",
+    "Columns",
+    "Stacked rows",
+    "Hide reading titles",
+    "Shake to switch readings",
+    "Details background",
+    "Details text",
+    "Night details background",
+    "Night details text"
+  ],
+  "cs": [
+    "Stránka údajů v náhledu",
+    "Přibližný náhled rozložení s ukázkovými údaji.",
+    "Oddělit hodiny a podrobnosti",
+    "Rozložení údajů",
+    "Sloupce",
+    "Řádky pod sebou",
+    "Skrýt názvy údajů",
+    "Zatřesením přepnout údaje",
+    "Pozadí podrobností",
+    "Text podrobností",
+    "Noční pozadí podrobností",
+    "Noční text podrobností"
+  ],
+  "sk": [
+    "Stránka údajov v náhľade",
+    "Približný náhľad rozloženia s ukážkovými údajmi.",
+    "Oddeliť hodiny a podrobnosti",
+    "Rozloženie údajov",
+    "Stĺpce",
+    "Riadky pod sebou",
+    "Skryť názvy údajov",
+    "Zatrasením prepnúť údaje",
+    "Pozadie podrobností",
+    "Text podrobností",
+    "Nočné pozadie podrobností",
+    "Nočný text podrobností"
+  ],
+  "de": [
+    "Datenseite in der Vorschau",
+    "Ungefähre Layoutvorschau mit Beispieldaten.",
+    "Uhr und Details trennen",
+    "Datenanordnung",
+    "Spalten",
+    "Zeilen untereinander",
+    "Datentitel ausblenden",
+    "Daten durch Schütteln wechseln",
+    "Detailhintergrund",
+    "Detailtext",
+    "Detailhintergrund nachts",
+    "Detailtext nachts"
+  ],
+  "fr": [
+    "Page de données de l’aperçu",
+    "Aperçu approximatif avec des données d’exemple.",
+    "Séparer l’horloge et les détails",
+    "Disposition des données",
+    "Colonnes",
+    "Lignes empilées",
+    "Masquer les titres des données",
+    "Secouer pour changer les données",
+    "Fond des détails",
+    "Texte des détails",
+    "Fond nocturne des détails",
+    "Texte nocturne des détails"
+  ],
+  "es": [
+    "Página de datos de la vista previa",
+    "Vista aproximada con datos de ejemplo.",
+    "Separar reloj y detalles",
+    "Distribución de datos",
+    "Columnas",
+    "Filas apiladas",
+    "Ocultar títulos de datos",
+    "Agitar para cambiar los datos",
+    "Fondo de detalles",
+    "Texto de detalles",
+    "Fondo nocturno de detalles",
+    "Texto nocturno de detalles"
+  ],
+  "it": [
+    "Pagina dati nell’anteprima",
+    "Anteprima indicativa con dati di esempio.",
+    "Separare orologio e dettagli",
+    "Disposizione dei dati",
+    "Colonne",
+    "Righe sovrapposte",
+    "Nascondi titoli dei dati",
+    "Scuoti per cambiare dati",
+    "Sfondo dei dettagli",
+    "Testo dei dettagli",
+    "Sfondo notturno dei dettagli",
+    "Testo notturno dei dettagli"
+  ],
+  "pt": [
+    "Página de dados na pré-visualização",
+    "Pré-visualização aproximada com dados de exemplo.",
+    "Separar relógio e detalhes",
+    "Disposição dos dados",
+    "Colunas",
+    "Linhas empilhadas",
+    "Ocultar títulos dos dados",
+    "Agitar para mudar os dados",
+    "Fundo dos detalhes",
+    "Texto dos detalhes",
+    "Fundo noturno dos detalhes",
+    "Texto noturno dos detalhes"
+  ],
+  "nl": [
+    "Gegevenspagina in voorbeeld",
+    "Benaderend voorbeeld met voorbeeldgegevens.",
+    "Klok en details splitsen",
+    "Gegevensindeling",
+    "Kolommen",
+    "Rijen onder elkaar",
+    "Gegevenstitels verbergen",
+    "Schudden om gegevens te wisselen",
+    "Achtergrond details",
+    "Tekst details",
+    "Nachtachtergrond details",
+    "Nachttekst details"
+  ],
+  "pl": [
+    "Strona danych w podglądzie",
+    "Przybliżony podgląd z przykładowymi danymi.",
+    "Oddziel zegar od szczegółów",
+    "Układ danych",
+    "Kolumny",
+    "Wiersze jeden pod drugim",
+    "Ukryj tytuły danych",
+    "Potrząśnij, aby zmienić dane",
+    "Tło szczegółów",
+    "Tekst szczegółów",
+    "Nocne tło szczegółów",
+    "Nocny tekst szczegółów"
+  ],
+  "hu": [
+    "Adatoldal az előnézetben",
+    "Hozzávetőleges elrendezés mintaadatokkal.",
+    "Óra és részletek szétválasztása",
+    "Adatok elrendezése",
+    "Oszlopok",
+    "Egymás alatti sorok",
+    "Adatcímek elrejtése",
+    "Rázásra adatváltás",
+    "Részletek háttere",
+    "Részletek szövege",
+    "Részletek éjszakai háttere",
+    "Részletek éjszakai szövege"
+  ],
+  "fi": [
+    "Esikatselun tietosivu",
+    "Suuntaa antava esikatselu esimerkkitiedoilla.",
+    "Erota kello ja tiedot",
+    "Tietojen asettelu",
+    "Sarakkeet",
+    "Päällekkäiset rivit",
+    "Piilota tietojen otsikot",
+    "Vaihda tietoja ravistamalla",
+    "Tietojen tausta",
+    "Tietojen teksti",
+    "Tietojen yötausta",
+    "Tietojen yöteksti"
+  ],
+  "sv": [
+    "Datasida i förhandsvisning",
+    "Ungefärlig layout med exempeldata.",
+    "Dela upp klocka och detaljer",
+    "Datalayout",
+    "Kolumner",
+    "Staplade rader",
+    "Dölj datarubriker",
+    "Skaka för att byta data",
+    "Detaljernas bakgrund",
+    "Detaljernas text",
+    "Detaljernas nattbakgrund",
+    "Detaljernas nattext"
+  ],
+  "no": [
+    "Dataside i forhåndsvisning",
+    "Omtrentlig oppsett med eksempeldata.",
+    "Del klokke og detaljer",
+    "Dataoppsett",
+    "Kolonner",
+    "Stablede rader",
+    "Skjul datatitler",
+    "Rist for å bytte data",
+    "Detaljbakgrunn",
+    "Detaljtekst",
+    "Detaljbakgrunn om natten",
+    "Detaljtekst om natten"
+  ],
+  "da": [
+    "Dataside i forhåndsvisning",
+    "Omtrentligt layout med eksempeldata.",
+    "Opdel ur og detaljer",
+    "Datalayout",
+    "Kolonner",
+    "Stablede rækker",
+    "Skjul datatitler",
+    "Ryst for at skifte data",
+    "Detaljebaggrund",
+    "Detaljetekst",
+    "Detaljebaggrund om natten",
+    "Detaljetekst om natten"
+  ],
+  "ro": [
+    "Pagina de date din previzualizare",
+    "Previzualizare aproximativă cu date de exemplu.",
+    "Separă ceasul și detaliile",
+    "Aspectul datelor",
+    "Coloane",
+    "Rânduri suprapuse",
+    "Ascunde titlurile datelor",
+    "Scutură pentru a schimba datele",
+    "Fundalul detaliilor",
+    "Textul detaliilor",
+    "Fundal nocturn al detaliilor",
+    "Text nocturn al detaliilor"
+  ],
+  "tr": [
+    "Önizleme veri sayfası",
+    "Örnek verilerle yaklaşık düzen önizlemesi.",
+    "Saati ve ayrıntıları ayır",
+    "Veri düzeni",
+    "Sütunlar",
+    "Alt alta satırlar",
+    "Veri başlıklarını gizle",
+    "Verileri değiştirmek için salla",
+    "Ayrıntı arka planı",
+    "Ayrıntı metni",
+    "Gece ayrıntı arka planı",
+    "Gece ayrıntı metni"
+  ]
+};
+Object.keys(LAYOUT_WORDS).forEach(function(language){LAYOUT_KEYS.forEach(function(key,index){MESSAGES[language][key]=LAYOUT_WORDS[language][index];LITERALS[LAYOUT_WORDS.en[index]]=key;});});
+var LAYOUT_HELP_KEYS=["Units, required qualifiers and unavailable states stay visible.", "Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake.", "Source code: https://github.com/xefensor/pebble-watchface-dynamic", "Feedback: https://github.com/xefensor/pebble-watchface-dynamic/issues"];
+var LAYOUT_HELP={
+  "en": [
+    "Units, required qualifiers and unavailable states stay visible.",
+    "Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake.",
+    "Source code: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Feedback: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "cs": [
+    "Jednotky, povinná upřesnění a nedostupné stavy zůstanou viditelné.",
+    "Přepíná pozice Pebble 1–2, 3–4 a 5. Stránka zůstane vybraná do dalšího zatřesení.",
+    "Zdrojový kód: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Zpětná vazba: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "sk": [
+    "Jednotky, povinné upresnenia a nedostupné stavy zostanú viditeľné.",
+    "Prepína pozície Pebble 1–2, 3–4 a 5. Stránka zostane vybraná do ďalšieho zatrasenia.",
+    "Zdrojový kód: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Spätná väzba: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "de": [
+    "Einheiten, notwendige Zusätze und nicht verfügbare Zustände bleiben sichtbar.",
+    "Wechselt die Pebble-Plätze 1–2, 3–4 und 5. Die Seite bleibt bis zum nächsten Schütteln ausgewählt.",
+    "Quellcode: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Rückmeldung: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "fr": [
+    "Les unités, précisions obligatoires et états indisponibles restent visibles.",
+    "Parcourt les emplacements Pebble 1–2, 3–4 et 5. La page reste choisie jusqu’à la prochaine secousse.",
+    "Code source : https://github.com/xefensor/pebble-watchface-dynamic",
+    "Commentaires : https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "es": [
+    "Las unidades, precisiones necesarias y estados no disponibles siguen visibles.",
+    "Alterna las posiciones Pebble 1–2, 3–4 y 5. La página permanece hasta la siguiente sacudida.",
+    "Código fuente: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Comentarios: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "it": [
+    "Unità, precisazioni necessarie e stati non disponibili restano visibili.",
+    "Scorre le posizioni Pebble 1–2, 3–4 e 5. La pagina resta selezionata fino alla prossima scossa.",
+    "Codice sorgente: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Commenti: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "pt": [
+    "As unidades, qualificações necessárias e estados indisponíveis permanecem visíveis.",
+    "Percorre as posições Pebble 1–2, 3–4 e 5. A página mantém-se até à próxima agitação.",
+    "Código-fonte: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Comentários: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "nl": [
+    "Eenheden, vereiste toelichtingen en niet-beschikbare statussen blijven zichtbaar.",
+    "Wisselt Pebble-posities 1–2, 3–4 en 5. De pagina blijft tot de volgende schudbeweging.",
+    "Broncode: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Reacties: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "pl": [
+    "Jednostki, wymagane dopiski i stany niedostępności pozostają widoczne.",
+    "Przełącza pozycje Pebble 1–2, 3–4 i 5. Strona pozostaje wybrana do następnego potrząśnięcia.",
+    "Kod źródłowy: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Uwagi: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "hu": [
+    "A mértékegységek, szükséges jelölések és nem elérhető állapotok láthatók maradnak.",
+    "A Pebble 1–2, 3–4 és 5 helyei között vált. Az oldal a következő rázásig megmarad.",
+    "Forráskód: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Visszajelzés: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "fi": [
+    "Yksiköt, pakolliset tarkenteet ja ei saatavilla -tilat jäävät näkyviin.",
+    "Vaihtaa Pebblen paikkoja 1–2, 3–4 ja 5. Sivu säilyy seuraavaan ravistukseen asti.",
+    "Lähdekoodi: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Palaute: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "sv": [
+    "Enheter, nödvändiga tillägg och otillgängliga tillstånd förblir synliga.",
+    "Växlar Pebble-platserna 1–2, 3–4 och 5. Sidan behålls till nästa skakning.",
+    "Källkod: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Återkoppling: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "no": [
+    "Enheter, nødvendige tillegg og utilgjengelige tilstander forblir synlige.",
+    "Veksler Pebble-plassene 1–2, 3–4 og 5. Siden beholdes til neste risting.",
+    "Kildekode: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Tilbakemelding: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "da": [
+    "Enheder, nødvendige tilføjelser og utilgængelige tilstande forbliver synlige.",
+    "Skifter Pebble-pladserne 1–2, 3–4 og 5. Siden beholdes til næste ryst.",
+    "Kildekode: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Tilbagemelding: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "ro": [
+    "Unitățile, precizările necesare și stările indisponibile rămân vizibile.",
+    "Schimbă pozițiile Pebble 1–2, 3–4 și 5. Pagina rămâne până la următoarea scuturare.",
+    "Cod sursă: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Opinii: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ],
+  "tr": [
+    "Birimler, gerekli açıklamalar ve kullanılamayan durumlar görünür kalır.",
+    "Pebble yuvaları 1–2, 3–4 ve 5 arasında geçer. Sayfa sonraki sallamaya kadar kalır.",
+    "Kaynak kodu: https://github.com/xefensor/pebble-watchface-dynamic",
+    "Geri bildirim: https://github.com/xefensor/pebble-watchface-dynamic/issues"
+  ]
+};
+Object.keys(LAYOUT_HELP).forEach(function(language){LAYOUT_HELP_KEYS.forEach(function(key,index){MESSAGES[language][key]=LAYOUT_HELP[language][index];LITERALS[key]=key;});});
+var READING_SLOT_WORDS={"en": "Slot {slot}", "cs": "Pozice {slot}", "sk": "Pozícia {slot}", "de": "Platz {slot}", "fr": "Emplacement {slot}", "es": "Posición {slot}", "it": "Posizione {slot}", "pt": "Posição {slot}", "nl": "Positie {slot}", "pl": "Pozycja {slot}", "da": "Plads {slot}", "sv": "Plats {slot}", "no": "Plass {slot}", "fi": "Paikka {slot}", "hu": "Hely {slot}", "ro": "Poziția {slot}", "tr": "Yuva {slot}"};
+Object.keys(READING_SLOT_WORDS).forEach(function(language){MESSAGES[language].readingSlot=READING_SLOT_WORDS[language];});
 module.exports = {resolveLanguage:resolveLanguage, translateConfig:translateConfig,
   t:t, settingsStrings:settingsStrings, languages:LANGUAGES.slice()};

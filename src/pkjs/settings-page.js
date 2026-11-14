@@ -440,6 +440,7 @@ module.exports = function() {
         return result | (Math.floor((2*(front/85)+(back/85)+1)/3)*85 << shift);
       },0);
       var low = dayEditable()&&ratio(background,foreground) < 4.5 || (Number(appearanceMode.get())===1||nightSelected())&&ratio(color('NIGHT_BACKGROUND_COLOR'),color('NIGHT_TEXT_COLOR')) < 4.5;
+      if(field('SCREEN_SPLIT').get())low=low||dayEditable()&&ratio(color('LOWER_BACKGROUND_COLOR'),color('LOWER_TEXT_COLOR'))<4.5||(Number(appearanceMode.get())===1||nightSelected())&&ratio(color('NIGHT_LOWER_BACKGROUND_COLOR'),color('NIGHT_LOWER_TEXT_COLOR'))<4.5;
       var adjusted = ratio(background,secondary) < 4.5 || ratio(background,color('ACCENT_COLOR')) < 2 ||
         night.get() && ratio(color('NIGHT_BACKGROUND_COLOR'),color('NIGHT_ACCENT_COLOR')) < 2;
       if (contrast) { contrast.className += contrast.className.indexOf('dynamic-warning') < 0 ? ' dynamic-warning' : '';
@@ -613,12 +614,14 @@ module.exports = function() {
     renderApps();
 
     var readings = node(item('dynamic-readings'));
-    if (readings) {
-      clear(readings); readings.appendChild(make('strong',t('twoReadings')));
+    function renderReadings(){
+      if(!readings)return;
+      var paging=!!field('SHAKE_READINGS').get();
+      clear(readings); readings.appendChild(make('strong',t(paging?'Shake to switch readings':'twoReadings')));
       var grid = make('div',null,'dynamic-reading-grid');
-      [0,1].forEach(function(index) {
+      (paging?[0,1,2,3,4]:[0,1]).forEach(function(index) {
         var slot = (data.slots || [])[index] || {}, card = make('div',null,'dynamic-reading');
-        card.appendChild(make('small',t(index ? 'rightReading' : 'leftReading')));
+        card.appendChild(make('small',paging||Number(field('READING_LAYOUT').get())===1?t('readingSlot',{slot:index+1}):t(index ? 'rightReading' : 'leftReading')));
         var propertyKeys = {temperature:'readingTemperature',feels_like:'readingFeelsLike',high:'readingHigh',low:'readingLow',condition:'readingCondition',condition_code:'readingCondition',humidity:'readingHumidity',wind_speed:'readingWindSpeed',wind_direction:'readingWindDirection',precipitation:'readingRain',uv_index:'readingUv',battery_level:'readingBattery',title:'readingTitle',artist:'readingArtist',name:'readingName'};
         var property = slot.category === 'phone' && slot.property === 'battery_level' ? t('phoneSource') : propertyKeys[slot.property] ? t(propertyKeys[slot.property]) : '';
         var label = slot.label && String(slot.label).toLowerCase() !== String(slot.property || '').toLowerCase() ? slot.label : property || slot.label;
@@ -635,10 +638,16 @@ module.exports = function() {
         if (recovery) { card.appendChild(make('small',t(recovery))); }
         grid.appendChild(card);
       }); readings.appendChild(grid);
+      var help=node(item('dynamic-reading-help'));if(help){clear(help);var guidance=t('complicationsHelp');if(paging)guidance=guidance.replace(/\b1\b.*?\b2\b/,'1–5');help.appendChild(make('p',guidance));help.appendChild(make('p',t('sharedReadingsHelp'),'description'));}
     }
-    var readingHelp=node(item('dynamic-reading-help'));
-    if (readingHelp) { clear(readingHelp); readingHelp.appendChild(make('p',t('complicationsHelp')));
-      readingHelp.appendChild(make('p',t('sharedReadingsHelp'),'description')); }
+    renderReadings();
+    field('SHAKE_READINGS').on('change',renderReadings);field('READING_LAYOUT').on('change',renderReadings);
+    [['dynamic-repository','https://github.com/xefensor/pebble-watchface-dynamic'],['dynamic-issues','https://github.com/xefensor/pebble-watchface-dynamic/issues']].forEach(function(pair){
+      var host=node(item(pair[0]));if(!host)return;
+      var label=host.textContent.replace(pair[1],'').trim(),link=make('a',label);
+      link.href=pair[1];link.target='_blank';link.rel='noopener noreferrer';
+      clear(host);host.appendChild(link);
+    });
     var health = node(item('dynamic-source-status'));
     if (health) {
       clear(health);
@@ -716,7 +725,7 @@ module.exports = function() {
       submitHost.appendChild(reloadSaved);
     }
     function signature() {
-      return JSON.stringify(['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].map(function(key) { return field(key).get(); }).concat([notification.get() && appMode.value === 'selected' ? appEntry.value.trim() : '',activityValue()]));
+      return JSON.stringify(['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR','BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].map(function(key) { return field(key).get(); }).concat([notification.get() && appMode.value === 'selected' ? appEntry.value.trim() : '',activityValue()]));
     }
     updateDirty = function() {
       if (!initialSnapshot || restoring) { return; }
@@ -771,7 +780,12 @@ module.exports = function() {
           event.preventDefault();var next=tabs.children[index];next.click();next.focus();
         }); tabs.appendChild(button);
       });
-      previewHost.appendChild(tabs); var stage = make('div',null,'dynamic-preview-stage');
+      previewHost.appendChild(tabs);
+      var pageLabel=make('label',t('readingPage'),'dynamic-choice'),pageChoice=make('select');
+      pageChoice.setAttribute('aria-label',t('readingPage'));pageChoice.id='dynamic-reading-page';
+      ['1–2','3–4','5'].forEach(function(text,index){var option=make('option',text);option.value=String(index);pageChoice.appendChild(option);});
+      pageLabel.appendChild(pageChoice);previewHost.appendChild(pageLabel);pageChoice.addEventListener('change',renderPreview);
+      var stage = make('div',null,'dynamic-preview-stage');
       var paletteChoice = make('label',null,'dynamic-choice dynamic-preview-palette');
       paletteChoice.setAttribute('for','dynamic-preview-palette-select');
       paletteChoice.appendChild(make('span',t('previewPalette')));
@@ -811,6 +825,31 @@ module.exports = function() {
       previewCaption = make('p',t('previewSettingsNote'),'dynamic-preview-note'); previewHost.appendChild(previewCaption);
       timelineCaption = make('p',t('previewTimelineHelp'),'dynamic-preview-note'); timelineCaption.hidden = true; previewHost.appendChild(timelineCaption);
     }
+    function drawLayoutPreview(){
+      var ctx=canvas.getContext('2d'),nightMode=nightSelected()||Number(appearanceMode.get())===1&&previewPalette&&previewPalette.value==='quiet';
+      var bg=color(nightMode?'NIGHT_BACKGROUND_COLOR':'BACKGROUND_COLOR'),ink=color(nightMode?'NIGHT_TEXT_COLOR':'TEXT_COLOR');
+      var lowBg=field('SCREEN_SPLIT').get()?color(nightMode?'NIGHT_LOWER_BACKGROUND_COLOR':'LOWER_BACKGROUND_COLOR'):bg;
+      var lowInk=field('SCREEN_SPLIT').get()?color(nightMode?'NIGHT_LOWER_TEXT_COLOR':'LOWER_TEXT_COLOR'):ink;
+      var rows=Number(field('READING_LAYOUT').get())===1,active=previewState!=='idle'&&previewState!=='timeline',page=pageChoice?Number(pageChoice.value):0;
+      var clock=active?45:roundPreview?110:106,point=active?38:64,reading=active?72:roundPreview?160:159;
+      var divider=reading-(rows?18:22)-6;
+      ctx.clearRect(0,0,previewWidth,previewHeight);ctx.save();
+      if(roundPreview){ctx.beginPath();ctx.arc(130,130,130,0,Math.PI*2);ctx.clip();}
+      ctx.fillStyle=css(bg);ctx.fillRect(0,0,previewWidth,previewHeight);ctx.fillStyle=css(lowBg);ctx.fillRect(0,divider,previewWidth,previewHeight-divider);
+      ctx.fillStyle=css(ink);ctx.textAlign='center';ctx.font='bold '+point+'px sans-serif';ctx.fillText('13:05',previewWidth/2,clock);
+      ctx.font='16px sans-serif';ctx.fillText('SUN · 1.11.',previewWidth/2,active?16:31);
+      var examples=[['Temperature','5°C'],['Rain','40%'],['Phone','78%'],['Humidity','68%'],['UV','2']];
+      for(var i=0;i<2;i++){
+        var index=page*2+i;if(index>=5)continue;
+        var readingData=(data.slots||[])[index],sample=readingData&&readingData.value?[readingData.label,readingData.value]:examples[index];
+        ctx.fillStyle=css(lowInk);
+        if(rows){var y=reading+i*34;ctx.textAlign='left';ctx.font='14px sans-serif';if(!field('HIDE_READING_TITLES').get())ctx.fillText(sample[0],roundPreview?60:12,y,previewWidth*.42);ctx.textAlign='right';ctx.font='bold 23px sans-serif';ctx.fillText(sample[1],previewWidth-(roundPreview?45:12),y,previewWidth*.46);}
+        else {var x=previewWidth*(i?0.75:0.25);ctx.textAlign='center';ctx.font='bold 28px sans-serif';ctx.fillText(sample[1],x,reading,previewWidth*.43);ctx.font='13px sans-serif';if(!field('HIDE_READING_TITLES').get())ctx.fillText(sample[0],x,reading+23,previewWidth*.43);}
+      }
+      if(active){ctx.fillStyle=css(lowInk);ctx.textAlign='center';ctx.font='bold 22px sans-serif';ctx.fillText(previewState==='timer'?'02:30':previewState==='music'?'Music':'Notification',previewWidth/2,previewHeight-37,previewWidth-40);ctx.font='13px sans-serif';ctx.fillText(t('samplePreview'),previewWidth/2,previewHeight-15);}
+      ctx.restore();previewCaption.textContent=t('layoutApproximation');timelineCaption.hidden=previewState!=='timeline';disabledCaption.hidden=true;formatCaption.hidden=true;
+      canvas.setAttribute('aria-label',t('layoutApproximation'));
+    }
     var previewPending=false;
     function renderPreview() {
       ++request;
@@ -822,6 +861,10 @@ module.exports = function() {
     }
     function drawPreview() {
       if (!canvas) { return; }
+      var enhanced=!!field('SCREEN_SPLIT').get()||Number(field('READING_LAYOUT').get())===1||!!field('HIDE_READING_TITLES').get()||!!field('SHAKE_READINGS').get();
+      if(pageChoice){pageChoice.disabled=!field('SHAKE_READINGS').get();if(pageChoice.disabled)pageChoice.value='0';}
+      if(enhanced){drawLayoutPreview();return;}
+
       var format = Number(field('CLOCK_FORMAT').get());
       if (format !== 12 && format !== 24) { format = Number(assets.systemFormat) === 12 ? 12 : 24; }
       var quietPreview = nightSelected() || Number(appearanceMode.get())===1 && previewPalette && previewPalette.value === 'quiet';
@@ -888,13 +931,14 @@ module.exports = function() {
       if (imageCache[key] && imageCache[key].complete) { draw(imageCache[key]); return; }
       var image = new Image(); imageCache[key] = image; image.onload = function() { draw(image); }; image.onerror = function() { if (serial === request) { previewCaption.textContent = t('noExample'); } }; image.src = frame.src;
     }
+    ['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR'].forEach(function(key){field(key).on('input change',updateColors);});
     field('CLOCK_FORMAT').on('change',renderPreview);
     field('SHOW_MUSIC').on('change',renderPreview);
     updateNotifications(); updateColors();
     initialSnapshot = signature();
     confirmedForm = JSON.parse(JSON.stringify(clay.serialize()));
     if (bridge) bridge.remember(clay.serialize());
-    ['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].forEach(function(key) { field(key).on('input change',updateDirty); });
+    ['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR','BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].forEach(function(key) { field(key).on('input change',updateDirty); });
     updateDirty();
     var displayHost=node(item('dynamic-display-status')),displayLabel,displayRetry,displayBusy=false;
     if(displayHost){

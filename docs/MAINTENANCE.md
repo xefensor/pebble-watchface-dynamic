@@ -5,7 +5,7 @@ relevant subsystem, not as a requirement to reread every document for every edit
 
 ## Ownership and compatibility
 
-Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
+Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, activity/text paging or silent rotation. Optional explicit shake paging changes only the selected reading pair. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
 ## Current interaction and product boundaries
 
@@ -25,9 +25,10 @@ silently replace saved choices with editable defaults. Do not introduce unsolici
 focus or scroll changes. Historical browser/emulator results do not validate a
 new build. Keep portable, packaged, simulated transport and real-device claims distinct.
 
-Native display key **78** owns a versioned 60-byte snapshot: revision, both raw
-RGB palettes, clock/status/animation/vibration choices, text size, appearance mode
-and last manual palette. Validate the complete snapshot, verify persistence
+Native display key **79** owns a versioned 92-byte snapshot: revision, both raw
+RGB palettes, clock/status/animation/vibration choices, text size, appearance mode,
+last manual palette and the optional reading layout settings. Key **78** retains
+a complete compatible 60-byte v1 mirror. Validate the complete snapshot, verify persistence
 readback, then apply and reply. Legacy integer/boolean keys remain compatible
 mirrors. Keep raw RGB values before Pebble's GColor quantization. A profile change
 invalidates measured activity layout and painted-role cache before repaint.
@@ -78,3 +79,20 @@ center fixed. Phone preview frames select the connected watch's display shape;
 an unknown watch exposes the temporary preview-watch selector.
 
 When the face is running, phone previews select the connected Time 2 / Round 2 automatically. Plugin-only settings cannot read WatchInfo; their temporary preview-watch selector affects only the current page and is never saved or sent to the watch.
+
+
+## Feedback development preferences
+
+Display v2 appends eight fields without reusing retired LAYOUT_STYLE. The 92-byte
+frame stores 21 values at key 79 and verifies readback before applying/replying.
+A complete v1 60-byte mirror remains at key 78; v1 messages update their original
+13 values and preserve the new choices. Legacy migration turns the features off
+and derives lower palettes from the inverse of the saved upper text/background.
+New receivers accept both versions; a v1 receipt cannot confirm a v2 preference.
+A phone paired with an older native build remains pending until the watchface is
+updated. Day/night lower colours remain raw RGB, separate from accent colour.
+
+The Core 0.6.1-dev.0 archive is a local development pin from the source commit in
+vendor/CORE.json. Only Dynamic opts into five-slot coordination. The default
+library contract and every other app pin remain two readings. No released
+library, watchface version, UUID or frozen archive has been changed.

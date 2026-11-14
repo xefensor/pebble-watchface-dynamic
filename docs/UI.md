@@ -82,7 +82,7 @@ Animation endpoints preserve the large type roles and readable spacing. The
 underline removal, accent icons and expanded activity area remain independent
 of the motion correction.
 
-Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, paging or silent rotation. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
+Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, activity/text paging or silent rotation. Optional explicit shake paging changes only the selected reading pair. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
 ## Per-face display settings
 
@@ -179,3 +179,26 @@ validity, privacy and navigation contracts are unchanged.
 
 See the [music layout checkpoint](music-layout-checkpoint.md) for the candidate,
 non-music pixel comparisons and native verification scope.
+
+
+## Optional reading layouts and shake paging
+
+The default remains the existing two-column face. Split clock/details adds an
+independent lower background and text palette for day and night. Its boundary
+follows the measured reading band through motion and Peek. Stacked rows put
+identity/symbols on the left and complete numeric values and units on the right;
+optional titles may yield space, required qualifiers and unavailable states may
+not. Hiding reading titles does not hide Activities, units or state labels.
+
+Shake paging is off by default. When enabled, global Pebble slots 1–2, 3–4 and 5
+form three pages. Skip only pages with no selected slot; unavailable selections
+remain visible. A page stays until the next gesture and resets on app restart.
+The SDK tap/shake event is debounced for one second and ignored while covered or
+in Peek. Changing pages reads the native cache, performs no source request or
+persistence write, and invalidates measured/painted Activity roles before layout.
+The five-slot host subscription is enabled only with this preference. Activity
+text and cards never rotate. PebbleOS excludes watchfaces from its touch API.
+
+Phone previews for these optional layouts are labelled approximate example-data
+previews. The default 24 presets per shape are actual native captures. Source
+and issue URLs are available in Help & connection.
