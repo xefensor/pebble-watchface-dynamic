@@ -1039,11 +1039,11 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   prv_draw_date(ctx,p);
   if(s_split){
     const int original_divider=prv_round(p.row_y-(s_rows?p.label_y:p.number_size)*.5f-6);
-    int divider=original_divider-3;
+    int divider=original_divider-6;
     const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
     const int clock_bottom=prv_round(p.clock_y)+clock.descent+1;
     // Tight Peek layouts retain their existing boundary rather than cover
-    // clock ink. Other poses gain three pixels of lower-panel background.
+    // clock ink. Other poses gain six pixels of lower-panel background.
     if(divider<clock_bottom)divider=clock_bottom<original_divider?clock_bottom:original_divider;
     if(divider<0)divider=0;
     if(divider>FULL_LAYOUT_HEIGHT)divider=FULL_LAYOUT_HEIGHT;

@@ -185,7 +185,7 @@ non-music pixel comparisons and native verification scope.
 
 The default remains the existing two-column face. Split clock/details adds an
 independent lower background and text palette for day and night. Its boundary
-follows the measured reading band through motion and Peek, nudged up by three
+follows the measured reading band through motion and Peek, nudged up by six
 pixels where clock clearance permits. Stacked rows put
 identity/symbols on the left and complete numeric values and units on the right;
 optional titles may yield space, required qualifiers and unavailable states may
