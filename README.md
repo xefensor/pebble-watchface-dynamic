@@ -2,6 +2,14 @@
 
 A Pebble Time 2 watchface with an animated clock, two readings and compatible plugin activities.
 
+## Activities: see what is happening now
+
+Activities are live updates shown by compatible XOCE apps and watchfaces, such as a countdown, music or a new notification. This feature connects compatible XOCE products; support depends on the app or watchface you choose.
+
+Start a countdown in Timer, then return to Dynamic to see the time remaining on your watchface. Enable activity plugins and show Timer in Dynamic’s activity list, then save. Timer keeps running the countdown and alarm. Open Timer to pause, resume or finish it.
+
+Sharing needs plugin support in the official Pebble phone app, the required permissions and a connected phone. Weather and battery readings use separate reading settings. Music and notification integration requires Android. Open Activity is optional; you can always open Timer from the watch’s app list.
+
 ## Download
 
 [Version 0.18.3](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.18.3) is a development prerelease.
