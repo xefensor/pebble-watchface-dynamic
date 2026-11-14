@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nativePixelsModified": false,
-  "scope": "Fresh native emulator captures from the exact PBW; synthetic example data; no physical phone/watch claim.",
-  "candidateSha256": "9e80b5e57fe44793a886f2fad04ba556aeb96967dc4d2f629235625bbd116190",
+  "scope": "Original native PNGs reused for the new patch after strict renderer/resource equality with the reviewed package was verified. Synthetic example data; no fresh capture or physical-device claim.",
+  "candidateSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
   "renderer": {
     "emery": {
       "nativeRendererSha256": "2a36b457347b918265b32615ee00931565c64dc4769c79c8e685afb31c5cc427",
@@ -19,70 +19,73 @@
       "sha256": "21573d768d0882a028263af759399fba56d78c078f9baf0bb71aa5c6f450e81d",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/columns.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "emery-store-20261114-four-split.png": {
       "platform": "emery",
       "sha256": "8dd3eb1a4a4a648b1aef7847d43c7363215d9f4988b75e96407bd5e8219cc445",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/four-split.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "emery-store-20261114-rows-dark.png": {
       "platform": "emery",
       "sha256": "afe8f172bdd170ed8fd2c923300a14edb03c85b6aa78ac72febd4d6e200339a9",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/rows-dark.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "emery-store-20261114-activities.png": {
       "platform": "emery",
       "sha256": "b270af311ad908c1a5ff8e2580499c8c4a53a086f1b0035eea3a8239af29a870",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/activities.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "emery-store-20261114-peek.png": {
       "platform": "emery",
       "sha256": "ca4105b0d624f16c67492492c2da53af2056ae23d543fec178ee5eeb64b87fcc",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/peek.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "gabbro-store-20261114-columns.png": {
       "platform": "gabbro",
       "sha256": "87603ba2af218973c6bd4bed853c1918c66904f6cc2bac80c5b5e60ed97187a8",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/columns.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "gabbro-store-20261114-four-split.png": {
       "platform": "gabbro",
       "sha256": "8cc1f983854b5bd4f3b009a0de671e339903842a7440df5b3f300303ae8bcca6",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/four-split.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "gabbro-store-20261114-rows-dark.png": {
       "platform": "gabbro",
       "sha256": "9566b6d705eecfdde1cd07a2be4a9e03807a9a0a89f6c3c564aa6d1df67b41a3",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/rows-dark.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "gabbro-store-20261114-activities.png": {
       "platform": "gabbro",
       "sha256": "18a635dae278eff8e1c6846f221b548d9f4ac2fb395c58315957d2326bca8364",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/activities.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     },
     "gabbro-store-20261114-peek.png": {
       "platform": "gabbro",
       "sha256": "d0e93f84e39258af0cb77a5163c206896ba86da9554bc90ca8db3231543b0804",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/peek.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Raw Screenshot-service PNG from this exact checked PBW; no pixel modifications."
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
     }
-  }
+  },
+  "originalCaptureVersion": "1.0.0",
+  "sourceCaptureCandidateSha256": "9e80b5e57fe44793a886f2fad04ba556aeb96967dc4d2f629235625bbd116190",
+  "reuseProof": "docs/qa/store-version-1.0.1/package-equivalence.json"
 }

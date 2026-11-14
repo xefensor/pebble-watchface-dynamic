@@ -1,0 +1,21 @@
+{
+  "result": "PASS",
+  "version": "1.0.1",
+  "previousVersion": "1.0.0",
+  "pbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+  "previousPbwSha256": "9e80b5e57fe44793a886f2fad04ba556aeb96967dc4d2f629235625bbd116190",
+  "platforms": {
+    "emery": {
+      "nativeRendererSha256": "2a36b457347b918265b32615ee00931565c64dc4769c79c8e685afb31c5cc427",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    },
+    "gabbro": {
+      "nativeRendererSha256": "4247a6fb980f1d8a27150392c8ad7542c815f24f28262b193095cfcac36fef98",
+      "resourceRendererSha256": "db9ae1bc039026afe77bb1f0a775319c0aa00b5a46de706a9d410deaa209d520"
+    }
+  },
+  "uuidUnchanged": true,
+  "nativeRendererResourcesUnchanged": true,
+  "pluginRuntimeAndSettingsUnchanged": false,
+  "scope": "Fresh SDK/public builds. Existing strict renderer identity ignores SDK timestamp, build ID and its derived CRC only; code, native version bytes, UUID and resources remain covered. Original captures reused without pixel changes; no fresh emulator or physical-device claim."
+}

@@ -1,7 +1,7 @@
 {
   "name": "dynamic-watchface",
   "author": "Xef",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "test": "python3 scripts/verify-core.py && node --test tests/*.test.js && python3 scripts/test-native.py && npm run test:workflow && npm run check:docs && npm run test:release && npm run test:platforms && npm run test:assets && npm run test:auditor && npm run test:store",
     "test:js": "node --test tests/*.test.js",
