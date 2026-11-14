@@ -14,7 +14,7 @@ test('wire validates all twenty-one fields and preserves exact legacy RGBs',()=>
  const choices=selected({BACKGROUND_COLOR:0x123456,NIGHT_ACCENT_COLOR:0xabcdef,TEXT_SIZE:3,APPEARANCE_MODE:0,MANUAL_APPEARANCE:1});
  const v=display.values(choices),bytes=display.encode(v,0xffffffff,0,true),decoded=display.decode(bytes);
  assert.deepEqual(decoded,{values:v,revision:0xffffffff,status:0,hello:true});assert.equal(bytes.length,92);
- for(const [i,n] of [[0,0x1000000],[6,13],[7,2],[9,3],[10,4],[11,3],[12,2],[13,2],[14,2],[15,2],[16,2],[17,0x1000000]]){const invalid=v.slice();invalid[i]=n;assert.equal(display.decode(display.encode(invalid,1)),null);}
+ for(const [i,n] of [[0,0x1000000],[6,13],[7,2],[9,3],[10,4],[11,3],[12,2],[13,2],[14,3],[15,2],[16,2],[17,0x1000000]]){const invalid=v.slice();invalid[i]=n;assert.equal(display.decode(display.encode(invalid,1)),null);}
  assert.equal(display.decode(bytes.slice(1)),null);assert.equal(display.next(0xffffffff),1);
 });
 test('legacy Quiet Time migrates independently of the stored day and night palettes',()=>{
@@ -78,4 +78,14 @@ test('v1 frames retain their exact codec and cannot confirm a v2 snapshot',()=>{
  const legacy=display.encode(display.values(selected()).slice(0,13),display.decode(frame(r)).revision);
  assert.equal(legacy.length,60);assert.equal(display.decode(legacy).values.length,13);
  assert.equal(r.controller.receive(legacy),false);assert.equal(r.controller.status().delivery.applied,false);
+});
+
+test('adaptive grid is saved, delivered and reopened as the same layout choice',()=>{
+ const r=rig(saved({READING_LAYOUT:2}));
+ assert.equal(state.read(r.storage).READING_LAYOUT,2);
+ r.controller.reconcile(true);const request=frame(r);
+ assert.equal(display.decode(request).values[14],2);
+ assert.equal(r.controller.receive(request),true);
+ const reopened=create({storage:r.storage}).status();
+ assert.equal(reopened.settings.READING_LAYOUT,2);assert.equal(reopened.delivery.applied,true);
 });

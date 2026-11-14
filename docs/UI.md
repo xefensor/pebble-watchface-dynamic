@@ -214,3 +214,18 @@ The phone example uses the same visual-gap rule with Canvas text ink metrics
 ([HTML TextMetrics](https://html.spec.whatwg.org/multipage/canvas.html#textmetrics));
 older engines without ink bounds use font-size estimates. Phone examples remain
 labelled approximate because they use browser fonts and example data.
+
+The third Reading layout choice, **Four when idle**, opts into a compact 2×2
+idle grid on Time 2 and Round 2. It keeps the selected pair in the first row;
+activities and Timeline Peek use the ordinary two-reading composition. The extra
+row returns after the idle transition settles. Columns remains the default and
+Stacked rows remains selectable. Required qualifiers, source identity and
+unavailable states retain measured space; the optional title setting still
+applies. Grid supporting type uses 16/20/22 px for Small/Medium/Large, and values
+fit at up to 28 px. The main clock retains its 80 px role and moves up 6 px.
+
+Without shake, the grid reads global slots 1–4, collapsing to 1–2. With shake,
+the selected pair stays first and the next configured pair fills the second row;
+slot 5 keeps its empty partner. A single configured pair is never duplicated.
+Transitions use native cached data, with no source refresh or persistence write.
+The same midpoint rule measures all visible reading ink in the idle grid.

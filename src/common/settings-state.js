@@ -13,7 +13,7 @@ function object(value) { return !!value && typeof value === 'object' && !Array.i
 function unwrap(value) { return object(value) && Object.prototype.hasOwnProperty.call(value,'value') ? value.value : value; }
 function value(source,name) { var index=names.indexOf(name);return unwrap(source[name]!==undefined?source[name]:source[10000+index]!==undefined?source[10000+index]:source[index]); }
 function valid(name,input) {
-  if(name==='READING_LAYOUT')return input===0||input===1;
+  if(name==='READING_LAYOUT')return input===0||input===1||input===2;
   if (name==='TEXT_SIZE') return [0,1,2,3].indexOf(input)>=0;
   if (name==='APPEARANCE_MODE') return [0,1,2].indexOf(input)>=0;
   if (name==='MANUAL_APPEARANCE') return input===0 || input===1;

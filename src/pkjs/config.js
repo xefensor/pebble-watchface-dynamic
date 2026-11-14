@@ -13,7 +13,7 @@ module.exports = [
     {type:'text',id:'dynamic-appearance-unavailable',defaultValue:'Follow Pebble appearance is unavailable on this build. It uses your last Light or Dark choice.'},
     {type:'text',id:'dynamic-display-status',defaultValue:'Saved on phone · Pending on watch'},
     {type:'toggle',messageKey:'SCREEN_SPLIT',defaultValue:false,label:'Split clock and details'},
-    {type:'select',messageKey:'READING_LAYOUT',defaultValue:0,label:'Reading layout',serializeValueAs:'integer',options:[{label:'Columns',value:0},{label:'Stacked rows',value:1}]},
+    {type:'select',messageKey:'READING_LAYOUT',defaultValue:0,label:'Reading layout',serializeValueAs:'integer',options:[{label:'Columns',value:0},{label:'Stacked rows',value:1},{label:'Four when idle',value:2}],description:'Four readings in a compact grid when idle; the selected pair stays visible with an activity or Timeline Peek.'},
     {type:'toggle',messageKey:'HIDE_READING_TITLES',defaultValue:false,label:'Hide reading titles',description:'Units, required qualifiers and unavailable states stay visible.'},
     {type:'toggle',messageKey:'SHAKE_READINGS',defaultValue:false,label:'Shake to switch readings',description:'Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake.'},
     {type:'text',id:'dynamic-preview',defaultValue:'Layout & colour preview'},

@@ -17,7 +17,7 @@ source=r'''
 #include <time.h>
 #include "reading_layout.h"
 #define READING_WIDTH READING_CONTENT_WIDTH
-typedef struct {float clock_size,number_size,row_y,label_y,peek,clock_y;} WatchPose;
+typedef struct {float clock_size,number_size,row_y,label_y,peek,clock_y,context;} WatchPose;
 typedef struct {WatchPose pose;} HalftoneView;
 typedef struct {int width,ascent,descent;} MusicTextMetrics;
 typedef struct {int w;} Size;
@@ -26,7 +26,8 @@ typedef struct {char number[32],unit[32];} ReadingParts;
 typedef int ReadingState;
 typedef int PavCard;
 enum {COMPLICATION_MAX_TEXT_BYTES=64,COMPLICATION_MAX_LABEL_BYTES=32,READING_PART_BYTES=32,READING_VALUE=2,COMPLICATION_FLAG_BITMAP=4};
-static bool s_rows;
+static bool s_rows,s_grid,s_grid_drawing;
+#define FULL_LAYOUT_HEIGHT 228
 static bool s_has_complications=true,s_depth_effect_enabled=false,s_large_text_enabled=false,s_text_shadow_enabled=false;
 static struct {ComplicationSlot slots[2];} s_complications={{{1},{0}}};
 static const ComplicationSlot *prv_reading_slot(unsigned index){return &s_complications.slots[index];}
@@ -34,12 +35,16 @@ static struct {int secondary,date;} s_type={26,26};
 static char s_time_buffer[]="13:05",s_numeric_date_buffer[]="1.11.",s_compact_date_buffer[]="SUN 1.11.";
 static ReadingNumberLayout s_reading_numbers[2];
 static bool measured_second,caption,wide=true;
+static ReadingState slot_state=READING_VALUE;
+static unsigned prv_reading_index(unsigned i){return i;}
+static const char *reading_label(const ComplicationSlot *s,unsigned k,unsigned i,const char *l){(void)s;(void)k;(void)i;(void)l;return "TEMP";}
+static void watch_layout_copy_utf8(const char *s,char *out,size_t cap){snprintf(out,cap,"%s",s);}
 static int prv_round(float n){return (int)n;}
 static float watch_clamp(float n){return n;}
 static float watch_context_visibility(WatchPose p){return p.peek;}
 static void prv_fit_reading_numbers(WatchPose p){(void)p;}
 static bool complication_is_selected(const ComplicationSlot *s){return s->flags;}
-static ReadingState reading_state(const ComplicationSlot *s,time_t n){(void)s;(void)n;return READING_VALUE;}
+static ReadingState reading_state(const ComplicationSlot *s,time_t n){(void)s;(void)n;return slot_state;}
 static bool prv_slot_text(const ComplicationSlot *s,char *out,size_t cap){(void)s;snprintf(out,cap,"1234567890");return true;}
 static const char *i18n_get_system_locale(void){return "en";}
 static const char *reading_state_label(ReadingState s,const char *l){(void)s;(void)l;return "No data";}
@@ -61,11 +66,13 @@ static HalftoneView halftone_supporting_view(WatchPose p,int h,int i,int s,int r
 call='prv_view(p,228)'if face=='halftone'else'prv_reading_pose(p,228,NULL)'
 source+=native[a:b]+'''
 int main(void){
- WatchPose p={40,40,100,20,0,50};
+ WatchPose p={40,40,100,20,0,50,0};
  s_reading_numbers[0].overflow=true;CALL;assert(measured_second);
  wide=false;CALL;assert(!measured_second);
  wide=true;s_reading_numbers[0].overflow=false;CALL;assert(!measured_second);
  caption=true;CALL;assert(measured_second);
+ caption=false;slot_state=0;s_grid=s_grid_drawing=true;CALL;assert(measured_second);
+
  return 0;
 }
 '''.replace('CALL',call)

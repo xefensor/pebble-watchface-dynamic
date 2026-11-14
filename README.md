@@ -1,6 +1,6 @@
 # Dynamic
 
-A Pebble Time 2 watchface with an animated clock, two readings and compatible plugin activities.
+A Pebble Time 2 and Round 2 watchface with an animated clock, configurable readings and compatible plugin activities.
 
 ## Activities: see what is happening now
 
@@ -13,7 +13,8 @@ Sharing needs plugin support in the official Pebble phone app, the required perm
 ## Development reading options
 
 The local feedback candidate adds an optional split clock/details palette,
-stacked reading rows and hidden titles. Shake paging can cycle global Pebble
+stacked reading rows and hidden titles. **Four when idle** shows a compact 2×2
+grid, keeping the selected pair when activities or Timeline Peek appear. Shake paging can cycle global Pebble
 slots 1–2, 3–4 and 5; it is off by default. Units and unavailable states remain
 visible. PebbleOS does not expose touch events to watchfaces. See [current
 UI](docs/UI.md) for behaviour and verification scope.

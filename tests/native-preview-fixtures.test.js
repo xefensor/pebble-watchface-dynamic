@@ -74,16 +74,18 @@ function readings(value) {
   assert.equal(at,bytes.length);return result;
 }
 test('focused complications cover real host values, identity, failures and active/Peek boundaries',()=>{
-  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,168);
+  const plan=fixtures.complicationPresets({now:N,session:S});assert.equal(plan.presets.length,186);
   assert.equal(plan.productionReadingHost,true);assert.equal(plan.dynamicLabelAdapter,true);
   for(const preset of plan.presets) {
     const slots=readings(preset.bytes.COMPLICATION_DATA);
-    assert.equal(slots.slice(2).every(slot=>slot.status===0),true);
+    if(!preset.scenario.startsWith('grid-'))assert.equal(slots.slice(2).every(slot=>slot.status===0),true);
     assert.equal(records(preset.bytes.ACTIVITY_DATA).length,preset.state==='active'?1:0);
   }
   const find=name=>readings(plan.presets.find(preset=>preset.name===name+'-light').bytes.COMPLICATION_DATA);
   assert.deepEqual(find('matching-size').slice(0,2).map(slot=>slot.value),[1,35]);
   assert.deepEqual(find('matching-size-reversed').slice(0,2).map(slot=>slot.value),[35,1]);
+  assert.deepEqual(find('grid-five').map(slot=>slot.value),[5,100,78,68,2]);
+  assert.ok(find('grid-unavailable').every(slot=>slot.status!==0));
   let slots=find('temperature-rain');
   assert.deepEqual(slots.slice(0,2).map(slot=>slot.kind),[readingWire.SEMANTIC_KIND.TEMPERATURE,readingWire.SEMANTIC_KIND.PRECIPITATION]);
   assert.deepEqual(slots.slice(0,2).map(slot=>slot.value),[5,40]);assert.equal(slots[0].observedAt,N-90);

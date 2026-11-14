@@ -5,7 +5,7 @@ var KEY='dynamic-settings-delivery-v1';
 var fields=['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','CLOCK_FORMAT','SHOW_STATUS','ANIMATIONS','NOTIFICATION_VIBRATION','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE','SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR'];
 function equal(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function values(value){return fields.map(function(key){return Number(value[key]);});}
-function valid(v){return Array.isArray(v)&&(v.length===13||v.length===21)&&v.every(function(n,i){return Number.isInteger(n)&&n>=0&&(i<6||i>=17?n<=0xffffff:i===6?[0,12,24].indexOf(n)>=0:i===9||i===11?n<=2:i===10?n<=3:n<=1);});}
+function valid(v){return Array.isArray(v)&&(v.length===13||v.length===21)&&v.every(function(n,i){return Number.isInteger(n)&&n>=0&&(i<6||i>=17?n<=0xffffff:i===6?[0,12,24].indexOf(n)>=0:i===9||i===11||i===14?n<=2:i===10?n<=3:n<=1);});}
 function put(b,at,n){for(var i=0;i<4;i++)b[at+i]=(n>>>(8*i))&255;}
 function get(b,at){return (b[at]|b[at+1]<<8|b[at+2]<<16|b[at+3]<<24)>>>0;}
 function encode(v,revision,status,hello){var b=[v.length===13?1:2,v.length,status||0,hello?1:0];put(b,4,revision);v.forEach(function(n,i){put(b,8+4*i,n);});return b;}

@@ -19,6 +19,7 @@ typedef struct {char number[32],unit[32];} ReadingParts;
 typedef struct {int w;} Size;
 enum {READING_VALUE=0,COMPLICATION_FLAG_BITMAP=2,COMPLICATION_SEMANTIC_TEMPERATURE=2,COMPLICATION_SEMANTIC_CONDITION=7,COMPLICATION_MAX_TEXT_BYTES=64,COMPLICATION_MAX_LABEL_BYTES=32,READING_PART_BYTES=32};
 static bool s_has_complications=true;
+static int prv_reading_icon_size(void){return 18;}
 static struct {int secondary;} s_type;
 static ComplicationSlot slots[2];
 static ReadingNumberLayout s_reading_numbers[2];

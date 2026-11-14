@@ -209,7 +209,7 @@ function complicationReading(options) {
   const host=make({pebble:{subscribeToSource:request=>{requests.push(request);return {unsubscribe(){}};}},
     keys:{COMPLICATION_DATA:'COMPLICATION_DATA',REQUEST_COMPLICATIONS:'REQUEST_COMPLICATIONS'},
     now:()=>clock*1000,later:()=>1,cancelLater(){},labelForReading,
-    getSettings:()=>({clockFormat:24,language:options.language||'en'}),
+    getSettings:()=>({clockFormat:24,language:options.language||'en',complicationSlotCount:options.slots.length>2?options.slots.length:2}),
     localizeBoolean:value=>localization.t(value?'stateOn':'stateOff',options.language||'en'),
     send:(payload,ok)=>{if(payload.COMPLICATION_DATA)bytes=payload.COMPLICATION_DATA;if(ok)ok();}});
   host.refresh(true,options.session);
@@ -242,7 +242,11 @@ function complicationPresets(options) {
   const observed={observed_at:{timestamp:{value:now-90}}};
   const ordinary={slots:[weather('temperature'),weather('precipitation')],sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(40),...observed})]}};
   const image={width:8,height:4,palette:Buffer.from([0xc0,0xff]).toString('base64'),pixels:Buffer.from(Array.from({length:16},(_,i)=>i%2?0x01:0x10)).toString('base64')};
+  const grid={slots:[weather('temperature'),weather('precipitation'),{category:'phone',item:'phone_state',property:'battery_level',index:0},weather('humidity'),weather('uv_index')],sources:{'weather/location':[prague({temperature:temperature(),precipitation:rain(100),humidity:rain(68),uv_index:numeric(2,''),...observed})],'phone/phone_state':[named('phone','Phone',{battery_level:rain(78)})]}};
   const specs=[
+    {name:'grid-five',...grid},
+    {name:'grid-unavailable',...grid,state:'unavailable'},
+    {name:'grid-qualifiers',slots:[weather('feels_like'),weather('precipitation'),weather('high'),weather('low')],sources:{'weather/location':[prague({feels_like:temperature(-12),precipitation:rain(100),high:temperature(14),low:temperature(-2),is_forecast:{boolean:{value:true}},...observed})]}},
     {name:'temperature-rain',...ordinary},
     {name:'matching-size',slots:ordinary.slots,sources:{'weather/location':[prague({temperature:temperature(1),precipitation:rain(35),...observed})]}},
     {name:'matching-size-reversed',slots:[weather('precipitation'),weather('temperature')],sources:{'weather/location':[prague({temperature:temperature(1),precipitation:rain(35),...observed})]}},

@@ -9,7 +9,7 @@ static void put32(uint8_t *p,uint32_t value){for(unsigned i=0;i<4;++i)p[i]=(uint
 bool display_valid(const DisplayPreferences *v){
  if(!v)return false;
  for(unsigned i=17;i<DISPLAY_FIELDS;++i)if(v->value[i]>0xffffff)return false;
- for(unsigned i=13;i<17;++i)if(v->value[i]>1)return false;
+ for(unsigned i=13;i<17;++i)if(v->value[i]>(i==DISPLAY_ROWS?2u:1u))return false;
  for(unsigned i=0;i<6;++i)if(v->value[i]>0xffffff)return false;
  return (v->value[6]==0||v->value[6]==12||v->value[6]==24)&&v->value[7]<=1&&v->value[8]<=1&&v->value[9]<=2&&v->value[10]<=3&&v->value[11]<=2&&v->value[12]<=1;
 }

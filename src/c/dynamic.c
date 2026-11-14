@@ -12,6 +12,7 @@
 #include "reading_presentation.h"
 #include "reading_layout.h"
 #include "reading_pages.h"
+#include "reading_grid.h"
 #include "split_layout.h"
 #include "generated_clock_glyphs.h"
 #include "generated_body_metrics.h"
@@ -71,9 +72,15 @@ static uint8_t s_clock_format;
 static unsigned s_reading_page;
 static bool s_gesture_subscribed,s_gesture_seen;
 static uint32_t s_gesture_at;
-static bool s_split,s_rows,s_hide_titles,s_shake;
+static bool s_split,s_rows,s_grid,s_hide_titles,s_shake;
 static GColor s_lower_background,s_lower_text;
 static int *s_reading_ink_top;
+/* Scoped to the compact idle paint pass; ordinary pairs keep their metrics. */
+static bool s_grid_drawing;
+static unsigned s_reading_home_offset;
+static int s_reading_cell_bottom=FULL_LAYOUT_HEIGHT;
+static int prv_reading_icon_size(void){return s_grid_drawing?14:18;}
+static uint8_t prv_reading_mask(void);
 static void prv_note_reading_ink(int top) {
   if(top<0)top=0;
   if(s_reading_ink_top&&top<*s_reading_ink_top)*s_reading_ink_top=top;
@@ -137,7 +144,10 @@ static NativeState *s_native;
 #define s_complications s_core.complications
 #define s_has_complications s_core.has_complications
 #define s_phone_connected s_core.phone_connected
-static const ComplicationSlot *prv_reading_slot(unsigned home){unsigned index=reading_page_slot(s_reading_page,home);return index<COMPLICATION_SLOT_COUNT?&s_native->core.complications.slots[index]:NULL;}
+static unsigned prv_reading_index(unsigned home){
+ return reading_grid_slot(prv_reading_mask(),s_reading_page,home+s_reading_home_offset);
+}
+static const ComplicationSlot *prv_reading_slot(unsigned home){unsigned index=prv_reading_index(home);return index<COMPLICATION_SLOT_COUNT?&s_native->core.complications.slots[index]:NULL;}
 static AppTimer *s_context_timer, *s_startup_timer, *s_motion_timer,*s_activity_timer,*s_presentation_timer;
 static const uint8_t s_body_points[] = {14,16,20,22,24,26,28,32};
 #define BODY_FONT_COUNT (sizeof(s_body_points)/sizeof(s_body_points[0]))
@@ -494,7 +504,10 @@ static void prv_media_replaced(const PavCard *incoming){
   media_transition_start(&s_native->media_motion,incoming,(uint32_t)time(NULL),s_phone_connected);
 }
 static WatchPose prv_full_pose(void) {
-  return prv_primary_activity()?watch_pose_context(false):watch_pose_idle();
+  if(prv_primary_activity())return watch_pose_context(false);
+  WatchPose pose=watch_pose_idle();
+  if(s_grid){pose.clock_y-=6;pose.number_size=28;pose.row_y=reading_grid_row(reading_grid_secondary(s_type.secondary),0);}
+  return pose;
 }
 static WatchPose prv_current_pose(void) {
   const int height=s_window_layer ? layer_get_unobstructed_bounds(s_window_layer).size.h : FULL_LAYOUT_HEIGHT;
@@ -704,14 +717,15 @@ static void prv_utility_text(GContext *ctx,const char *text,bool date,int x,int 
       x,baseline,width,color,alignment);
 }
 static int prv_reading_height(void) {
-  return s_window_layer?layer_get_unobstructed_bounds(s_window_layer).size.h:FULL_LAYOUT_HEIGHT;
+  const int height=s_window_layer?layer_get_unobstructed_bounds(s_window_layer).size.h:FULL_LAYOUT_HEIGHT;
+  return s_grid_drawing&&s_reading_cell_bottom<height?s_reading_cell_bottom:height;
 }
 static ReadingNumberLayout s_reading_numbers[2];
 #ifdef PBL_ROUND
 static int s_reading_width=88,s_reading_centers[2];
 static void prv_reading_band(WatchPose pose) {
   const int inset=6;
-  const int top=prv_round(pose.row_y-24),bottom=prv_round(pose.row_y+pose.label_y+10);
+  const int top=prv_round(pose.row_y-(s_grid_drawing?18:24)),bottom=prv_round(pose.row_y+(s_grid_drawing?18:pose.label_y+10));
   const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),
       GRect(0,top,FACE_WIDTH,bottom-top),inset);
   s_reading_width=band.size.w/2-10;
@@ -723,7 +737,7 @@ static void prv_reading_band(WatchPose pose) {
 #define READING_WIDTH READING_CONTENT_WIDTH
 #endif
 static const char *prv_caption(const ComplicationSlot *slot,unsigned kind,unsigned home,const char *locale,char *buffer,size_t capacity){
-  reading_caption(slot,kind,reading_page_slot(s_reading_page,home),locale,buffer,capacity);
+  reading_caption(slot,kind,prv_reading_index(home),locale,buffer,capacity);
   if(s_hide_titles&&reading_state(slot,time(NULL))==READING_VALUE)
     watch_layout_copy_utf8(reading_qualifier(slot,kind,locale),buffer,capacity);
   return buffer;
@@ -744,7 +758,7 @@ static void prv_fit_reading_numbers(WatchPose pose) {
       const bool symbol=(slot->flags&COMPLICATION_FLAG_BITMAP)||
           (kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&kind<=COMPLICATION_SEMANTIC_CONDITION);
       input[i]=(ReadingNumberInput){prv_vector_width(number,100),
-          parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0,18,symbol,
+          parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0,prv_reading_icon_size(),symbol,
           symbol&&!strcmp(parts.unit,"%"),caption[0]||!strcmp(parts.unit,"%")};
     }else{
       const float width=prv_vector_width(text,100);
@@ -760,6 +774,10 @@ static void prv_fit_reading_numbers(WatchPose pose) {
 #endif
 }
 static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
+  if(s_grid&&!s_grid_drawing&&pose.context<.001f&&pose.peek<.001f){
+    if(bottom)*bottom=FULL_LAYOUT_HEIGHT-2;
+    return pose;
+  }
   if(s_rows){
     const int row=s_type.secondary+10<30?30:s_type.secondary+10;
     int top=prv_round(pose.row_y-pose.number_size*.5f);
@@ -783,6 +801,8 @@ static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
     const bool numeric=value&&reading_parts(text,&parts);
     const unsigned kind=reading_semantic(slot,&parts,numeric);
     prv_caption(slot,kind,i,i18n_get_system_locale(),caption,sizeof(caption));
+    if(s_grid_drawing&&state!=READING_VALUE&&!caption[0])
+      watch_layout_copy_utf8(reading_label(slot,kind,prv_reading_index(i),i18n_get_system_locale()),caption,sizeof(caption));
     MusicTextMetrics first=prv_music_measure(NULL,text,s_type.secondary);
     const char *second=caption;
     bool has_second=caption[0]!=0,overflow=false;
@@ -826,16 +846,26 @@ static void prv_reading_caption(GContext *ctx,const char *caption,const char *qu
   const int baseline=prv_round(p->row_y+p->label_y);
   if(!caption[0]||
       baseline+body_text_descent(caption,s_type.secondary)>prv_reading_height()-2)return;
+  int caption_width=READING_WIDTH;
+#ifdef PBL_ROUND
+  if(s_grid_drawing){
+    const int top=baseline-body_text_ascent(caption,s_type.secondary);
+    const int bottom=baseline+body_text_descent(caption,s_type.secondary);
+    const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),GRect(0,top,FACE_WIDTH,bottom-top+1),6);
+    caption_width=band.size.w/2-10;
+    center=band.origin.x+band.size.w*(center<FACE_WIDTH/2?1:3)/4;
+  }
+#endif
   char fitted[COMPLICATION_MAX_LABEL_BYTES+16];
   watch_layout_copy_utf8(caption,fitted,sizeof(fitted));
-  prv_ellipsize(fitted,sizeof(fitted),s_type.secondary,READING_WIDTH);
+  prv_ellipsize(fitted,sizeof(fitted),s_type.secondary,caption_width);
   // Keep the full qualifier. A separator plus an ellipsis adds no identity.
   const size_t qualifier_length=strlen(qualifier);
   if(qualifier[0]&&(strncmp(fitted,qualifier,qualifier_length)||
       (strcmp(fitted,caption)&&strlen(fitted)<=qualifier_length+7)))
     watch_layout_copy_utf8(qualifier,fitted,sizeof(fitted));
-  prv_utility_text(ctx,fitted,false,center-READING_WIDTH/2,baseline,
-      READING_WIDTH,prv_muted_text(1),GTextAlignmentCenter);
+  prv_utility_text(ctx,fitted,false,center-caption_width/2,baseline,
+      caption_width,prv_muted_text(1),GTextAlignmentCenter);
 }
 static void prv_age_mark(GContext *ctx,int center,const WatchPose *p) {
   const GPoint at=GPoint(center+47,prv_round(p->row_y+p->label_y)-3);
@@ -870,9 +900,9 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
   if(!s_has_complications||!prv_reading_slot(index)||!complication_is_selected(prv_reading_slot(index)))return;
   const ComplicationSlot *slot=prv_reading_slot(index);
   #ifdef PBL_ROUND
-  const int center=s_reading_centers[index],icon_size=18;
+  const int center=s_reading_centers[index],icon_size=prv_reading_icon_size();
 #else
-  const int center=index?150:50,icon_size=18;
+  const int center=index?150:50,icon_size=prv_reading_icon_size();
 #endif
   const char *locale=i18n_get_system_locale();
   const ReadingState state=reading_state(slot,time(NULL));
@@ -884,7 +914,7 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
   if(state!=READING_VALUE) {
     // Unavailable/expired sources retain public identity, never old values.
     prv_reading_text(ctx,reading_state_label(state,locale),center,p,false,prv_muted_text(1),false);
-    prv_reading_caption(ctx,caption[0]?caption:reading_label(slot,kind,index,locale),
+    prv_reading_caption(ctx,caption[0]?caption:reading_label(slot,kind,prv_reading_index(index),locale),
         reading_qualifier(slot,kind,locale),center,p);
     return;
   }
@@ -942,6 +972,20 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
  finish:
   if(!second_line&&caption[0])prv_reading_caption(ctx,caption,reading_qualifier(slot,kind,locale),center,p);
   if(aged)prv_age_mark(ctx,center,p);
+}
+static void prv_draw_reading_grid(GContext *ctx,WatchPose pose){
+  const DynamicType original=s_type;
+  s_type.secondary=reading_grid_secondary(s_type.secondary);
+  s_grid_drawing=true;
+  for(unsigned row=0;row<2;++row){
+    s_reading_home_offset=row*2;
+    s_reading_cell_bottom=row?FULL_LAYOUT_HEIGHT:reading_grid_row(s_type.secondary,1)-20;
+    WatchPose pair=pose;pair.row_y=reading_grid_row(s_type.secondary,row);pair.number_size=28;pair.label_y=0;
+    pair=prv_reading_pose(pair,prv_reading_height(),NULL);
+    prv_fit_reading_numbers(pair);
+    prv_draw_reading(ctx,0,&pair);prv_draw_reading(ctx,1,&pair);
+  }
+  s_reading_home_offset=0;s_reading_cell_bottom=FULL_LAYOUT_HEIGHT;s_grid_drawing=false;s_type=original;
 }
 static void prv_draw_reading_row(GContext *ctx,unsigned home,WatchPose pose){
  const ComplicationSlot *slot=prv_reading_slot(home);if(!s_has_complications||!slot||!complication_is_selected(slot))return;
@@ -1066,7 +1110,8 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   int reading_top=FULL_LAYOUT_HEIGHT;
   if(s_split)s_reading_ink_top=&reading_top;
   GColor background,text;prv_lower_palette(true,&background,&text);
-  if(s_rows){prv_draw_reading_row(ctx,0,p);prv_draw_reading_row(ctx,1,p);}
+  if(s_grid&&p.context<.001f&&p.peek<.001f&&!s_layout_active&&!s_peek_transition){prv_draw_reading_grid(ctx,p);}
+  else if(s_rows){prv_draw_reading_row(ctx,0,p);prv_draw_reading_row(ctx,1,p);}
   else {prv_draw_reading(ctx,0,&p);prv_draw_reading(ctx,1,&p);}
   s_reading_ink_top=NULL;
   s_background_color=background;s_text_color=text;
@@ -1177,13 +1222,10 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
 }
 // Ordinary inline weather frees the old indicator/caption band for activities.
 // Be conservative for other shapes: their second line must remain readable.
-static int prv_activity_top(void) {
-  int bottom=0;
-  prv_reading_pose(watch_pose_context(false),FULL_LAYOUT_HEIGHT,&bottom);
-  if(s_rows)return bottom+4;
-#ifdef PBL_ROUND
-  return bottom+4;
-#endif
+#ifndef PBL_ROUND
+/* Keep the text scan out of the caller frame while the pair is measured.
+ * Emery's app stack must not hold both scratch groups at once. */
+static __attribute__((noinline)) int prv_activity_reading_top(int bottom) {
   const int detailed_top=bottom+1>ACTIVITY_CONTENT_TOP?bottom+1:ACTIVITY_CONTENT_TOP;
   if(s_has_complications)for(unsigned i=0;i<2;++i) {
     const ComplicationSlot *slot=prv_reading_slot(i);
@@ -1206,6 +1248,18 @@ static int prv_activity_top(void) {
   }
   return ACTIVITY_EXPANDED_TOP;
 }
+#endif
+static __attribute__((noinline)) int prv_activity_top(void) {
+  int bottom=0;
+  prv_reading_pose(watch_pose_context(false),FULL_LAYOUT_HEIGHT,&bottom);
+  if(s_rows)return bottom+4;
+#ifdef PBL_ROUND
+  return bottom+4;
+#else
+  return prv_activity_reading_top(bottom);
+#endif
+}
+
 static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *out) {
   const ReadingLanguage *language=reading_language(i18n_get_system_locale());
   const int top=prv_activity_top();
@@ -1672,7 +1726,7 @@ static void prv_display_reply(const DisplayPreferences *v,uint8_t status,uint8_t
 }
 static void prv_display_apply(const DisplayPreferences *v){
   s_native->display=*v;
-  s_split=v->value[DISPLAY_SPLIT];s_rows=v->value[DISPLAY_ROWS];s_hide_titles=v->value[DISPLAY_HIDE_TITLES];s_shake=v->value[DISPLAY_SHAKE];
+  s_split=v->value[DISPLAY_SPLIT];s_rows=v->value[DISPLAY_ROWS]==1;s_grid=v->value[DISPLAY_ROWS]==2;s_hide_titles=v->value[DISPLAY_HIDE_TITLES];s_shake=v->value[DISPLAY_SHAKE];
   if(!s_shake)s_reading_page=0;
   prv_sync_gesture();
   for(unsigned i=0;i<3;++i){s_day_colors[i]=GColorFromHEX(v->value[i]);s_night_colors[i]=GColorFromHEX(v->value[3+i]);}

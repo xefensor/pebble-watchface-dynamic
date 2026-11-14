@@ -9,7 +9,7 @@ Preserve UUID, appended message-key numbering, ACT3 source/run identity, observa
 
 ## Current interaction and product boundaries
 
-Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. Supporting text follows its per-face override or the launch-time OS size through Dynamic’s own font roles; the main clock keeps its design. Required state/value/unit text can wrap and must yield optional secondary content first. A hidden secondary must not escape through the navigation source. Incoming motion is bounded and only starts on a genuine run/item replacement. Dynamic has no physical action rail.
+Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. The selected reading pair keeps its positions; an optional compact idle grid adds the next pair and collapses for activity/Peek; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. Supporting text follows its per-face override or the launch-time OS size through Dynamic’s own font roles; the main clock keeps its design. Required state/value/unit text can wrap and must yield optional secondary content first. A hidden secondary must not escape through the navigation source. Incoming motion is bounded and only starts on a genuine run/item replacement. Dynamic has no physical action rail.
 
 ## Source ownership
 
@@ -92,7 +92,7 @@ New receivers accept both versions; a v1 receipt cannot confirm a v2 preference.
 A phone paired with an older native build remains pending until the watchface is
 updated. Day/night lower colours remain raw RGB, separate from accent colour.
 
-The Core 0.6.1-dev.0 archive is a local development pin from the source commit in
-vendor/CORE.json. Only Dynamic opts into five-slot coordination. The default
+The Core 0.6.1-dev.1 archive is a local development pin from the source commit in
+vendor/CORE.json. Dynamic opts into four slots for the idle grid and five when shake paging is enabled. The default
 library contract and every other app pin remain two readings. No released
 library, watchface version, UUID or frozen archive has been changed.

@@ -33,6 +33,7 @@ int main(void){
  display_load(&value);assert(value.value[DISPLAY_MODE]==DISPLAY_EXPLICIT&&value.value[DISPLAY_TEXT_SIZE]==0&&value.revision==0);
  persist_write_int(2,0x123456);persist_write_int(3,0x654321);persist_write_int(75,0xabcdef);persist_write_bool(74,true);persist_write_bool(7,true);persist_write_bool(71,false);
  display_load(&value);assert(value.value[0]==0x123456&&value.value[1]==0x654321&&value.value[3]==0xabcdef&&value.value[DISPLAY_MODE]==DISPLAY_QUIET&&value.value[DISPLAY_CLOCK]==12&&!value.value[DISPLAY_ANIMATIONS]);
+ value.value[DISPLAY_ROWS]=2;
  value.revision=0xffffffff;value.value[DISPLAY_TEXT_SIZE]=3;value.value[DISPLAY_MODE]=DISPLAY_FOLLOW;value.value[DISPLAY_MANUAL]=1;
  display_encode(&value,DISPLAY_APPLIED,DISPLAY_HELLO,bytes);assert(display_decode(bytes,sizeof(bytes),&decoded,&status,&flags));assert(!memcmp(&value,&decoded,sizeof(value))&&!status&&flags==DISPLAY_HELLO);
  uint8_t legacy[DISPLAY_LEGACY_BYTES];display_encode_legacy(&value,0,0,legacy);assert(display_decode(legacy,sizeof(legacy),&decoded,NULL,NULL));assert(decoded.value[DISPLAY_LOWER_DAY_BG]==value.value[DISPLAY_DAY_TEXT]);
@@ -59,7 +60,7 @@ int main(void){
 typedef struct {uint32_t argb;} GColor;
 #define GColorFromHEX(value) ((GColor){(value)})
 static void prv_clear_media_motion(void){}
-static unsigned s_reading_page;static bool s_split,s_rows,s_hide_titles,s_shake;
+static unsigned s_reading_page;static bool s_split,s_rows,s_grid,s_hide_titles,s_shake;
 static void prv_sync_gesture(void){}
 static GColor s_lower_background,s_lower_text;
 static GColor s_day_colors[3],s_night_colors[3],s_background_color,s_text_color,s_accent_color;
@@ -85,6 +86,9 @@ static void prv_sync_layers(void){}
   assert(s_text_color.argb==value.value[night?DISPLAY_NIGHT_TEXT:DISPLAY_DAY_TEXT]);
   assert(s_accent_color.argb==value.value[night?DISPLAY_NIGHT_ACCENT:DISPLAY_DAY_ACCENT]);
  }
+ value.value[DISPLAY_ROWS]=2;prv_display_apply(&value);assert(s_grid&&!s_rows);
+ value.value[DISPLAY_ROWS]=1;prv_display_apply(&value);assert(!s_grid&&s_rows);
+ value.value[DISPLAY_ROWS]=0;prv_display_apply(&value);assert(!s_grid&&!s_rows);
  assert(palette_updates);puts("actual native palette resolver: Manual, Quiet Time, retained Follow fallback and all effective type profiles PASS");
 '''
     source=source.replace('int main(void){',declarations+'\n'+callback('prv_apply_colors')+'\n'+callback('prv_display_apply')+'\nint main(void){')

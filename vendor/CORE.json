@@ -1,16 +1,16 @@
 {
   "package": "pebble-watchface-core",
-  "version": "0.6.1-dev.0",
+  "version": "0.6.1-dev.1",
   "repository": "https://github.com/xefensor/pebble-lib-core",
-  "artifact": "pebble-watchface-core-0.6.1-dev.0.tgz",
-  "archive": "pebble-watchface-core-0.6.1-dev.0.tgz",
-  "sha256": "64e308c7b048aa5d427b4b6b9fe0fbe5155d1f75a5db1899e155f080617712d2",
-  "integrity": "sha512-any57GXMs0U9XKcDa6FmxYGvdTVxzK+E2XePBqFZw3RnBAWBrYKtPoG/PmFLv/1IYt9CU5Lp+nfH/PbhyebceQ==",
+  "artifact": "pebble-watchface-core-0.6.1-dev.1.tgz",
+  "archive": "pebble-watchface-core-0.6.1-dev.1.tgz",
+  "sha256": "de7ed82292d2f649afa1d51f9dad1e9aa82bb78ba64182ea438dbe8d11746b53",
+  "integrity": "sha512-4x1BgWFxP9cmNskdEAY68OfmxajDeKgs64hQGWHlbuN11VkpwJl++S0pEG/zTVTuJYGuzO+9KuV0kK1F91GWWg==",
   "sdk": "4.44",
   "platforms": [
     "emery",
     "gabbro"
   ],
-  "source_commit": "576d08aa7325647f79d566630db6c023ef41c191",
-  "status": "Local opt-in five-slot development candidate; not published"
+  "source_commit": "544eae4ad88174b5f43b527c09bdea9f8244a84d",
+  "status": "Local opt-in four/five-slot development candidate; not published"
 }
