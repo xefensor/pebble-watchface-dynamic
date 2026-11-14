@@ -1038,7 +1038,13 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
   prv_draw_date(ctx,p);
   if(s_split){
-    int divider=prv_round(p.row_y-(s_rows?p.label_y:p.number_size)*.5f-6);
+    const int original_divider=prv_round(p.row_y-(s_rows?p.label_y:p.number_size)*.5f-6);
+    int divider=original_divider-3;
+    const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
+    const int clock_bottom=prv_round(p.clock_y)+clock.descent+1;
+    // Tight Peek layouts retain their existing boundary rather than cover
+    // clock ink. Other poses gain three pixels of lower-panel background.
+    if(divider<clock_bottom)divider=clock_bottom<original_divider?clock_bottom:original_divider;
     if(divider<0)divider=0;
     if(divider>FULL_LAYOUT_HEIGHT)divider=FULL_LAYOUT_HEIGHT;
     graphics_context_set_fill_color(ctx,s_lower_background);graphics_fill_rect(ctx,GRect(0,divider,FACE_WIDTH,FULL_LAYOUT_HEIGHT-divider),0,GCornerNone);

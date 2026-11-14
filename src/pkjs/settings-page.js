@@ -832,7 +832,8 @@ module.exports = function() {
       var lowInk=field('SCREEN_SPLIT').get()?color(nightMode?'NIGHT_LOWER_TEXT_COLOR':'LOWER_TEXT_COLOR'):ink;
       var rows=Number(field('READING_LAYOUT').get())===1,active=previewState!=='idle'&&previewState!=='timeline',page=pageChoice?Number(pageChoice.value):0;
       var clock=active?45:roundPreview?110:106,point=active?38:64,reading=active?72:roundPreview?160:159;
-      var divider=reading-(rows?18:22)-6;
+      var originalDivider=reading-(rows?18:22)-6;
+      var divider=Math.max(originalDivider-3,Math.min(originalDivider,clock+2));
       ctx.clearRect(0,0,previewWidth,previewHeight);ctx.save();
       if(roundPreview){ctx.beginPath();ctx.arc(130,130,130,0,Math.PI*2);ctx.clip();}
       ctx.fillStyle=css(bg);ctx.fillRect(0,0,previewWidth,previewHeight);ctx.fillStyle=css(lowBg);ctx.fillRect(0,divider,previewWidth,previewHeight-divider);
