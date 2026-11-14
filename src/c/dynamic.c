@@ -745,7 +745,7 @@ static void prv_fit_reading_numbers(WatchPose pose) {
           (kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&kind<=COMPLICATION_SEMANTIC_CONDITION);
       input[i]=(ReadingNumberInput){prv_vector_width(number,100),
           parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0,18,symbol,
-          symbol&&!strcmp(parts.unit,"%"),caption[0]};
+          symbol&&!strcmp(parts.unit,"%"),caption[0]||!strcmp(parts.unit,"%")};
     }else{
       const float width=prv_vector_width(text,100);
       if(width>0)input[i]=(ReadingNumberInput){width,0,0,false,false,true};

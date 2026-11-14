@@ -48,7 +48,9 @@ The phone adapter passes public source context through the existing label field;
 music and notification identity retain their transient privacy boundary.
 
 Fit complete values and units before optional decoration. A long unit can use
-the second line when that line is free. A meaningful caption keeps its own second line. Numeric overflow uses a clear localized fallback, rather than
+the second line when that line is free. Percent stays beside its number,
+including `100%`; the paired numeric size reduces within its existing range
+when needed to fit the complete percentage and symbol. A meaningful caption keeps its own second line. Numeric overflow uses a clear localized fallback, rather than
 silently cutting digits or reducing them to tiny text. Free text starts at its
 beginning and can use bounded wrapping/ellipsis. Images preserve aspect ratio.
 

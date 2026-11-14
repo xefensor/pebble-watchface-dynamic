@@ -36,3 +36,4 @@ subprocess.run([sys.executable, str(root / 'tests/test_native_lifecycle.py')], c
 subprocess.run([sys.executable, str(root / 'tests/test_native_display.py')], check=True)
 
 subprocess.run([sys.executable, str(root / "tests/test_native_reading_plan.py")], check=True)
+subprocess.run([sys.executable, str(root / "tests/test_native_percent_fit.py")], check=True)

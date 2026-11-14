@@ -51,7 +51,7 @@ static inline ReadingNumberLayout reading_number_layout(float width_at_100,
 typedef struct {
   float width_at_100;
   int unit_width,icon_size;
-  bool icon,required_icon,caption;
+  bool icon,required_icon,keep_unit_inline;
 } ReadingNumberInput;
 
 static inline ReadingNumberLayout reading_number_at_in(ReadingNumberInput in,int point,int width) {
@@ -59,7 +59,7 @@ static inline ReadingNumberLayout reading_number_at_in(ReadingNumberInput in,int
   if(in.width_at_100<=0||in.unit_width>width)return out;
   out.number_width=(int)(in.width_at_100*point/100+0.999f);
   for(unsigned pass=0;pass<2;++pass) {
-    if(pass){if(!in.unit_width||in.caption)break;out.unit_below=true;}
+    if(pass){if(!in.unit_width||in.keep_unit_inline)break;out.unit_below=true;}
     out.width=out.number_width+(!out.unit_below&&in.unit_width?in.unit_width+READING_UNIT_GAP:0)+
         (out.icon?in.icon_size+READING_ICON_GAP:0);
     if(out.width>width&&out.icon&&!in.required_icon){
