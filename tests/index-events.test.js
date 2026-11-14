@@ -590,11 +590,11 @@ test('unknown system-format remains explicit metadata instead of inventing a wat
   assert.equal(require('../src/pkjs/settings-preview').systemFormat,undefined,'shared sample assets are not mutated');
   assert.deepEqual(f.settings(),{CLOCK_FORMAT:0});
 });
-test('settings group appearance, content and recovery in one three-section page',()=>{
+test('settings group layout, palettes, activities and help into four categories',()=>{
   const f=fixture();f.handlers.showConfiguration();
   const sections=f.clay.config.filter(x=>x.type==='section');
-  assert.equal(sections.length,3);
-  assert.deepEqual(sections.map(x=>x.items[0].defaultValue),['Appearance','Content & priority','Connection & help']);
+  assert.equal(sections.length,4);
+  assert.deepEqual(sections.map(x=>x.items[0].defaultValue),['Layout & complications','Colours','Activities','More & help']);
 });
 
 

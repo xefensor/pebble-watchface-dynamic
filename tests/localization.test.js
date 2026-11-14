@@ -303,7 +303,7 @@ test('settings cleanup removes obsolete copy and translates the shared priority 
   const active=visible(config).join('\n');
   assert.doesNotMatch(active,/Clock mark|last-reported|Music & notifications|Both shrink above music/);
   assert.deepEqual(config.filter(item=>item.type==='section').map(item=>item.items[0].defaultValue),
-    ['Appearance','Content & priority','Connection & help']);
+    ['Layout & complications','Colours','Activities','More & help']);
   for(const language of languages) {
     const strings=localization.settingsStrings(language);
     for(const key of ['content','previewBanner','animationsHelp','activitiesHelp','notificationDetails','notificationDisabledHelp','activityPluginsOffHelp']) {

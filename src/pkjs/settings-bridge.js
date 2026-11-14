@@ -80,7 +80,7 @@ module.exports = function(wordsByLanguage,fieldDefaults,preferenceKey) {
             },function(){finish(null);});}catch(ignored){finish(null);}
           },function(){complete(null);});
         },
-        reload:function(){try{sessionStorage.setItem('dynamic-settings-scroll',String(window.scrollY));}catch(ignored){}location.reload();},
+        reload:function(view){try{if(view)sessionStorage.setItem('dynamic-settings-view',JSON.stringify(view));else sessionStorage.setItem('dynamic-settings-scroll',String(window.scrollY));}catch(ignored){}location.reload();},
         save:function(selected,complete){
           var attempts=0;
           function failed(){complete({ok:false});}

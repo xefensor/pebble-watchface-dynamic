@@ -23,7 +23,8 @@
     "test:auditor": "python3 -m unittest discover -s tests -p test_pinned_dependencies.py",
     "store:prepare": "python3 scripts/store-kit.py",
     "store:check": "python3 scripts/store-kit.py --check",
-    "test:store": "python3 -m unittest discover -s tests -p test_store_kit.py"
+    "test:store": "python3 -m unittest discover -s tests -p test_store_kit.py",
+    "check:settings-browser": "node scripts/check-settings-browser.cjs"
   },
   "license": "SEE LICENSE IN LICENSE",
   "keywords": [

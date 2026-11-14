@@ -89,14 +89,18 @@ Preserve UUID, appended message-key numbering, ACT3 source/run identity, observa
 ## Per-face display settings
 
 The phone page retains both Day and Night palettes independently. Appearance
-selects Follow Pebble, Follow Quiet Time or Manual. Manual Light selects Day;
-Manual Dark selects Night and exposes its editors. Quiet Time selects Night only
-while Quiet Time is active. Switching modes never overwrites either palette.
+selects Day palette, Night palette or Follow Quiet Time. Palette editing is a
+separate choice and never switches the active appearance. Quiet Time selects
+Night only while Quiet Time is active. Switching modes never overwrites either
+palette. Background, text and accent editors always belong to the selected
+palette; its detail editors appear only with split background enabled.
 The previous Quiet Time toggle migrates to Follow Quiet Time; other existing
 palettes migrate to Manual Light without changing their RGB values.
 
-SDK 4.33.1 has no supported system appearance API. Follow Pebble Appearance stays
-saved and uses the last Manual Light/Dark fallback; the page explains this limit.
+The pinned SDK has no supported system appearance API. An existing Follow Pebble
+Appearance choice stays saved and uses the last Manual Light/Dark fallback. Its
+legacy option is disabled for new selection; the page explains the limit. An
+unrelated Save retains it until the user explicitly chooses another mode.
 Global watch settings and Dynamic's main Fredoka clock remain independent.
 The page distinguishes a verified phone save from Applied on watch. A complete
 native snapshot, persisted and read back with the exact revision, confirms the
@@ -229,3 +233,27 @@ the selected pair stays first and the next configured pair fills the second row;
 slot 5 keeps its empty partner. A single configured pair is never duplicated.
 Transitions use native cached data, with no source refresh or persistence write.
 The same midpoint rule measures all visible reading ink in the idle grid.
+
+## Phone settings navigation
+
+The overview links to Layout & complications, Colours, Activities and More & help.
+All four screens share one mounted Clay form, one draft and one Save/Discard bar.
+Back navigation retains scroll and disclosure state. Reload saved restores the
+current screen and reads confirmed settings; it intentionally replaces the draft.
+Save reveals and focuses an invalid field's category before reporting validity.
+Phone storage and native application receipts remain distinct in the shared bar.
+
+Overview, Layout and Colours reuse one compact idle preview. Expand preview
+exposes synthetic scenarios, palette selection, shake pages only when enabled,
+and the watch selector only when WatchInfo is unavailable. On Colours the preview
+always follows the edited palette. Preview controls never change settings.
+Day-only DYN1 import/export stays in its own disclosure and retains its format.
+
+Activity priority has a compact numbered list. Reorder exposes existing drag,
+keyboard and move-button controls. Notification controls appear together only
+when enabled. Setup guidance and snapshot connection diagnostics live in More &
+help; background status updates never navigate or steal focus.
+
+`npm run check:settings-browser` runs the actual generated page in an installed
+Chromium with a simulated Pebble bridge. Reports and screenshots are written to
+ignored `build/qa/settings-ux/`; they do not establish real Android coverage.

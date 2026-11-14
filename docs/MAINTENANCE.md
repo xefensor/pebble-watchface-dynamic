@@ -21,8 +21,9 @@ For apps with phone settings, keep active-writer selection, separate Android
 DOM/native storage views, exact application acknowledgements and bounded handoffs.
 Saving stays open where supported; uncertain writes retain the draft and explicit
 readback/retry. Discard cannot undo a write already sent. Load errors must not
-silently replace saved choices with editable defaults. Do not introduce unsolicited
-focus or scroll changes. Historical browser/emulator results do not validate a
+silently replace saved choices with editable defaults. Category navigation keeps one mounted draft and restores screen context. Save
+reveals an invalid field before focusing it; asynchronous status must not change
+the screen, focus or scroll. Historical browser/emulator results do not validate a
 new build. Keep portable, packaged, simulated transport and real-device claims distinct.
 
 Native display key **79** owns a versioned 92-byte snapshot: revision, both raw

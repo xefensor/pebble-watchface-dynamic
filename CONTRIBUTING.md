@@ -93,3 +93,13 @@ remain untouched. Commit these files locally, then run `npm run release:prepare`
 to validate committed HEAD. No build, tag, upload or publication happens during
 freezing or preparation. The current candidate's physical-device and account
 gates remain in `docs/RELEASE-READINESS.md`.
+
+## Phone settings review
+
+After generating `config.html` with `node scripts/generate-config.cjs`, run
+`npm run check:settings-browser` with a locally installed Chromium (or set
+`CHROMIUM` to its executable). It uses DevTools pipes and synthetic Pebble SDK
+responses, writes evidence under ignored `build/qa/settings-ux/`, and downloads
+nothing. The scenarios cover category drafts, palette isolation, reordering,
+validation, failed/uncertain saves, confirmed reload, narrow translated layouts
+and enlarged text. Browser simulation does not establish physical-phone coverage.
