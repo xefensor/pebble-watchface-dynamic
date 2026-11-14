@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+- New XOCE launcher icon.
+- Clearer settings help and more stable status messages.
+- Improved keyboard navigation for colour palettes and labelled layout previews.
+- The current app version is now kept separate from historical preview-image versions.
+
 ## 1.0.1
 
 - Package the current reviewed implementation and updated Store assets under a new numeric version, preserving the public UUID and saved settings.

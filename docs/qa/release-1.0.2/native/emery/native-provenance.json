@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "result": "PASS",
+  "error": null,
+  "product": "dynamic",
+  "version": "1.0.2",
+  "platform": "emery",
+  "sourcePbw": "sources/dynamic/build/candidate/Dynamic-1.0.2.pbw",
+  "sourcePbwSha256": "4abb6fcc9197f60d0f69e235030043a09ef03629336e6c59c1e6b35e5eb915ca",
+  "nativePayloadSha256": {
+    "emery/app_resources.pbpack": "1c37da07556ac36f67dd75984e4b5b2406e25efe5b28af2bea60bf0b4955ee83",
+    "emery/manifest.json": "af6f57759730ef03fff425a8b84ae54d7f836bf20d2226aad551c553dfa86da1",
+    "emery/pebble-app.bin": "f0d9b8c295e2b1b7fc767113eb7342932b434cdd16c7cfdf9e4a58269be5293b"
+  },
+  "temporaryNativePbwSha256": "3081ef8dfe49a72e60a055c5bd6d221cd2e2e3dc04fc097a7969a29f4f003b69",
+  "nativePayloadPreserved": true,
+  "nativeMenuIcon": {
+    "file": "resources/images/menu-icon.png",
+    "sha256": "e778c0f7507f7524dfb4eaa8dcc500247fa39fb71a53528b7be7758359f3b649",
+    "unselectedIconRendered": true,
+    "matchingNativeGlyphLocations": {
+      "watchface-picker-selected.png": [
+        {
+          "x": 9,
+          "y": 11,
+          "width": 19,
+          "height": 22
+        }
+      ],
+      "watchface-picker-unselected.png": [
+        {
+          "x": 9,
+          "y": 11,
+          "width": 19,
+          "height": 22
+        }
+      ]
+    }
+  },
+  "firmware": "WatchVersionResponse(running=WatchFirmwareVersion(timestamp=1793831942, version_tag=v4.44.3, git_hash=2acda40, flags=0, hardware_platform=245, metadata_version=1), recovery=WatchFirmwareVersion(timestamp=1793831942, version_tag=v4.44.3, git_hash=2acda40, flags=1, hardware_platform=245, metadata_version=1), bootloader_timestamp=0, board=, serial=, bt_address=c923967bb7d7, resource_crc=1041801367, resource_timestamp=0, language=en_US, language_version=1, capabilities=526698239, is_unfaithful=True)",
+  "sdkVersion": "4.44",
+  "pebbleToolVersion": "5.1.2",
+  "capturedAtUtc": "2026-11-14T21:58:48.820777+00:00",
+  "clock": {
+    "baselineUtc": "2026-11-14T12:05:00Z",
+    "utcOffset": 3600,
+    "zone": "Europe/Prague"
+  },
+  "scope": "Native screenshot-service PNGs from the fresh candidate exact ARM/resource payload; real emulated button events. Native main UI and default-appearance launcher or watchface-picker icon visibility. Round 2 hides unselected watchface icons; other rows show icons in both states. Phone JavaScript omitted; no external provider/activity execution.",
+  "physicalDeviceTest": false,
+  "phoneRuntimeTest": false,
+  "osDarkLauncherTest": false,
+  "syntheticClock": true,
+  "renderedOrRepaintedUi": false,
+  "captures": [
+    {
+      "file": "native-main.png",
+      "sha256": "758b7ccb573757e88dae324218c376ec464135b77b49c8641d931220345dcb88",
+      "width": 200,
+      "height": 228,
+      "description": "Fresh candidate main UI with its exact compiled native resources; no phone JavaScript."
+    },
+    {
+      "file": "launcher.png",
+      "sha256": "32bf9ce166146d45a2646bbcf4bad801f4b91c46cc894e2646a6ddb51a3f2904",
+      "width": 200,
+      "height": 228,
+      "description": "Default native launcher: Watchfaces category selected."
+    },
+    {
+      "file": "watchface-picker-selected.png",
+      "sha256": "f5c55c5da059cbce05d7f787ecaa863b1f31c86acf195bdbf94b636501a36a89",
+      "width": 200,
+      "height": 228,
+      "description": "Candidate row selected in the actual native watchface picker."
+    },
+    {
+      "file": "watchface-picker-unselected.png",
+      "sha256": "ccdcd215647b3a76562077d4edadf7d16a6c79f3c2df0e62bbea4d5694365789",
+      "width": 200,
+      "height": 228,
+      "description": "Candidate row unselected on the actual native default white background."
+    }
+  ],
+  "actions": [
+    {
+      "action": "set-clock",
+      "epoch": 1794657900,
+      "utcOffset": 3600
+    },
+    {
+      "action": "install-exact-native",
+      "nativeSha256": "3081ef8dfe49a72e60a055c5bd6d221cd2e2e3dc04fc097a7969a29f4f003b69"
+    },
+    {
+      "action": "tap",
+      "button": "Select",
+      "count": 1
+    },
+    {
+      "action": "tap",
+      "button": "Select",
+      "count": 1
+    },
+    {
+      "action": "tap",
+      "button": "Down",
+      "count": 1
+    }
+  ],
+  "nativeLogs": [
+    "AppLogMessage(uuid=cc1281f1-3b4d-45b5-b235-6881b1fd8fbd, timestamp=1794657901, level=100, message_length=38, line_number=1947, filename=dynamic.c, message=Text OS=1 date=22 body=22 secondary=20)",
+    "AppLogMessage(uuid=cc1281f1-3b4d-45b5-b235-6881b1fd8fbd, timestamp=1794657901, level=100, message_length=41, line_number=1980, filename=dynamic.c, message=Native state 21136 bytes; free heap 34420)",
+    "AppLogMessage(uuid=cc1281f1-3b4d-45b5-b235-6881b1fd8fbd, timestamp=1794657901, level=50, message_length=40, line_number=1626, filename=dynamic.c, message=Could not begin complication request: 64)",
+    "AppLogMessage(uuid=cc1281f1-3b4d-45b5-b235-6881b1fd8fbd, timestamp=1794657902, level=100, message_length=84, line_number=497, filename=ocess_manager.c, message=Heap Usage for App <Dynamic>: Total Size <62784B> Used <28364B> Still allocated <0B>)"
+  ]
+}

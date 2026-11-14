@@ -434,7 +434,7 @@ def audit_body_fonts(root, media, resources, sources, binary):
         (root / "build/emery/src/resource_ids.auto.h").read_text())
     ids = {name: int(number) for name, number in definitions}
     require(len(definitions) == len(ids) and ids == {
-        name: index + 1 for index, name in enumerate(names)},
+        **{name: index + 1 for index, name in enumerate(names)}, "IMAGE_MENU_ICON": 9},
         "Generated resource IDs are stale or contain unexpected entries")
     weekdays, weekday_identity = audit_localized_weekdays(sources, binary)
     words = [day for days in weekdays.values() for day in days]
@@ -816,6 +816,9 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
     exported = re.search(r"module\.exports\s*=\s*(\{.*\})\s*;\s*$", source, re.S)
     require(exported, "Native preview asset export is missing")
     preview = json.loads(exported.group(1))
+    if version == "1.0.2" and preview["version"] == "1.0.1":
+        from historical_preview import audit_historical_preview
+        return audit_historical_preview(root, "emery", binary, resources)
     require(preview["version"] == version and len(preview["frames"]) == 24,
             "Native preview assets belong to a different release")
     captured_renderer=preview['source'].get('nativeRendererIdentity')
@@ -878,7 +881,7 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
 def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow_sdk_build_id=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
-    require(package["version"] == "1.0.1", "Review this auditor for a different release version")
+    require(package["version"] == "1.0.2", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
     require(settings["targetPlatforms"] == ["emery", "gabbro"] and
@@ -887,8 +890,9 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
             "Unexpected platform or permission change")
     media_all = settings["resources"].get("media", [])
     media = [m for m in media_all if "emery" in m.get("targetPlatforms",settings["targetPlatforms"])]
-    require(media and all(item.get("type") == "font" for item in media),
-            "Only the declared custom body fonts are expected")
+    from launcher_icon import audit_launcher
+    audit_launcher(root, media)
+    font_media = media[:-1]
     require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT", "SCREEN_SPLIT", "READING_LAYOUT", "HIDE_READING_TITLES", "SHAKE_READINGS", "LOWER_BACKGROUND_COLOR", "LOWER_TEXT_COLOR", "NIGHT_LOWER_BACKGROUND_COLOR", "NIGHT_LOWER_TEXT_COLOR"),
             "Preserve the earlier key prefix and append only display preference keys")
     keys = {name: 10000 + index for index, name in enumerate(settings["messageKeys"])}
@@ -1031,7 +1035,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
     from native_assets_audit import audit_assets
     platform_report=audit_platforms(root,pbw)
     asset_report=audit_assets(root,pbw)
-    body_fonts = audit_body_fonts(root, media, resource_entries, sources, binary)
+    body_fonts = audit_body_fonts(root, font_media, resource_entries, sources, binary)
     body_metrics = audit_body_metrics(root, resource_entries, binary, sources)
     clock_outlines = audit_clock_outlines(root, binary, sources)
     body_license = (root / "resources/fonts/OFL-RobotoCondensed.txt").read_text(encoding="utf-8")

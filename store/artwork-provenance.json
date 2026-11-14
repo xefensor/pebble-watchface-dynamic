@@ -1,42 +1,52 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "family": "XOCE individual product identities 2026-11-14",
+  "scope": "Modular blue geometry echoes the flexible readings and activity space.",
   "originalArtwork": true,
-  "family": "XOCE original-Halftone Store family 2026-11-14",
-  "scope": "Xef selected the original orange Halftone banner as the reference: bold colour, curved patterned edge, large title and illustrated watch. Original binary glyphs use transparency and icon_tintable; native screenshot PNGs remain unchanged.",
   "font": {
     "name": "Fira Sans Condensed Bold",
     "licence": "SIL OFL 1.1",
+    "file": "artwork/fonts/FiraSansCondensed-Bold.ttf",
     "sourceSha256": "7ea603ffe9e04b7746213bf9414c3d63babb722c8034079bb9106bd2237a8bd3",
     "treatment": "Outlined SVG text"
   },
   "reference": {
-    "file": "pebble-watchface-halftone/store/halftone-banner-720x320.png",
-    "sha256": "e166f451c58a2b6f48addce6c1d4a075a7169180145a8258f1cd35b0b3d011de"
+    "file": "artwork/reference/halftone-banner-720x320.png",
+    "sha256": "e166f451c58a2b6f48addce6c1d4a075a7169180145a8258f1cd35b0b3d011de",
+    "use": "Preserved orange/dither character for Halftone; shared family typography and hardware treatment, not a mandatory composition for other apps."
   },
+  "sharedRules": [
+    "Fira typography",
+    "Graphite and silver watch treatment",
+    "Native app screenshots",
+    "Small XOCE endorsement",
+    "Clear text margins"
+  ],
   "files": {
-    "product-mark.svg": "061088f82ea9254706e24ba50de4c8e6ec1660f24e34805a4b422f9fe2621a3c",
-    "product-mark-144.png": "9c452238f57d773f167e9f61127fb0d88441c0c0ba863dd95e846a6fe9fd2b99",
-    "emery-family-banner.svg": "aacbbff1f1fdaf12cf5bd5b39f864d1458305cdfcb9d2e89a5d8aebb98b44094",
-    "emery-family-banner.png": "39b445c340236a32916c7553c61a850dbc30a867d5429ae8582eebe22e74090e",
-    "gabbro-family-banner.svg": "91920942e0f9ec1e791e6db0c0111085f08e95a450ff45e2716a341cac738cbb",
-    "gabbro-family-banner.png": "64ed68e19feff92fab598bf41ab9dfa71a63068ec90f0974e79c27a276708073"
+    "emery-family-banner.svg": "b6b5cbf14c008eb5e9e4c550e9ba49e4fc2382c3a9281544424b706d4a418953",
+    "emery-family-banner.png": "445a5c2cd17c32e427064e6a5b1033f45294709676474cecb1389521f0bcd082",
+    "gabbro-family-banner.svg": "b3ca182964b17437ed7515e670d055a0b5c0f66a0b7bb3beae4a40a843d26b6c",
+    "gabbro-family-banner.png": "edf55ea4dcac39f2fc72857b5abd1a10acdba62a114fa55c02c48a60cb2142d2"
   },
   "banners": {
     "emery": {
       "file": "emery-family-banner.png",
       "platform": "emery",
-      "screenshot": "emery-store-20261114-four-split.png",
-      "screenshotSha256": "8dd3eb1a4a4a648b1aef7847d43c7363215d9f4988b75e96407bd5e8219cc445",
-      "composition": "Based on Xef's original Halftone banner: bold colour field, curved patterned edge and illustrated watch. Native display stays at 1:1; original embedded capture bytes unchanged.",
-      "illustrationSource": "pebble-watchface-halftone/store/banner-source.svg"
+      "screenshot": "emery-store-demo-20261114-four-split.png",
+      "screenshotSha256": "c21acf77e1342ec4c479b3a697439ecbf6eaa26f4fc85fe96216789e001c3551",
+      "composition": "Modular blue geometry echoes the flexible readings and activity space.",
+      "illustration": "Original XOCE vector watch illustration; supplied native capture embedded unchanged at native pixel size."
     },
     "gabbro": {
       "file": "gabbro-family-banner.png",
       "platform": "gabbro",
-      "screenshot": "gabbro-store-20261114-four-split.png",
-      "screenshotSha256": "8cc1f983854b5bd4f3b009a0de671e339903842a7440df5b3f300303ae8bcca6",
-      "composition": "Based on Xef's original Halftone banner: bold colour field, curved patterned edge and illustrated watch. Native display stays at 1:1; original embedded capture bytes unchanged.",
-      "illustrationSource": "pebble-watchface-halftone/store/banner-source.svg"
+      "screenshot": "gabbro-store-demo-20261114-four-split.png",
+      "screenshotSha256": "edab0330b313e3cb9bfad86e8077ad1e23d1f2d3b75b2e70fe3df28e3ab0fd31",
+      "composition": "Modular blue geometry echoes the flexible readings and activity space.",
+      "illustration": "Original XOCE vector watch illustration; supplied native capture embedded unchanged at native pixel size."
     }
-  }
+  },
+  "source": "artwork/generate-artwork.py",
+  "screenshotPolicy": "Raw captures and PBW files are unchanged. Example data comes from supplied emulator captures, not physical hardware.",
+  "icons": "Banner generation leaves current product marks and Store icons unchanged. Their separate refresh is owned by artwork/generate-icons.py and artwork/apply-icons.py."
 }

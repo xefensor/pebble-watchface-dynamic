@@ -16,9 +16,7 @@ print(audit_platforms(root,pbw))
 # Round previews have independent source identity; Emery pixels cannot stand in
 # for Gabbro even when both targets share the same application version.
 round_preview=json.loads((root/'src/pkjs/settings-preview-round.js').read_text().split('module.exports = ',1)[1].strip().removesuffix(';'))
-from native_identity import renderer_identity as round_renderer_identity
+from historical_preview import audit_historical_preview
 with zipfile.ZipFile(pbw) as round_built:
-    actual_round=round_renderer_identity(round_built.read('gabbro/pebble-app.bin'),round_built.read('gabbro/app_resources.pbpack'))
-assert round_preview['source']['nativeRendererIdentity']==actual_round,'Round preview renderer/resources differ'
-assert len(round_preview['frames'])==24 and round_preview['version']==json.loads((root/'package.json').read_text())['version']
-print('Round 2 preview renderer identity: PASS')
+    round_report=audit_historical_preview(root,'gabbro',round_built.read('gabbro/pebble-app.bin'),round_built.read('gabbro/app_resources.pbpack'))
+print(json.dumps({'historicalRoundPreview':round_report},indent=2))

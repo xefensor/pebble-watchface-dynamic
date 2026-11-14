@@ -19,73 +19,177 @@
       "sha256": "21573d768d0882a028263af759399fba56d78c078f9baf0bb71aa5c6f450e81d",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/columns.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "emery-store-20261114-four-split.png": {
       "platform": "emery",
       "sha256": "8dd3eb1a4a4a648b1aef7847d43c7363215d9f4988b75e96407bd5e8219cc445",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/four-split.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "emery-store-20261114-rows-dark.png": {
       "platform": "emery",
       "sha256": "afe8f172bdd170ed8fd2c923300a14edb03c85b6aa78ac72febd4d6e200339a9",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/rows-dark.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "emery-store-20261114-activities.png": {
       "platform": "emery",
       "sha256": "b270af311ad908c1a5ff8e2580499c8c4a53a086f1b0035eea3a8239af29a870",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/activities.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "emery-store-20261114-peek.png": {
       "platform": "emery",
       "sha256": "ca4105b0d624f16c67492492c2da53af2056ae23d543fec178ee5eeb64b87fcc",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/emery/peek.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/emery/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "gabbro-store-20261114-columns.png": {
       "platform": "gabbro",
       "sha256": "87603ba2af218973c6bd4bed853c1918c66904f6cc2bac80c5b5e60ed97187a8",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/columns.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "gabbro-store-20261114-four-split.png": {
       "platform": "gabbro",
       "sha256": "8cc1f983854b5bd4f3b009a0de671e339903842a7440df5b3f300303ae8bcca6",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/four-split.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "gabbro-store-20261114-rows-dark.png": {
       "platform": "gabbro",
       "sha256": "9566b6d705eecfdde1cd07a2be4a9e03807a9a0a89f6c3c564aa6d1df67b41a3",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/rows-dark.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "gabbro-store-20261114-activities.png": {
       "platform": "gabbro",
       "sha256": "18a635dae278eff8e1c6846f221b548d9f4ac2fb395c58315957d2326bca8364",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/activities.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
     },
     "gabbro-store-20261114-peek.png": {
       "platform": "gabbro",
       "sha256": "d0e93f84e39258af0cb77a5163c206896ba86da9554bc90ca8db3231543b0804",
       "source": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/peek.png",
       "sourceReport": "Store-Update-2026-11-14/verification/native/dynamic/gabbro/report.json",
-      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json"
+      "rendererProof": "Original capture pixels unchanged; native renderer/resources match the new patch. See docs/qa/store-version-1.0.1/package-equivalence.json",
+      "captureVersion": "1.0.0",
+      "representedReleaseVersion": "1.0.2"
+    },
+    "emery-store-demo-20261114-four-split.png": {
+      "platform": "emery",
+      "sha256": "c21acf77e1342ec4c479b3a697439ecbf6eaa26f4fc85fe96216789e001c3551",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "emery-store-demo-20261114-timer-music.png": {
+      "platform": "emery",
+      "sha256": "3deaf722981eddf787ef3c79bb745851ec45e686d534d1b1e8284cc3fe50f5a2",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "emery-store-demo-20261114-music.png": {
+      "platform": "emery",
+      "sha256": "97a33d257bcc7fc4c487f14de9a8d63fac57ce2e78e85308e3062f946b83afe4",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "emery-store-demo-20261114-rows-dark.png": {
+      "platform": "emery",
+      "sha256": "23421c8b29f52821405208af08505e1d1d627f8cd08d350acbdb9daf95e68718",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "emery-store-demo-20261114-columns.png": {
+      "platform": "emery",
+      "sha256": "db9cc4003f3616c6359a0c89a209e8aaf57a3e9d3c171647ead0ec193b42bf23",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "gabbro-store-demo-20261114-four-split.png": {
+      "platform": "gabbro",
+      "sha256": "edab0330b313e3cb9bfad86e8077ad1e23d1f2d3b75b2e70fe3df28e3ab0fd31",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "gabbro-store-demo-20261114-timer-music.png": {
+      "platform": "gabbro",
+      "sha256": "5415ea0b34ebabc3a5bb3ba10e0158e4d0e4dad81d8c5d8b9f0bfebbf543809e",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "gabbro-store-demo-20261114-music.png": {
+      "platform": "gabbro",
+      "sha256": "434470f09c7e4789101ae91e5887da157c679b58ecea9f2ae1ec625c3a2c3245",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "gabbro-store-demo-20261114-rows-dark.png": {
+      "platform": "gabbro",
+      "sha256": "17301b1ee67232820c4955554e36c0f3cea48f130139580abd96dba39aab46dc",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
+    },
+    "gabbro-store-demo-20261114-columns.png": {
+      "platform": "gabbro",
+      "sha256": "f13611f2831db95c84ca9ee320fead9876af1c78101f88c1cc46afa7795b30e0",
+      "captureVersion": "1.0.1",
+      "representedReleaseVersion": "1.0.2",
+      "sourcePbwSha256": "94d68f69ead6131c00a3509140be542c257f4c52a19fd27aacc4f6311b7f7a41",
+      "reuseProof": "final-gallery-reuse.json"
     }
   },
   "originalCaptureVersion": "1.0.0",
   "sourceCaptureCandidateSha256": "9e80b5e57fe44793a886f2fad04ba556aeb96967dc4d2f629235625bbd116190",
-  "reuseProof": "docs/qa/store-version-1.0.1/package-equivalence.json"
+  "reuseProof": "docs/qa/store-version-1.0.1/package-equivalence.json",
+  "representedReleaseVersion": "1.0.2",
+  "representedPbwSha256": "4abb6fcc9197f60d0f69e235030043a09ef03629336e6c59c1e6b35e5eb915ca",
+  "finalReuseProof": "final-gallery-reuse.json",
+  "freshCaptureClaimed": false
 }

@@ -1,17 +1,16 @@
-An animated Pebble watchface that keeps the time, your chosen readings and ongoing updates together.
+A Pebble watchface that makes room for your day.
 
-Dynamic gives the clock a clear place at the top, with your chosen readings beneath it. See weather, battery or other information from compatible Pebble sources, then use the space below for what is happening now.
+Keep a clear clock above your chosen readings. When music or a countdown is active, Dynamic rearranges the space to show it alongside the time.
 
-- Choose Columns, Stacked rows or Four when idle. The four-reading grid keeps the selected pair when an activity or Timeline Peek needs space.
-- Split the clock and details into separate colours, hide optional reading titles, or shake to switch your selected reading pair.
-- Show one main activity and a smaller secondary summary.
-- See a song's title, artist and available artwork while listening.
-- Choose which activities appear and put them in your preferred order.
-- Adjust the clock format, day/night palettes and Small, Medium, Large or Follow Pebble text. Phone settings group layout, colours, activities and help, with a preview and one Save action.
-- Enjoy animated clock layouts, transitions between tracks and support for Timeline Peek.
+- Choose Columns, Stacked rows or Four when idle. The four-reading grid keeps your selected pair when an activity or Timeline Peek needs room.
+- Set separate colours for the clock and details, with day and night palettes.
+- Hide reading titles or enable shake to switch your reading pair.
+- Show music with its title, artist and available artwork.
+- Choose and order your Activities: ongoing updates such as a Timer countdown. A smaller secondary summary appears when space allows.
+- Adjust text size and clock format, with animated layout and track transitions.
 
-Try it with Timer: start a countdown, then return to Dynamic to see the time remaining. These ongoing updates are called Activities. Timer still runs the countdown and handles the alarm; open Timer to pause, resume or finish it. Open Activity can add an optional button shortcut back to the app.
+Start a countdown in Timer, then return to Dynamic to keep it in view. Timer runs the countdown and alarm; open Timer to pause or change it. Open Activity can provide an optional Quick Launch shortcut back.
 
-Shared readings and activities use the official Pebble phone app's plugin support, source permissions and a connected phone. Music and notification integration requires Android. Notifications are optional; message text is opt-in.
+For Pebble Time 2 and Round 2. Shared readings and Activities require a connected phone, plugin support enabled in the official Pebble phone app, and permissions for the chosen sources. Built-in music and notifications require Android. Notification summaries and message text are separate opt-in settings.
 
-Free. For Pebble Time 2 and Round 2. No account, advertisements or analytics.
+Free. Part of XOCE. No XOCE account, ads or analytics. Selected providers have their own requirements and privacy practices.

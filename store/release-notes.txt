@@ -1,9 +1,4 @@
-Dynamic 1.0.1
-
-First stable preparation for Pebble Time 2 and Round 2.
-
-Choose Columns, Stacked rows or Four when idle. The compact four-reading grid returns to the selected pair during an activity or Timeline Peek. Split the clock and detail colours, hide optional titles, or enable shake switching. Complete percentages, including 100%, stay together.
-
-Phone settings now have four category screens, a compact expandable preview and one Save/Discard bar. Day/night palette editing is separate from the active appearance.
-
-Compatible Activities include music, optional notifications and Timer countdowns. Timer owns its countdown controls and alarm; source sharing needs Pebble plugin support and a connected phone.
+- New XOCE launcher icon.
+- Clearer settings help and more stable status messages.
+- Improved keyboard navigation for colour palettes and labelled layout previews.
+- The current app version is now kept separate from historical preview-image versions.

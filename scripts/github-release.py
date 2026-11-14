@@ -15,9 +15,12 @@ import tempfile
 import zipfile
 
 
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from release_js import audit_js
+
+from source_fixtures import HISTORICAL_FIXTURES, source_pbw_allowed
 
 VERSION = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -98,7 +101,7 @@ def zip_files(content):
 
 
 def critical(path):
-    return path.startswith(("src/", "resources/", "vendor/", "include/", "licenses/")) or path in {
+    return path in HISTORICAL_FIXTURES or path == "scripts/source_fixtures.py" or path.startswith(("src/", "resources/", "vendor/", "include/", "licenses/")) or path in {
         "package.json",
         "package-lock.json",
         "wscript",
@@ -130,7 +133,7 @@ def validate_source(root, commit, source, prefix=""):
             member.parts[0].lower() not in {"build", "node_modules", ".git", ".pebble"},
             "Source archive contains an excluded working directory: " + path,
         )
-        require(member.suffix.lower() != ".pbw", "Source archive contains a compiled PBW: " + path)
+        require(member.suffix.lower() != ".pbw" or source_pbw_allowed(path, files[path]), "Source archive contains a compiled PBW: " + path)
     names = git(root, "ls-tree", "-r", "--name-only", "-z", commit).decode().split("\0")
     for path in names:
         if path and critical(path):

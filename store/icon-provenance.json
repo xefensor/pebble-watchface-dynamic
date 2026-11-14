@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "originalArtwork": true,
+  "family": "XOCE optical icon family 2026-11-14",
+  "background": "transparent",
+  "ink": "#000000",
+  "alphaValues": [
+    0,
+    255
+  ],
+  "storeIconSizes": [],
+  "storeIconFieldsApply": false,
+  "icon_tintable": false,
+  "format": "Store PNGs use a single black glyph with binary alpha. Website SVGs use the same silhouette and render smoothly at small UI sizes.",
+  "source": "artwork/generate-icons.py",
+  "files": {
+    "product-mark.svg": "0f3087d8f20b4baee03da216baf1749c6adbe6f7fe54628488828062cc2c2e44",
+    "product-mark-144.png": "355ed7c9a5615a940f21e990d2fdb741b3d8c449d09fba57e1eedb83b0f14e64"
+  },
+  "launcherCandidates": {
+    "white": {
+      "file": "artwork/icons/dynamic/launcher-white-25.png",
+      "sha256": "3f8b3cd46294cd1e4192c8884851b76bd99bff4b48203c8ed06b08f88fe0f400"
+    },
+    "black": {
+      "file": "artwork/icons/dynamic/launcher-black-25.png",
+      "sha256": "e778c0f7507f7524dfb4eaa8dcc500247fa39fb71a53528b7be7758359f3b649"
+    }
+  },
+  "launcherIntegrated": true,
+  "launcherIntegration": {
+    "version": "1.0.2",
+    "pbw": "release-candidates/pbws/Dynamic-1.0.2.pbw",
+    "pbwSha256": "c1f4a983929e99304d23d40fdd331946234d2990829285954beef2744143bcf4",
+    "foreground": "black",
+    "resource": "release-candidates/sources/dynamic/resources/images/menu-icon.png",
+    "published": false,
+    "scope": "Fresh candidate build only; supplied release PBW and source stay unchanged."
+  },
+  "launcherNote": "Native candidates use black 25px glyphs: selected and unselected launcher/picker rows were checked in SDK 4.44.3 emulators. Supplied release PBWs remain unchanged.",
+  "rules": [
+    "https://developer.repebble.com/guides/appstore-publishing/preparing-a-submission/",
+    "https://appstore-api.repebble.com/#changelog",
+    "https://developer.repebble.com/guides/app-resources/images/#menu-icon-in-the-launcher"
+  ]
+}

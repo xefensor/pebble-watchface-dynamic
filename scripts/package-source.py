@@ -2,11 +2,12 @@
 """Create buildable source with pinned libraries, excluding generated QA PNG copies."""
 from pathlib import Path
 import hashlib, io, json, re, subprocess, zipfile
+from source_fixtures import source_pbw_allowed
 root = Path(__file__).resolve().parents[1]
 pkg = json.loads((root / 'package.json').read_text())
 raw = subprocess.check_output(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=root)
 names = sorted({s.decode() for s in raw.split(b'\0') if s and not s.startswith(b'dist/')
-    and not s.lower().endswith(b'.pbw')
+    and (not s.lower().endswith(b'.pbw') or source_pbw_allowed(s.decode(), (root / s.decode()).read_bytes()))
     and not (s.startswith(b'docs/qa/') and s.lower().endswith(b'.png'))
     and (root / s.decode()).is_file()})
 for name in names:

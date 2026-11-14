@@ -1,0 +1,50 @@
+{
+  "product": "Dynamic",
+  "version": "1.0.2",
+  "uuid": "cc1281f1-3b4d-45b5-b235-6881b1fd8fbd",
+  "type": "watchface",
+  "pbw": "Dynamic-1.0.2.pbw",
+  "pbwSha256": "4abb6fcc9197f60d0f69e235030043a09ef03629336e6c59c1e6b35e5eb915ca",
+  "runtimeSourceCommit": null,
+  "storeSourceCommit": null,
+  "publicStoreVersionCheckedOn20261114": "1.0.0",
+  "binaryAction": "New Release: upload the exact final GitHub PBW after publication",
+  "description": "description.txt",
+  "releaseNotes": "release-notes.txt",
+  "screenshotsInUploadOrder": {
+    "emery": [
+      "emery-store-demo-20261114-four-split.png",
+      "emery-store-demo-20261114-timer-music.png",
+      "emery-store-demo-20261114-music.png",
+      "emery-store-demo-20261114-rows-dark.png",
+      "emery-store-demo-20261114-columns.png"
+    ],
+    "gabbro": [
+      "gabbro-store-demo-20261114-four-split.png",
+      "gabbro-store-demo-20261114-timer-music.png",
+      "gabbro-store-demo-20261114-music.png",
+      "gabbro-store-demo-20261114-rows-dark.png",
+      "gabbro-store-demo-20261114-columns.png"
+    ]
+  },
+  "platformBanners": {
+    "emery": "emery-family-banner.png",
+    "gabbro": "gabbro-family-banner.png"
+  },
+  "storeIcons": [],
+  "icon_tintable": null,
+  "storeUrl": "https://apps.repebble.com/5db601a9303a4eb7baa90331",
+  "githubBranch": null,
+  "runtimeSourceUrl": null,
+  "storeSourceUrl": null,
+  "checks": "Fresh final build and exact package/platform audits; historical gallery reuse has explicit proof. No Store submission or physical-device claim.",
+  "artworkRefresh": "XOCE individual product identities, 2026-11-14; artwork-only refresh, supplied native screens and PBW retained.",
+  "iconRefresh": "Black transparent 25px native launcher integrated for native products; Store icon assets are separate.",
+  "screenshotProvenance": "demo-capture-provenance.json",
+  "screenshotRefresh": "Purposeful native example gallery, 2026-11-14; exact supplied native payloads, example data, unchanged PNG pixels.",
+  "descriptionRefresh": "Benefit-first plain-text copy reviewed against supplied implementation and current Pebble guidance, 2026-11-14; no runtime or release identity changes.",
+  "descriptionHashes": {
+    "description.txt": "243937f8f0e020d5f63e79f98c9cd821585a60e7b17665078907dd87192da0b4"
+  },
+  "sourceCommitRecord": "../docs/qa/release-1.0.2/source-commit.json"
+}
