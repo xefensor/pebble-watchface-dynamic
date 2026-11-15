@@ -1,6 +1,12 @@
 # Releasing Dynamic
 
 Routine checks are in [CONTRIBUTING](../CONTRIBUTING.md). Ordinary pushes run checks only.
+The current published version is recorded in [store/publication.json](../store/publication.json);
+this procedure describes a future version, not permission to regenerate 1.0.2.
+A new version returns its listing to `preparation`, removes the current publication
+record reference and records its remaining checks; the strict fresh-build/ELF
+Store audit remains mandatory. Published reference kits may use only the exact
+hash-validated PBW and SDK-independent integrity checks, not a fresh-build claim.
 
 1. Agree a release scope and a new version when changing artifact bytes. Preserve package entrypoints, UUIDs, dependency pins and licences unless that release explicitly changes them.
 2. Run portable checks and a fresh candidate build/package audit. Complete the relevant emulator, phone and watch checks, recording any gaps.

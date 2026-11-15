@@ -1,91 +1,66 @@
 # Dynamic
 
-A Pebble Time 2 and Round 2 watchface with an animated clock, configurable readings and compatible plugin activities.
+A watchface for **Pebble Time 2 and Round 2** with an animated Fredoka clock, configurable readings and compatible activities.
 
-## Store update 1.0.1
+![Dynamic Store banner: blue adapting bands, XOCE endorsement and the actual Time 2 watchface screen.](store/emery-family-banner.png)
 
-Current source prepares Dynamic 1.0.1 for the reviewed Store update. The new numeric version supersedes the existing public 1.0.0 binary without changing the public UUID. Its exact PBW, Store package, source and checksums are under `releases/`; earlier artifacts remain unchanged.
+[Artwork and native-capture provenance](store/artwork-provenance.json).
 
-## Activities: see what is happening now
+<a name="download"></a>
 
-Activities are live updates shown by compatible XOCE apps and watchfaces, such as a countdown, music or a new notification. This feature connects compatible XOCE products; support depends on the app or watchface you choose.
+## Install Dynamic 1.0.2
 
-Start a countdown in Timer, then return to Dynamic to see the time remaining on your watchface. Enable activity plugins and show Timer in Dynamic’s activity list, then save. Timer keeps running the countdown and alarm. Open Timer to pause, resume or finish it.
+- [View in Pebble Store](https://apps.repebble.com/5db601a9303a4eb7baa90331)
+- [Download the matching PBW](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v1.0.2/Dynamic-1.0.2.pbw)
+- [Release notes, source, debug files and checksums](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v1.0.2)
+- [Illustrated setup and product screenshots](https://xefensor.github.io/xoce/projects/dynamic/)
 
-Sharing needs plugin support in the official Pebble phone app, the required permissions and a connected phone. Weather and battery readings use separate reading settings. Music and notification integration requires Android. Open Activity is optional; you can always open Timer from the watch’s app list.
+Version 1.0.2 is published in GitHub Releases and Pebble Store. Open a downloaded PBW with the official Pebble phone app. No separate XOCE app or library installation is needed. [Older releases](https://github.com/xefensor/pebble-watchface-dynamic/releases) retain their original files and evidence; they are not the current installation recommendation.
 
-## Development reading options
+## Choose the space your readings need
 
-The local feedback candidate adds an optional split clock/details palette,
-stacked reading rows and hidden titles. **Four when idle** shows a compact 2×2
-grid, keeping the selected pair when activities or Timeline Peek appear. Shake paging can cycle global Pebble
-slots 1–2, 3–4 and 5; it is off by default. Units and unavailable states remain
-visible. PebbleOS does not expose touch events to watchfaces. See [current
-UI](docs/UI.md) for behaviour and verification scope.
+Choose **Columns**, **Stacked rows** or **Four when idle**. The idle grid shows four readings, keeping the selected pair when an activity or Timeline Peek needs room. Optional shake switching cycles global Pebble slots 1–2, 3–4 and 5; it is off by default. Split clock/detail colours and optional reading titles keep the layout your own. Text Size affects supporting text while retaining the Fredoka clock design.
 
-## Download
+These options are included in the published app. Dynamic uses the first two global Complications choices by default, four for the idle grid, or five when shake switching is enabled. Selected providers keep ownership of their units, source permissions and data. [Usage and controls](docs/USAGE.md) · [Current UI](docs/UI.md).
 
-[Version 0.18.3](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v0.18.3) is a development prerelease.
+## Keep a countdown on your clock
 
-[PBW](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3.pbw),
-[source](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3-source.zip),
-[debug files](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/Dynamic-0.18.3-debug.zip), and
-[checksums](https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v0.18.3/SHA256SUMS.txt).
+Start a countdown in the separate Timer app, then return to Dynamic. In Dynamic settings choose **Activities**, enable **Show activity plugins**, show Timer in **Activity priority**, and save. Use **Reorder** and **Done** to choose its place in the order.
 
-Install the PBW through the Pebble phone app. No separate library installation is needed.
+Timer owns the countdown, saved timers and alarm. Open Timer to pause, resume or finish it. Open Activity can add an optional Quick Launch shortcut back; it opens the associated app rather than a particular saved timer.
 
-Install through the phone app and open settings to choose readings, activity sources, layout and
-appearance. Activity features require plugin support; built-in Music/Notifications require
-Android. Install Timer and Open Activity separately for their optional integrations.
+Sharing needs plugin support in the official Pebble phone app, the selected sources’ permissions and a connected phone. Built-in music and notification integration requires Android. Clock and date continue without a phone. [Step-by-step activity setup](https://xefensor.github.io/xoce/docs/pebble/setup/#illustrated-first-setup).
 
-[Usage and controls](docs/USAGE.md) · [Current UI](docs/UI.md).
+<a name="compatibility"></a>
+<a name="setup-and-use"></a>
 
-## Compatibility
+## Compatibility, settings and privacy
 
-The release candidate targets **Pebble Time 2 / Emery** and **Round 2 / Gabbro**, using **Pebble SDK 4.44**. Duo is deferred. Portable and
-emulator evidence is versioned; physical phone/watch checks retain their documented gaps.
-Existing screenshots keep their original version and provenance.
+The published native targets are **Time 2 / Emery, 200×228**, and **Round 2 / Gabbro, 260×260**, built with SDK 4.44. Other models, including Duo, are not included.
 
-## Setup and use
+Phone settings have four categories: **Layout & complications**, **Colours**, **Activities**, and **More & help**. They share one draft and Save/Discard bar. **✓ Saved** confirms phone persistence; the separate watch status confirms application on the watch. Manual Day/Night palettes and Follow Quiet Time remain independent from the phone page’s appearance. Follow Pebble appearance uses the last explicit palette because the pinned SDK exposes no supported automatic appearance API.
 
-Install the PBW and configure the first two global Complications choices in the Pebble phone app. Open the face’s gear settings for its saved appearance and context choices. Readings retain the selected provider’s units. See [current UI](docs/UI.md).
+[Support and troubleshooting](SUPPORT.md) · [Privacy](PRIVACY.md) · [Website guides](https://xefensor.github.io/xoce/docs/).
 
-The local development candidate adds per-face Text Size and Appearance choices,
-including Manual Day/Night palettes and Follow Quiet Time. Follow Pebble Appearance
-is unavailable on the pinned SDK and retains the last manual palette as fallback.
-See [preferences verification](docs/ui-preferences-checkpoint.md) for evidence and limits.
-
-The version notes below describe the published download. Development candidates
-remain separate; use [CONTRIBUTING](CONTRIBUTING.md) for local builds.
-
-## Version 0.18.3
-
-- Adopt shared XOCE type roles, icons and phone settings styling while retaining the Fredoka clock and values.
-- Combine each complication symbol, value and unit; retain meaningful public qualifiers and source labels while removing redundant weather captions.
-- Restore animated layout changes, Peek response and genuine item transitions. Keep accent complication icons, readable values and the expanded activity area.
-- Bundle Core 0.5.2 and UI 0.1.1. Preserve v1–v4 readings, ACT3 activity identity, preferences and private-content handling.
-
-## Version 1.0.0 — stable release preparation
-
-Add Time 2 and Round 2 SDK 4.44 builds. Match numeric complication sizes, apply saved text size immediately, and retain paired music slides and reserved loading artwork.
-
-Xef accepted the reviewed implementation for stable release preparation on 2026-11-13. Actual test coverage remains recorded separately; no physical-device result is implied. Publication is a separate step.
+Screenshots keep their actual capture versions and reuse proof. Portable checks, simulated phone/browser tests, native emulator renders and physical-device results are separate evidence. Publication does not establish physical-watch or live-phone testing.
 
 ## Development
 
-Use Node 22, Python 3.12 and a C compiler. SDK builds additionally need Pebble SDK 4.44 on
-PATH.
+Use the pinned Node/Python versions and portable Python dependencies in [CONTRIBUTING](CONTRIBUTING.md). A C99 compiler is needed for portable native tests; SDK 4.44 is additionally needed to build the watch app.
 
 ```sh
+python3 -m pip install -r requirements-portable.txt
 npm ci --ignore-scripts
 npm test
+# With the pinned SDK selected:
 npm run build
 npm run check:artifact
 ```
 
-[Contributor guide](CONTRIBUTING.md) · [Release preparation](docs/RELEASING.md) · [History index](docs/history/index.md).
-Development outputs belong in ignored `build/`; published archives stay frozen.
+The exact app-bundled dependencies are Core **0.6.1-dev.1**, Activities **0.4.5** and UI **0.1.3** in `vendor/`. These snapshots are separate from independently published library versions. Build outputs belong under ignored `build/`; published PBWs, archives and historical evidence remain frozen.
+
+[Release procedure](docs/RELEASING.md) · [Current publication record](store/publication.json) · [History](docs/history/index.md).
 
 ## Licence
 
-[PolyForm Noncommercial 1.0.0](LICENSE). Preserve bundled third-party notices and attribution.
+[PolyForm Noncommercial 1.0.0](LICENSE). Preserve bundled third-party notices and attribution. The source is available under these terms; commercial use is restricted.

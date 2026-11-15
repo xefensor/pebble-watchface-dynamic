@@ -1,7 +1,9 @@
 # Dynamic: current UI
 
-The development candidate retains version 0.18.3. Published downloads and frozen
-evidence retain their original typography and interfaces.
+This is the current UI contract for published Dynamic **1.0.2**, on Time 2 and
+Round 2. The [usage guide](USAGE.md) describes current phone categories and setup.
+Historical captures retain their actual versions and renderer-reuse proof; the
+[earlier contract](https://github.com/xefensor/pebble-watchface-dynamic/blob/2254f08ac3a574df11ccb23ea6e3337e53bbe3b2/docs/UI.md) remains in its original source snapshot.
 
 Readable Roboto Condensed utility roles and dominant Fredoka values are the accepted main UI. Compact numeric date and Idle/Peek weekday/date remain. Two readings keep their positions; the primary block is bottom-aligned above its footer, with the secondary above it. Structured values/units and Paused/pace/street precede optional identity. A hidden secondary must not escape through the navigation source. Animated layouts, Peek response and genuine item transitions are part of Dynamic's design. Dynamic has no physical action rail.
 
@@ -35,8 +37,12 @@ The complete source glyph repertoire and visible missing-glyph fallback remain.
 
 ## Complication layout
 
-The two global Pebble complication choices retain their positions in equal
-columns. Each reading combines a source symbol and its value/unit in one group.
+Columns and Stacked rows present the selected global Pebble reading pair.
+**Four when idle** adds the next pair in a compact idle grid, then retains the
+selected pair for activities and Timeline Peek. Optional explicit shake switching
+can select slots 1–2, 3–4 or 5. The default subscription scope is two; the idle
+grid requests four and shake switching requests five. Each reading combines a
+source symbol and its value/unit in one group.
 The idle value targets 40px; activity and Peek values target 28px. Units and
 meaningful captions use the effective secondary Roboto role. Clock/date geometry and the ACT3
 activity composition remain independent of this reading layout.
@@ -75,8 +81,10 @@ immediately, and covered views do not schedule decorative work.
 These animations are intentional. Improve their timing, paths and clipping;
 removing them is a separate user decision, not a substitute for fixing them.
 
-This candidate keeps Core 0.5.2 for its optional
-public-label callback. The v4 wire, message-key numbering, saved preferences and
+The released app embeds its checked Core **0.6.1-dev.1** snapshot for the
+public-label callback and opt-in four/five-slot support. Activities **0.4.5** and
+UI **0.1.3** are independently pinned alongside it in `vendor/`. These package
+versions do not imply standalone public library releases. The v4 wire, message-key numbering, saved preferences and
 global complication picker are unchanged. Forecast-series charts and new native
 health sources are separate features, not part of this layout change.
 
@@ -86,7 +94,15 @@ of the motion correction.
 
 Preserve UUID, appended message-key numbering, ACT3 source/run identity, observation and original validity. Private media/notification content is transient. Keep one native render plan, one static secondary row and one shared queue. Text starts at its beginning and truncates; no marquee, activity/text paging or silent rotation. Optional explicit shake paging changes only the selected reading pair. Only genuinely painted original record indices may be confirmed/exported for navigation. Clock ticks never persist state or send messages. Covered views reconcile expiry without decorative work or fresh presentation claims.
 
-## Per-face display settings
+<a name="per-face-display-settings"></a>
+
+## Phone categories and per-face display settings
+
+Layout & complications, Colours, Activities, and More & help share one mounted
+draft and Save/Discard bar. Category navigation preserves edits and focus context.
+Activities uses an explicit Reorder/Done mode; the current usage guide shows the
+actual controls. Save confirms phone persistence separately from watch application.
+
 
 The phone page retains both Day and Night palettes independently. Appearance
 selects Day palette, Night palette or Follow Quiet Time. Palette editing is a
@@ -135,7 +151,7 @@ fresh browser checks remain explicitly separate.
 Supporting/help text uses the normal foreground colour rather than blended grey.
 This keeps black text on white and white text on black readable without changing
 type sizes or layouts. See the [contrast checkpoint](text-contrast-checkpoint.md)
-for the current candidate and verification scope.
+for its original capture version and verification scope.
 
 ## Matching reading values
 
@@ -168,13 +184,16 @@ hashes, regression checks, actual emulator frames and remaining device scope.
 
 ## Music artwork and artist wrapping
 
-The primary music activity keeps its full-width song title above a 40×40 px
+On Time 2, the primary music activity keeps its full-width song title above a 40×40 px
 artwork home at x=10, bottom-aligned at y=216. Artist text starts at x=58 in the
 remaining 132 px and uses the smaller music-artist role in the table above.
 Follow Pebble and manual text sizes select the same profiles. Up to two artist
 lines wrap from the beginning; useful comma breaks preserve provider punctuation,
 and only the final line ellipsizes. The artist block shares the artwork's bottom
 anchor, and measured accents/descenders can make its reserved row taller.
+
+Round 2 fits the same hierarchy within its circular content bands; the Time 2
+coordinates above are not a Round 2 geometry contract.
 
 The title retains its font and an 8 px gap above the measured footer. A secondary
 activity yields if necessary to keep the primary title visible. Music-note and
@@ -210,7 +229,7 @@ text and cards never rotate. PebbleOS excludes watchfaces from its touch API.
 
 Phone previews for these optional layouts are labelled approximate example-data
 previews. The default 24 presets per shape are actual native captures. Source
-and issue URLs are available in Help & connection.
+and issue URLs are available in More & help.
 
 The split renderer collects reading ink bounds during the ordinary paint pass,
 then fills the clear upper panel and paints the clock/date on its own palette.

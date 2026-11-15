@@ -1,11 +1,21 @@
 # Dynamic privacy
 
+**Documentation clarification — 2026-11-15, Dynamic 1.0.2.** The optional
+four/five-reading scope below corrects the earlier first-two-only description
+of the shipped implementation. This documentation update changes no runtime or
+data handling. Current main and the website carry this corrected reference;
+frozen release/source archives retain their original privacy text.
+
 Dynamic displays readings supplied by Pebble and the plugins you select. It
 has no analytics, advertising, account service or separate weather server.
 
 ## Data used
 
-- The first two Pebble complication choices provide the readings on the face.
+- By default, Dynamic uses the first two global Pebble complication choices.
+  **Four when idle** subscribes to the first four; enabling optional shake
+  switching subscribes to all five. These selected sources are processed on the
+  phone and their permitted public readings can enter the bounded caches below,
+  including when only the selected pair is visible during an activity or Peek.
   Their providers may use a network service or location according to their own
   settings and permissions. Dynamic has no direct weather HTTP client.
 - Compatible activity plugins provide content, optional detail/image and

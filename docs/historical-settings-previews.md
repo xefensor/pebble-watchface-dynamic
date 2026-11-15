@@ -1,6 +1,6 @@
 # Historical native settings previews
 
-The 24 embedded Emery frames and 24 Gabbro frames retain their original `1.0.1` module version, PNG data and capture provenance. They are historical examples, not fresh captures of candidate `1.0.2`. Earlier originalCaptureVersion fields remain unchanged.
+The 24 embedded Emery frames and 24 Gabbro frames retain their original `1.0.1` module version, PNG data and capture provenance. They are historical examples, not fresh captures of published `1.0.2`. Earlier originalCaptureVersion fields remain unchanged.
 
 The exact supplied `Dynamic-1.0.1.pbw` is retained under `tests/fixtures/historical-preview/` as a read-only audit baseline. `scripts/historical_preview.py` pins its complete SHA-256, verifies that each platform matches the original capture renderer identity, and compares the candidate with it. All executable, constant and relocation bytes and all eight compiled font payloads must remain identical. The comparison permits only launcher resource ID 0 to 9, resource CRC binding, and SDK checksum/timestamp/GNU build-ID fields; it validates CRCs before comparison. Semver patch is absent from the SDK 4.44 native process version, so native major/minor remain unchanged.
 

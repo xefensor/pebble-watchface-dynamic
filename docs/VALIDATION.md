@@ -1,5 +1,10 @@
 # Dynamic validation
 
+This page retains the earlier versioned development history. The current
+published-release evidence and its limits are indexed in
+[RELEASE-READINESS](RELEASE-READINESS.md). The original results below remain
+scoped to their named versions; they are not fresh verification of 1.0.2.
+
 ## 0.18.2 whole-screen readability redesign
 
 Xef rejected the header-only correction because the remaining text and spacing

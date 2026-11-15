@@ -63,14 +63,14 @@ sibling checkouts. Do not repin consumers or change published bytes as cleanup.
 full rationale/history. Read them only when investigating an old decision.
 
 
-## Round 2 development layout
+## Current Round 2 layout
 
 Gabbro uses the complete 260×260 physical display. Text and artwork are fitted
 inside the chord for their vertical band; the shared UI library owns only
 geometry and drawing. Time 2 retains its established rectangular composition.
 The SDK 4.44 reference and disposable candidate evidence are in the workspace's
-`Round2-Development/` directory. This is development work; frozen release files
-and historical QA are unchanged. No physical Round 2 or Android result is implied.
+`Round2-Development/` directory. That directory records the original development stage; its implementation now
+ships in 1.0.2. Frozen release files and historical QA remain unchanged. No physical Round 2 or Android result is implied.
 
 Clock raster buffers and activity transition distances use the display dimensions.
 Readings fit one shared numeric size before measuring their supporting lines.
@@ -82,7 +82,7 @@ an unknown watch exposes the temporary preview-watch selector.
 When the face is running, phone previews select the connected Time 2 / Round 2 automatically. Plugin-only settings cannot read WatchInfo; their temporary preview-watch selector affects only the current page and is never saved or sent to the watch.
 
 
-## Feedback development preferences
+## Shipped reading preferences
 
 Display v2 appends eight fields without reusing retired LAYOUT_STYLE. The 92-byte
 frame stores 21 values at key 79 and verifies readback before applying/replying.
@@ -93,7 +93,8 @@ New receivers accept both versions; a v1 receipt cannot confirm a v2 preference.
 A phone paired with an older native build remains pending until the watchface is
 updated. Day/night lower colours remain raw RGB, separate from accent colour.
 
-The Core 0.6.1-dev.1 archive is a local development pin from the source commit in
+The Core 0.6.1-dev.1 archive is the vendored snapshot shipped in Dynamic 1.0.2, from the source commit in
 vendor/CORE.json. Dynamic opts into four slots for the idle grid and five when shake paging is enabled. The default
-library contract and every other app pin remain two readings. No released
-library, watchface version, UUID or frozen archive has been changed.
+library contract and every other app pin remain two readings. This is not a
+standalone Core release. Current maintenance preserves published app versions,
+UUIDs and frozen archives; privacy disclosure includes the optional 2/4/5 scope.

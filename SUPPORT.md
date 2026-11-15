@@ -1,57 +1,35 @@
 # Dynamic support
 
-[Report a problem or request a change](https://github.com/xefensor/pebble-watchface-dynamic/issues).
-Include the Dynamic version, Pebble model/OS version, phone app version, what
-you expected and the steps that reproduce the problem. For a missing reading,
-include the selected plugin and the state shown in **Connection & help**.
-Keep private notification text out of reports and screenshots.
+[Report a problem or request a change](https://github.com/xefensor/pebble-watchface-dynamic/issues). Include Dynamic’s version, watch model/firmware, phone/Pebble app versions, expected result, actual result and reproduction steps. For a missing reading, include the selected source and the bounded status shown under **More & help**. Remove private notification, music and location content from reports.
 
-## Downloads and verification
+## Install and verify
 
-Browse the [published GitHub releases](https://github.com/xefensor/pebble-watchface-dynamic/releases).
-Download the PBW and `SHA256SUMS.txt`; the source ZIP is for building or inspecting
-the checked snapshot. Verify the files you downloaded with
-`sha256sum --ignore-missing -c SHA256SUMS.txt`, or download both PBW and source
-and use `sha256sum -c SHA256SUMS.txt`. Existing release files remain unchanged
-across documentation updates.
+Dynamic **1.0.2** is published for Time 2 and Round 2. Use [Pebble Store](https://apps.repebble.com/5db601a9303a4eb7baa90331), the [current product page](https://xefensor.github.io/xoce/projects/dynamic/), or the exact [GitHub release](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v1.0.2).
 
-## Setup
+For manual installation, download the PBW and `SHA256SUMS.txt` from the same release, then run `sha256sum --ignore-missing -c SHA256SUMS.txt`. Open the PBW with the Pebble phone app. Source/debug ZIPs are for development. Older releases and their original source archives remain unchanged.
 
-The release being prepared targets Pebble Time 2 (`emery`) and Round 2 (`gabbro`) with SDK 4.44. Duo is deferred. Round 2 validation uses the emulator; physical Time 2 and Android checks remain pending before publication. Music and notification integration use
-the Android Pebble app's plugin preview. Enable it in the phone app, select
-complication slots 1 and 2, and allow the sources you want to use. Source and
-permission availability depend on your Pebble app and plugins.
+## Missing readings or activities
 
-The clock and date work without a phone. Live readings, music and notification
-activities require their sources. Music is a display; use Pebble's Music app for
-playback controls. Timeline Peek is the watch's native panel.
+Use a connected Time 2 or Round 2 and the official phone app’s plugin support. Grant permissions required by the sources you select. Built-in music and notification integration requires Android. Other watch models, including Duo, are not included.
 
-## Plugin activities
+Configure global Complications slots 1–2 normally, 1–4 for Four when idle, or 1–5 for optional shake switching. In Dynamic’s gear settings, **Layout & complications** selects the layout, and **More & help** shows source status.
 
-Open **Content & priority**, enable **Show activity plugins** and install a
-compatible activity provider. This switch affects plugin activities only; Music
-and Notifications have their own visibility checkboxes in the same priority list.
-Disabled plugin rows retain their saved positions and visibility preferences.
-Dynamic prefers `activity/summary` schema 4 and adapts earlier conventions.
-Timer, Music and Notifications can each be primary or secondary according to
-Dynamic's Activity priority list. Notifications defaults to Off; its row and
-privacy controls stay synchronized. Enable it in the list to choose app-only,
-sender/title or message detail. Hiding it preserves the last privacy choice.
-The section shortcuts reach Content and Connection & help; Save applies changes.
-The originating watchapp owns timer state
-and alarms; offline changes may be missing. Include both app versions and source
-sharing status in reports.
+For a Timer countdown, open **Activities**, enable **Show activity plugins**, and show Timer in **Activity priority**. Choose **Reorder**, move Timer above competing sources, then choose **Done** and **Save**. Timer still owns its countdown and alarm. Music and Notifications have independent visibility choices in the same list. [Illustrated setup](https://xefensor.github.io/xoce/docs/pebble/setup/#illustrated-first-setup).
 
-## Notification overlap
+## Save and watch delivery
 
-Dynamic's optional notification activity and **additional** vibration do not replace
-PebbleOS notifications. If both are enabled, PebbleOS may show or vibrate for
-the same event too. Leave Dynamic's vibration Off when you want only the
-normal system alert. Dynamic's app filter does not change PebbleOS forwarding.
+**✓ Saved** confirms phone persistence. Watch application has a separate Pending/Applied/failure state. Keep the phone connected and use **Retry watch delivery** when offered. Failed or uncertain writes keep the draft; use the visible retry/readback controls rather than clearing app data. [Settings troubleshooting](https://xefensor.github.io/xoce/docs/pebble/troubleshooting/#settings-seem-not-to-save).
 
-## Release status
+The four settings categories share a draft. Phone appearance and watch palettes are independent; editing colours does not activate that palette. Follow Pebble appearance retains the last explicit palette because the pinned SDK has no supported automatic appearance API.
 
-This is a sideloaded preview. Public Pebble store submission is held while
-Pebble's published plugin-preview restriction applies. See the
-[publication kit](store/README.md) and [validation record](docs/VALIDATION.md)
-for the exact build's checks and remaining device-test limits.
+## Open Activity and notifications
+
+Choose Dynamic as Open Activity’s source and match its configured shortcut to Pebble’s Quick Launch shortcut. A normal app-list launch opens the helper’s setup; a missing or expired destination cannot open an app. It opens the whole associated app, not a particular saved item. [Shortcut help](https://xefensor.github.io/xoce/docs/pebble/troubleshooting/#open-activity-immediately-closes).
+
+Dynamic’s optional notification activity and additional vibration do not replace PebbleOS notifications. Leave additional vibration off if you only want the system alert. Dynamic’s app filter does not change PebbleOS forwarding.
+
+## Publication and evidence
+
+[store/publication.json](store/publication.json) records the verified published version and exact PBW identity. The former blanket plugin-preview publication restriction is historical; current plugin publishing has its own [official guide](https://developer.repebble.com/guides/plugins/publishing-plugins/).
+
+[Release readiness](docs/RELEASE-READINESS.md) links actual validation. Physical phone/watch and live-provider testing are not claimed; publication does not turn emulator/browser evidence into device coverage. [Privacy](PRIVACY.md) and [usage](docs/USAGE.md) describe the shipped behaviour.

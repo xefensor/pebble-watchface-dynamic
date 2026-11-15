@@ -1,5 +1,10 @@
 # Dynamic and the shared libraries
 
+This is the retained **0.13.0 architecture narrative**. Its version pins, type
+sizes and phone groups describe that stage. Current shipped ownership and
+behaviour are in [MAINTENANCE](MAINTENANCE.md), [UI](UI.md) and
+[USAGE](USAGE.md); do not use the old package numbers below for a new build.
+
 Dynamic 0.13.0 pins Pebble Watchface Core 0.5.0 and Pebble
 Activities 0.4.1. Each PBW embeds its libraries and keeps its UUID, settings and
 permission manifest. Halftone retains its own independently adopted pin.

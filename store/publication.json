@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "publication_status": "published",
+  "version": "1.0.2",
+  "uuid": "cc1281f1-3b4d-45b5-b235-6881b1fd8fbd",
+  "store_url": "https://apps.repebble.com/5db601a9303a4eb7baa90331",
+  "github_release_url": "https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v1.0.2",
+  "pbw_url": "https://github.com/xefensor/pebble-watchface-dynamic/releases/download/v1.0.2/Dynamic-1.0.2.pbw",
+  "pbw_sha256": "4abb6fcc9197f60d0f69e235030043a09ef03629336e6c59c1e6b35e5eb915ca",
+  "verified_on": "2026-11-15"
+}

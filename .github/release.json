@@ -20,5 +20,9 @@
   "notes": {
     "path": "CHANGELOG.md",
     "heading": "## {version}"
+  },
+  "bootstrap": {
+    "version": "1.0.2",
+    "source_commit": "2254f08ac3a574df11ccb23ea6e3337e53bbe3b2"
   }
 }

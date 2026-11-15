@@ -1,49 +1,17 @@
-# Release 1.0.2 · 2026-11-14
+# Dynamic 1.0.2 — published release
 
-The final source tests, fresh builds, package checks and native emulator scope are recorded in [current validation](qa/release-1.0.2/validation.json). Historical galleries keep their capture versions and have explicit final-binary reuse proof. Physical phone/watch and live-provider results are not claimed. Xef authorized stable GitHub publication and retained the existing review acceptance; no new device approval gate applies. Pebble Store submission remains manual and unsubmitted.
+Dynamic 1.0.2 is published on [GitHub](https://github.com/xefensor/pebble-watchface-dynamic/releases/tag/v1.0.2) and [Pebble Store](https://apps.repebble.com/5db601a9303a4eb7baa90331), for Time 2 and Round 2. The public UUID and exact PBW identity are recorded in [publication.json](../store/publication.json), checked against the website’s fresh public-release gate on 2026-11-15.
 
-# Stable release preparation — 1.0.1
+The source tests, builds, package checks and native emulator scope remain recorded in [release-1.0.2 validation](qa/release-1.0.2/validation.json). Historical galleries keep their captured versions and explicit final-binary reuse proof. Physical phone/watch and live-provider results are not claimed. Xef’s recorded acceptance removed the former additional device-approval gate; it did not create unobserved test results.
 
-Xef accepted the reviewed Round 2 implementation on 2026-11-13 and selected a
-stable, listed public release. This acceptance removes the earlier additional
-physical-device review prerequisite; it does not create unobserved test results.
+Current sources include adaptive reading layouts, split clock/detail colours, optional shake switching and category-based phone settings. Those are shipped features, not an unpublished feedback candidate. Core 0.6.1-dev.1 is the app’s vendored opt-in four/five-slot snapshot, distinct from the standalone public Core release.
 
-This release retains Time 2 and Round 2, the public UUID, saved state, permissions
-and provider protocols. Duo is excluded. Core/Activities/UI archives remain
-pinned to their exact reviewed sources. Older release files and versioned QA
-records stay frozen.
+## Maintenance after publication
 
-The current source/package/emulator coverage is recorded in
-[the release review](qa/1.0.0/release-review.json). Physical phone/watch
-coverage remains explicitly separate. Earlier versioned reviews retain their
-original decisions and do not override Xef's current acceptance.
+Documentation and portable tooling changes do not regenerate release files. Existing tags, PBWs, source/debug/Store ZIPs, checksums and QA images remain immutable. The release configuration pins published 1.0.2 to source commit `2254f08ac3a574df11ccb23ea6e3337e53bbe3b2`; prepare validates that original snapshot even after maintenance commits.
 
-Prepare/check the Store kit, then freeze the exact candidate with
-`python3 scripts/freeze-release.py`. Commit its source, metadata and archives
-locally before running this repository's GitHub release preparer. The release
-configuration marks this version stable. No upload, tag or publication is
-implied by preparation.
+A newly prepared local Store kit uses current explanatory documents and a verified publication record. It is a reference kit, not a replacement for the published Store ZIP or permission to upload again. A future app change needs its own new version, validation, preparation state and separately authorized publication. Follow [RELEASING](RELEASING.md).
 
-Publication uses the existing GitHub release workflow and the exact same frozen
-PBW in the Developer Dashboard. Verify listing ownership, the unchanged UUID,
-an unused version and live app-owned GitHub support/privacy URLs before upload.
-After all six public releases match the checked hashes, activate the redesigned
-website and then update Store metadata to its hosted product/support/privacy
-pages. The website's live release gate remains mandatory.
+## Earlier preparation narrative
 
-
-## Feedback development candidate — 2026-11-14
-
-Local review adds split palette, stacked readings, title visibility and optional shake paging. The app version and UUID are unchanged;
-this is a development candidate, outside the earlier stable acceptance. Portable
-source checks, SDK 4.44 builds and native Emery/Gabbro runs are recorded in
-`Watch/Feedback-Development-2026-11-14` in the workspace. Chromium runs use the
-actual generated settings HTML with a simulated Pebble bridge. Physical watch
-and Android integration are unverified; Timer acoustics and battery impact need
-a physical Time 2. Frozen release PBWs, source/Store archives and their proof
-remain unchanged. No commit is pushed and no artifact is submitted or published.
-
-
-## Store update — 1.0.1 (2026-11-14)
-
-Xef requested a new numeric version for the reviewed current implementation and Store handoff. Public Store history already contains 1.0.0; 1.0.1 was absent from the checked public Store history and GitHub tags. The public UUID, saved-state compatibility, pinned dependencies and reviewed native interfaces are retained. New source/artifact/Store verification is recorded with this release preparation; prior emulator captures are reused only after native renderer/resource equality is verified. No new physical-device result is claimed. GitHub branch pushes are authorized; app submission and website deployment remain separate.
+The [pre-publication source record](https://github.com/xefensor/pebble-watchface-dynamic/blob/2254f08ac3a574df11ccb23ea6e3337e53bbe3b2/docs/RELEASE-READINESS.md) retains the earlier 1.0.0/1.0.1 milestones, feedback review and submission steps. Those statements describe their original stage rather than current installation availability.

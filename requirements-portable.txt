@@ -1,0 +1,2 @@
+# Portable image/asset audit dependency; native tooling has its own complete lock.
+pillow==13.0.0

@@ -17,7 +17,16 @@ npm run check:setup
 
 The setup check reports missing or mismatched runtimes and installs nothing.
 The virtual environment stays in ignored `.venv/`. Install locked dependencies
-with `npm ci --ignore-scripts` after selecting the runtimes.
+with `npm ci --ignore-scripts` after selecting the runtimes. Install the portable
+Python image-audit dependency in that environment before running tests:
+
+```sh
+python3 -m pip install -r requirements-portable.txt
+```
+
+The pinned Pillow dependency is required by the historical image regression tests;
+`npm ci` does not install Python packages. `requirements-release.txt` already
+includes it when setting up the full native toolchain.
 
 
 Use Node 22, Python 3.12 and a C99 compiler (`cc`, or set `CC`). Portable tests do not need a
@@ -91,8 +100,9 @@ kit bytes and make the standalone source ZIP. It refuses an existing version
 and writes `releases/SHA256SUMS-VERSION.txt`; old root checksums and artifacts
 remain untouched. Commit these files locally, then run `npm run release:prepare`
 to validate committed HEAD. No build, tag, upload or publication happens during
-freezing or preparation. The current candidate's physical-device and account
-gates remain in `docs/RELEASE-READINESS.md`.
+freezing or preparation. The current publication and evidence scope is in `docs/RELEASE-READINESS.md`.
+For an already published version, prepare verifies the immutable tagged snapshot;
+maintenance documentation does not regenerate those bytes.
 
 ## Phone settings review
 
