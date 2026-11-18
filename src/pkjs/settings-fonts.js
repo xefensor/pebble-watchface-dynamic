@@ -223,28 +223,28 @@ function install(options, createFont) {
       previewLoad(choice(role));
     });
     drawSpecimen();
-    if (editing !== null) showChoices();
+  }
+  function markChoice(btn, selected) {
+    btn.setAttribute('aria-pressed',String(selected));
+    btn.lastElementChild.hidden = !selected;
   }
   function showChoices() {
     choices.replaceChildren();
+    const current = Number(fields[editing].get());
     function add(id) {
       const btn = button(choices);
       btn.className = 'dynamic-font-option';
       btn.dataset.fontChoice = String(id);
-      const current = id === Number(fields[editing].get());
-      btn.setAttribute('aria-pressed',String(current));
       btn.textContent = fontName(editing,id);
-      if (current) {
-        const check = make('span');
-        check.textContent = '✓';
-        check.setAttribute('aria-hidden','true');
-        btn.append(check);
-      }
+      const check = make('span');
+      check.textContent = '✓';
+      check.setAttribute('aria-hidden','true');
+      btn.append(check);
+      markChoice(btn,id === current);
       btn.addEventListener('click',() => choose(id));
     }
     choices.append(make('h4','Built-in fonts'));
     (editing === 1 ? [0,1,2,3] : [0,1]).forEach(add);
-    const current = Number(fields[editing].get());
     if (library.size || current > 3) choices.append(make('h4','Saved fonts'));
     for (const id of library.keys()) add(id);
     if (current > 3 && !library.has(current)) add(current);
@@ -280,11 +280,12 @@ function install(options, createFont) {
   }
   function choose(id) {
     if (editing === null) return;
-    const role = editing;
-    fields[role].set(id);
-    dismiss();
+    fields[editing].set(id);
+    status.textContent = '';
+    for (const btn of choices.querySelectorAll('[data-font-choice]')) {
+      markChoice(btn,Number(btn.dataset.fontChoice) === id);
+    }
     refresh();
-    if (options.onRole) options.onRole(role);
     update();
   }
   function setBusy(value) {
@@ -319,7 +320,11 @@ function install(options, createFont) {
     if (!saved || !saved.ok) throw Error('Phone storage');
     cached.set(asset.id,parseAsset(asset));
     library.set(asset.id,asset.name);
-    if (request === session) choose(asset.id);
+    if (request === session) {
+      showChoices();
+      choose(asset.id);
+      status.textContent = asset.name;
+    }
   }
   async function importNative() {
     let grant;

@@ -146,6 +146,7 @@ module.exports = function() {
     '.component-select .value{margin-top:9px;padding:9px 28px 9px 12px;min-height:var(--control-height);border:1px solid var(--line);border-radius:8px;background:var(--field);font-size:15px}',
     '.component-select .value:after{right:12px;top:50%;margin-top:0;transform:translateY(-50%);border-top-color:var(--accent)}',
     '[data-font-panel] h3{margin:0 0 8px;font-size:17px}[data-font-panel]>.dynamic-details{margin-top:12px}[data-font-panel] button:disabled{opacity:.65}',
+    '[data-font-panel] summary[data-font-role]{min-height:44px;padding:8px 0;cursor:pointer;font-weight:650}[data-font-panel] summary .dynamic-font-value{display:block;color:var(--muted);font-weight:400;overflow-wrap:anywhere}',
     '.dynamic-choice select{display:block;width:100%;margin-top:9px;min-height:var(--control-height);padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-choice select:focus-visible,button:focus-visible,summary:focus-visible{outline:var(--focus-width) solid var(--accent);outline-offset:3px}',
     '.dynamic-preview-stage{width:212px;max-width:100%;margin:0 auto 14px;border:6px solid #101216;border-radius:var(--card-radius);overflow:hidden;background:#fff;line-height:0}',
@@ -276,12 +277,44 @@ module.exports = function() {
       overrides.appendChild(make('summary',t('Font overrides')));
       node(field(fontKeys[0])).after(overrides);
       fontKeys.forEach(function(key,role){
-        var row=node(field(key)),select=row.querySelector('select');
+        var setting=field(key),row=node(setting),select=row.querySelector('select');
         if (select) {
+          // Clay keeps the serialized select. The inline choices let the user
+          // try several fonts without reopening the phone's native dialog.
+          var label=row.querySelector('label'),picker=make('details');
+          var summary=make('summary',label.querySelector('.label').textContent);
+          var current=make('span',null,'dynamic-font-value');
+          var choices=make('div',null,'dynamic-font-options');
+          var buttons=[];
+          row.setAttribute('data-font-panel','');
+          summary.dataset.fontRole=key;
+          summary.appendChild(current);
+          picker.appendChild(summary);
+          picker.appendChild(choices);
           Array.prototype.forEach.call(select.options,function(option){
             if(Number(option.value)>3)option.textContent=decodeURIComponent(option.textContent);
+            var button=make('button',option.textContent,'dynamic-font-option');
+            button.type='button';
+            button.dataset.fontChoice=option.value;
+            var check=make('span','✓');
+            check.setAttribute('aria-hidden','true');
+            button.appendChild(check);
+            button.addEventListener('click',function(){setting.set(option.value);});
+            choices.appendChild(button);
+            buttons.push(button);
           });
-          if(select.selectedIndex>=0)row.querySelector('.value').textContent=select.options[select.selectedIndex].textContent;
+          function syncChoice(){
+            current.textContent=select.selectedIndex<0?'':select.options[select.selectedIndex].textContent;
+            buttons.forEach(function(button,index){
+              var selected=index===select.selectedIndex;
+              button.setAttribute('aria-pressed',String(selected));
+              button.lastChild.hidden=!selected;
+            });
+          }
+          setting.on('change',syncChoice);
+          syncChoice();
+          label.hidden=true;
+          row.appendChild(picker);
         }
         if (role) {
           overrides.appendChild(row);
@@ -864,7 +897,7 @@ module.exports = function() {
       target=target||document.activeElement;
       if(!target||['INPUT','SELECT'].indexOf(target.tagName)<0||target.type==='checkbox'||target.type==='hidden')return;
       var viewport=visibleViewport(),rect=target.getBoundingClientRect();
-      var fixed=submitHost&&window.getComputedStyle(submitHost).position==='fixed'&&!document.body.classList.contains('dynamic-picker-open');
+      var fixed=submitHost&&!submitHost.hidden&&window.getComputedStyle(submitHost).position==='fixed'&&!document.body.classList.contains('dynamic-picker-open');
       var bottom=(fixed?Math.min(viewport.bottom,submitHost.getBoundingClientRect().top):viewport.bottom)-12;
       if(rect.bottom>bottom)window.scrollBy(0,rect.bottom-bottom);
       else if(rect.top<viewport.top+8)window.scrollBy(0,rect.top-viewport.top-8);

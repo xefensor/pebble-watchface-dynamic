@@ -112,6 +112,7 @@ Polling preserves unsaved drafts and never starts activity/source work.
 
 The Fonts tab opens with the whole-watchface font, a specimen and optional overrides
 for the clock, date, readings and activities. Selecting a role opens its picker.
+Choosing a font updates the preview and leaves the list open to try another font.
 An activity font previews a music title and artist. Dynamic Default uses the
 original Fredoka clock and numeric values with Roboto Condensed supporting
 text. Reset fonts clears the whole selection and its overrides. Pebble Bitham

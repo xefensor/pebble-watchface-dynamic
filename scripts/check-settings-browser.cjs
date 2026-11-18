@@ -11,7 +11,6 @@ browser.on('error',error=>{for(const [,fail]of pending.values())fail(error);});
 const send=(method,params={},sessionId)=>new Promise((ok,fail)=>{const n=++id;pending.set(n,[ok,fail]);browser.stdio[3].write(JSON.stringify({id:n,method,params,sessionId})+'\0');});
 const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
 function sdk(initial){
- window.__errors=[];window.addEventListener('error',e=>__errors.push(e.message));window.addEventListener('unhandledrejection',e=>__errors.push(String(e.reason)));
  window.__saved=JSON.parse(sessionStorage.getItem('__testSavedPacket')||JSON.stringify(initial));window.__saveMode='success';window.__writes=[];window.__target='plugin';window.__fontAssets={};
  window.Pebble={targets:()=>Promise.resolve([{id:__target}]),addEventListener:(name,callback)=>{if(name==='ready')document.addEventListener('DOMContentLoaded',()=>callback({target:'plugin'}));},sendMessage:async(target,m)=>{
   if(m.type==='load_settings')return __saved;
@@ -29,6 +28,29 @@ function sdk(initial){
   if(m.type==='display_status'||m.type==='retry_display')return {ok:true,settings:__saved.settings,delivery:__saved.save};
   return {ok:true};
  }};
+}
+function legacyFontPage(){
+ const vm=require('node:vm');
+ const entry=require.resolve('../src/pkjs/index'),companionRequire=require('node:module').createRequire(entry);
+ const keys=Object.fromEntries(require('../package.json').pebble.messageKeys.map((name,index)=>[name,index]));
+ const stored={'dynamic-font-library-v1':JSON.stringify([{id:120077,name:'Saved <Bold> 25%'}])};
+ const localStorage={getItem:key=>stored[key]||null,setItem:(key,value)=>{stored[key]=value;}};
+ const handlers={};
+ let url;
+ const Pebble={getActiveWatchInfo:()=>({language:'cs',platform:'emery'}),addEventListener:(name,fn)=>{handlers[name]=fn;},sendAppMessage(){},openURL:value=>{url=value;}};
+ const box={module:{exports:{}},exports:{},require:()=>keys,Pebble,localStorage,console};
+ const archive=path.join(path.dirname(require.resolve('@rebble/clay/package.json')),'dist.zip');
+ const source=cp.execFileSync('python3',['-c','import sys, zipfile; sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read("js/index.js"))',archive],{encoding:'utf8'});
+ vm.runInNewContext(source,box);
+ vm.runInNewContext(fs.readFileSync(entry,'utf8'),{Pebble,localStorage,console,setTimeout:()=>0,clearTimeout(){},require(name){
+  if(name==='message_keys')return keys;
+  if(name==='@rebble/clay')return box.module.exports;
+  return companionRequire(name);
+ }});
+ handlers.showConfiguration();
+ assert.ok(url.startsWith('data:text/html'));
+ // Give the standalone browser a same-page destination for Clay's submitted payload.
+ return decodeURIComponent(url.slice(url.indexOf(',')+1)).replace('window.returnTo="pebblejs://close#"','window.returnTo="#"');
 }
 function helpers(){
  const $=selector=>document.querySelector(selector),visible=element=>!!element&&element.getClientRects().length>0;
@@ -85,8 +107,9 @@ async function run(name,options,check){
  const settings=Object.assign(state.read({getItem:()=>null}),options.settings);
  const metadata={slots:[{label:'Temperature',value:'5°C',status:'ready'},{label:'Rain',value:'100%',status:'ready'},{label:'Phone',value:'78%',status:'ready'},{label:'Humidity',value:'68%',status:'ready'}],sources:{music:{state:'playing'},activities:{state:'ready'}},activityProviders:[{uuid:'50e9ef12-a5ab-4369-a3b5-3447bfba5151',name:'Timer',available:true}],save:{state:'saved',applied:true,pending:false}};
  const packet=require('../src/common/settings-config')(settings,options.language||'en',metadata,24);
- const html=fs.readFileSync(path.join(root,'config.html'),'utf8');
- const injection='<script>('+sdk.toString()+')('+JSON.stringify(packet).replace(/</g,'\\u003c')+');window.testHelpers='+helpers.toString()+';</script>';
+ const html=options.legacy?legacyFontPage():fs.readFileSync(path.join(root,'config.html'),'utf8');
+ const setup=options.legacy?'document.addEventListener("submit",event=>event.preventDefault(),true);':'('+sdk.toString()+')('+JSON.stringify(packet).replace(/</g,'\\u003c')+');';
+ const injection='<script>window.__errors=[];addEventListener("error",e=>__errors.push(e.message));addEventListener("unhandledrejection",e=>__errors.push(String(e.reason)));'+setup+'window.testHelpers='+helpers.toString()+';</script>';
  const file=path.join(out,name+'.html');fs.writeFileSync(file,html.replace('<script>',()=>injection+'<script>'));
  const {targetId}=await send('Target.createTarget',{url:'file://'+file});const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});
  await send('Emulation.setDeviceMetricsOverride',{width:options.width||390,height:844,deviceScaleFactor:1,mobile:true},sessionId);
@@ -147,18 +170,40 @@ async function run(name,options,check){
  await run('fonts',{platform:'emery'},async({evaluate,screenshot,sessionId})=>{
   const fixture=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
   await send('Emulation.setTouchEmulationEnabled',{enabled:true},sessionId);
-  const touch=await evaluate('('+function(){
-   const button=document.querySelector('[data-font-role="FONT_WATCHFACE"]');
-   const {left,top,width,height}=button.getBoundingClientRect();
-   const point={x:left+width/2,y:top+height/2};
-   if(point.y>innerHeight||!button.contains(document.elementFromPoint(point.x,point.y)))throw Error('First font action is out of reach on arrival');
-   return point;
-  }.toString()+')()');
-  await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch]},sessionId);
-  await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
-  await wait(200);
+  async function tap(selector,scroll=true){
+   const touch=await evaluate('('+function(selector,scroll){
+    const button=document.querySelector(selector);
+    if(!testHelpers().visible(button))throw Error('Missing touch target '+selector);
+    if(scroll)button.scrollIntoView({block:'center'});
+    const {left,top,width,height}=button.getBoundingClientRect();
+    const point={x:left+width/2,y:top+height/2};
+    if(!button.contains(document.elementFromPoint(point.x,point.y)))throw Error('Unreachable touch target '+selector);
+    return point;
+   }.toString()+')('+JSON.stringify(selector)+','+scroll+')');
+   await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch]},sessionId);
+   await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
+   await wait(200);
+  }
+  await tap('[data-font-role="FONT_WATCHFACE"]',false);
   assert.ok(await evaluate('testHelpers().visible(document.querySelector("[data-font-picker]"))'),'Tapping the whole-face row opens its picker');
-  await screenshot('picker');
+  for(const id of [1,0]){
+   await tap('[data-font-choice="'+id+'"]');
+   await evaluate('('+function(id){
+    const {$,visible,check}=testHelpers();
+    check(visible($('[data-font-picker]')),'Selecting a font keeps the picker open for the next choice');
+    const selected=document.querySelectorAll('[data-font-choice][aria-pressed="true"]');
+    check(selected.length===1&&selected[0].dataset.fontChoice===String(id),'Only the latest choice is marked selected');
+    check(Number($('[data-font-role="FONT_WATCHFACE"]').dataset.fontId)===id,'The draft uses the tapped font');
+   }.toString()+')('+id+')');
+   if(id===1)await screenshot('picker');
+  }
+  await evaluate('document.querySelector(\'[data-font-choice="1"]\').focus()');
+  const enterKey={key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13};
+  await send('Input.dispatchKeyEvent',{...enterKey,type:'keyDown',text:'\r',unmodifiedText:'\r'},sessionId);
+  await send('Input.dispatchKeyEvent',{...enterKey,type:'keyUp'},sessionId);
+  await wait(150);
+  assert.equal(await evaluate('document.activeElement.matches(\'[data-font-choice="1"][aria-pressed="true"]\')'),true,'Keyboard selection retains focus on the activated choice');
+  await tap('[data-font-choice="0"]');
   await evaluate('('+async function(sample){
    const {$,click,check,visible,pause}=testHelpers();
    const file=$('[data-font-panel] input[type=file]');
@@ -176,17 +221,20 @@ async function run(name,options,check){
    check(visible($('[data-font-picker]'))&&!visible($('.dynamic-save-buttons')),'A failed import leaves the prior selection intact');
    await loadFile(Uint8Array.from(atob(sample),letter=>letter.charCodeAt(0)));
    const chosen=Number($('button[data-font-role="FONT_WATCHFACE"]').dataset.fontId);
-   check(chosen>3&&__fontAssets[chosen]&&!visible($('[data-font-picker]')),'An import selects the new face and returns to the editor');
+   check(chosen>3&&__fontAssets[chosen]&&visible($('[data-font-choice="'+chosen+'"][aria-pressed="true"]')),'An import leaves the selected font visible in the picker');
+   await click('button[data-font-back]');
+   check(!visible($('[data-font-picker]'))&&document.activeElement===$('[data-font-role="FONT_WATCHFACE"]'),'Back closes the picker and restores focus to its role');
    check(visible($('[data-setting="TEXT_SIZE"]')),'The main font editor restores text size');
    await click('details[data-font-overrides] summary');
    await click('button[data-font-role="FONT_CLOCK"]');
    await click('button[data-font-choice="2"]');
+   await click('button[data-font-back]');
    await click('button[data-font-role="FONT_DATE"]');
    check(!visible($('button[data-font-choice="2"]')),'The date excludes clock-only built-ins');
    await click('button[data-font-choice="1"]');
-   await click('button[data-font-role="FONT_DATE"]');
    await click('button[data-font-choice="0"]');
    check(visible($('.dynamic-save-buttons'))&&Number($('button[data-font-role="FONT_DATE"]').dataset.fontId)===0,'Inheritance restores the whole-face choice');
+   await click('button[data-font-back]');
    await click('button[data-font-role="FONT_CLOCK"]');
    await click('button[data-font-back]');
    check(Number($('button[data-font-role="FONT_CLOCK"]').dataset.fontId)===2,'Back leaves the clock override intact');
@@ -203,7 +251,27 @@ async function run(name,options,check){
    check(Object.keys(__saved.settings).filter(key=>key.startsWith('FONT_')).every(key=>!__saved.settings[key]),'Reset clears all font roles');
    check(!$('[data-font-status]').textContent.includes('ready to save'),'Reset clears obsolete import feedback');
   }.toString()+')()');
-  return {touchPicker:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true};
+  return {touchPicker:true,successiveFontChoices:true,keyboardChoice:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true};
+ });
+ await run('legacy-fonts',{legacy:true,platform:'emery'},async({evaluate,screenshot})=>{
+  await evaluate('('+async function(){
+   const {$,click,visible,check}=testHelpers();
+   const row='[data-setting="FONT_WATCHFACE"]';
+   await click(row+' summary');
+   const select=$(row+' select'),picker=$(row+' details');
+   check(picker.open&&!visible(select),'Legacy font choices open inline');
+   for(const id of ['1','120077']){
+    const selector=row+' [data-font-choice="'+id+'"]';
+    await click(selector);
+    check(picker.open&&visible($(selector)),'Choosing a legacy font keeps its menu open');
+    check(select.value===id&&$(row+' [aria-pressed="true"]')===$(selector),'Visible choice agrees with the serialized Clay field');
+   }
+   check($(row+' summary').textContent.includes('Saved <Bold> 25%'),'Saved font name is decoded in the current selection');
+  }.toString()+')()');
+  await screenshot('selected');
+  await evaluate('testHelpers().click(".component-submit button[type=submit]")');
+  assert.equal(await evaluate('Number(JSON.parse(decodeURIComponent(location.hash.slice(1))).FONT_WATCHFACE.value)'),120077,'Legacy Save submits the last choice');
+  return {successiveFontChoices:true,savedFontLabel:true,serializedSave:true};
  });
  await run('catalog',{platform:'gabbro'},async({evaluate,screenshot})=>{
   const sample=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
@@ -257,13 +325,15 @@ async function run(name,options,check){
    await pause();
    check(document.activeElement===focus&&!visible($('.dynamic-save-buttons')),'Leaving a pending font download preserves the current editor and clean draft');
    await open('fonts');
+   check(!visible($('[data-font-picker]')),'Switching tabs exits the font picker');
    check(Number($('[data-font-role="FONT_ACTIVITIES"]').dataset.fontId)===0,'An abandoned download cannot change the role');
    await click('button[data-font-role="FONT_ACTIVITIES"]');
    await click('button[data-font-google]');
    await click('button[data-font-family="roboto"]');
    await click('button[data-font-download]');
    const role=$('[data-font-role="FONT_ACTIVITIES"]'),id=Number(role.dataset.fontId);
-   check(id>3&&__fontAssets[id]&&document.activeElement===role,'Downloading returns to the original role with its font');
+   check(id>3&&__fontAssets[id]&&visible($('[data-font-choice="'+id+'"][aria-pressed="true"]')),'A download marks the selection and keeps the role picker open');
+   check(visible($('[data-font-family="roboto"]'))&&visible($('[data-font-style]')),'The catalog stays open to try another font');
    await save();
    check(__saved.settings.FONT_ACTIVITIES===id&&__saved.settings.FONT_WATCHFACE===0,'Download updates the selected role only');
   }.toString()+')()');
