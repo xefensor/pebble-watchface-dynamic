@@ -4,7 +4,7 @@ import os, subprocess, tempfile
 ROOT=Path(__file__).resolve().parents[1]
 native=(ROOT/'src/c/dynamic.c').read_text()
 start=native.index('static void prv_fit_reading_numbers(WatchPose pose) {')
-end=native.index('\nstatic WatchPose prv_reading_pose(',start)
+end=native.index('\nstatic WatchPose prv_measure_reading_pose(',start)
 source=r'''
 #include <assert.h>
 #include <stdbool.h>
@@ -18,6 +18,11 @@ typedef struct {unsigned flags;const char *text;} ComplicationSlot;
 typedef struct {char number[32],unit[32];} ReadingParts;
 typedef struct {int w;} Size;
 enum {READING_VALUE=0,COMPLICATION_FLAG_BITMAP=2,COMPLICATION_SEMANTIC_TEMPERATURE=2,COMPLICATION_SEMANTIC_CONDITION=7,COMPLICATION_MAX_TEXT_BYTES=64,COMPLICATION_MAX_LABEL_BYTES=32,READING_PART_BYTES=32};
+typedef struct {
+ ReadingParts parts;
+ char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16],number[READING_PART_BYTES];
+} ReadingMeasureScratch;
+static ReadingMeasureScratch s_reading_measure;
 static bool s_has_complications=true;
 static int prv_reading_icon_size(void){return 18;}
 static struct {int secondary;} s_type;

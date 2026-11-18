@@ -16,10 +16,10 @@ if (typeof Pebble.registerConfigHandler === 'function') Pebble.registerConfigHan
     message = message || {};
     if (message.type === 'load_settings') {
       var current = settings.read(localStorage);
-      respond(current ? require('../common/settings-config')(current,message.language,{save:display.status(localStorage).delivery}) : {ok:false});
+      respond(current ? require('../common/settings-config')(current,message.language,{save:display.status(localStorage).delivery,fontLibrary:require('../common/font-assets').library(localStorage)}) : {ok:false});
     } else if (message.type === 'save_settings') {
       var saved=settings.save(localStorage,message.settings);if(saved.ok)saved.delivery=display.status(localStorage).delivery;respond(saved);
     } else if(message.type==='display_status'||message.type==='retry_display')respond(display.status(localStorage));
-    else respond({ok:false,notSaved:true});
+    else if(!require('../common/font-host').handle(localStorage,message,respond,Pebble.fileSystem)) respond({ok:false,notSaved:true});
   } catch (ignored) { respond({ok:false}); }
 });

@@ -3735,3 +3735,29 @@ var ACTIVITY_SETUP_WORDS={"en":"In Activities, enable activity plugins and show 
 Object.keys(ACTIVITY_SETUP_WORDS).forEach(function(language){MESSAGES[language][ACTIVITY_SETUP_WORDS.en]=ACTIVITY_SETUP_WORDS[language];LITERALS[ACTIVITY_SETUP_WORDS.en]=ACTIVITY_SETUP_WORDS.en;});
 module.exports = {resolveLanguage:resolveLanguage, translateConfig:translateConfig,
   t:t, settingsStrings:settingsStrings, languages:LANGUAGES.slice()};
+
+var FONT_LABELS = {
+  en:['Fonts','Whole watchface','Clock','Date','Readings','Font overrides','Get more fonts','Import font','Reset fonts','Use whole-watchface font'],
+  cs:['Písma','Celý ciferník','Čas','Datum','Údaje','Písma podle oblasti','Další písma','Importovat písmo','Obnovit výchozí písma','Použít písmo ciferníku'],
+  sk:['Písma','Celý ciferník','Čas','Dátum','Údaje','Písma podľa oblasti','Ďalšie písma','Importovať písmo','Obnoviť predvolené písma','Použiť písmo ciferníka'],
+  de:['Schriften','Ganzes Zifferblatt','Uhrzeit','Datum','Messwerte','Schriften pro Bereich','Weitere Schriften','Schrift importieren','Schriften zurücksetzen','Schrift des Zifferblatts verwenden'],
+  fr:['Polices','Cadran entier','Heure','Date du jour','Mesures','Polices par zone','Plus de polices','Importer une police','Réinitialiser les polices','Utiliser la police du cadran'],
+  es:['Fuentes','Toda la esfera','Hora','Fecha','Lecturas','Fuentes por sección','Más fuentes','Importar fuente','Restablecer fuentes','Usar la fuente de la esfera'],
+  it:['Caratteri','Intero quadrante','Ora','Data','Letture','Caratteri per sezione','Altri caratteri','Importa carattere','Ripristina caratteri','Usa il carattere del quadrante'],
+  pt:['Tipos de letra','Mostrador inteiro','Hora','Data','Leituras','Tipos de letra por secção','Mais tipos de letra','Importar tipo de letra','Repor tipos de letra','Usar o tipo de letra do mostrador'],
+  nl:['Lettertypen','Hele wijzerplaat','Tijd','Datum','Meetwaarden','Lettertypen per onderdeel','Meer lettertypen','Lettertype importeren','Lettertypen herstellen','Lettertype van de wijzerplaat gebruiken'],
+  pl:['Czcionki','Cała tarcza','Godzina','Data','Odczyty','Czcionki według sekcji','Więcej czcionek','Importuj czcionkę','Przywróć czcionki','Użyj czcionki tarczy'],
+  da:['Skrifttyper','Hele urskiven','Klokkeslæt','Dato','Målinger','Skrifttyper pr. område','Flere skrifttyper','Importér skrifttype','Nulstil skrifttyper','Brug urskivens skrifttype'],
+  sv:['Typsnitt','Hela urtavlan','Klockslag','Datum','Mätvärden','Typsnitt per del','Fler typsnitt','Importera typsnitt','Återställ typsnitt','Använd urtavlans typsnitt'],
+  no:['Skrifttyper','Hele urskiven','Klokkeslett','Dato','Målinger','Skrifttyper per område','Flere skrifttyper','Importer skrifttype','Tilbakestill skrifttyper','Bruk urskivens skrifttype'],
+  fi:['Fontit','Koko kellotaulu','Kellonaika','Päivämäärä','Lukemat','Osiokohtaiset fontit','Lisää fontteja','Tuo fontti','Palauta fontit','Käytä kellotaulun fonttia'],
+  hu:['Betűtípusok','Teljes számlap','Idő','Dátum','Mért értékek','Betűtípusok területenként','További betűtípusok','Betűtípus importálása','Betűtípusok visszaállítása','Számlap betűtípusának használata'],
+  ro:['Fonturi','Întregul cadran','Ora','Data','Valori','Fonturi pe secțiuni','Mai multe fonturi','Importă font','Resetează fonturile','Folosește fontul cadranului'],
+  tr:['Yazı tipleri','Tüm saat yüzü','Saat','Tarih','Ölçümler','Bölüme göre yazı tipleri','Daha fazla yazı tipi','Yazı tipi içe aktar','Yazı tiplerini sıfırla','Saat yüzünün yazı tipini kullan']
+};
+Object.keys(FONT_LABELS).forEach(function(language) {
+  FONT_LABELS.en.forEach(function(key,index) {
+    MESSAGES[language][key]=FONT_LABELS[language][index];
+    LITERALS[key]=key;
+  });
+});

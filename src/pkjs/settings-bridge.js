@@ -68,6 +68,16 @@ module.exports = function(wordsByLanguage,fieldDefaults,preferenceKey) {
       started=true;document.documentElement.lang=page.language || 'en';
       confirmed=page.settings;
       window.DynamicSettingsBridge={
+        font:function(message,complete){
+          target(function(destination){
+            var done=false,deadline=setTimeout(function(){finish(null);},6500);
+            function finish(value){if(done)return;done=true;clearTimeout(deadline);complete(value);}
+            try{
+              Promise.resolve(Pebble.sendMessage(message.type==='font_file'?'plugin':destination,message))
+                .then(finish,function(){finish(null);});
+            }catch(ignored){finish(null);}
+          },function(){complete(null);});
+        },
         snapshot:snapshot,
         remember:function(serialized,settings){rendered=snapshot(serialized,true);if(settings)confirmed=settings;},
         display:function(retryDelivery,complete){

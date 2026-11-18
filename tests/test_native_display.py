@@ -21,10 +21,10 @@ int persist_write_int(uint32_t key,int32_t value); int persist_write_bool(uint32
 static uint8_t data[100][128];static int sizes[100],writes;static bool fail_write,corrupt_read;
 bool persist_exists(uint32_t key){return sizes[key]>0;}
 int persist_get_size(uint32_t key){return sizes[key];}
-int persist_read_data(uint32_t key,void *out,size_t size){int n=sizes[key];if(n>(int)size)n=(int)size;memcpy(out,data[key],n);if(corrupt_read&&key==79&&n)((uint8_t*)out)[10]^=1;return n;}
+int persist_read_data(uint32_t key,void *out,size_t size){int n=sizes[key];if(n>(int)size)n=(int)size;memcpy(out,data[key],n);if(corrupt_read&&(key==80||key==81)&&n)((uint8_t*)out)[10]^=1;return n;}
 int32_t persist_read_int(uint32_t key){int32_t value=0;if(sizes[key]==4)memcpy(&value,data[key],4);return value;}
 bool persist_read_bool(uint32_t key){return sizes[key]>0&&data[key][0]!=0;}
-int persist_write_data(uint32_t key,const void *value,size_t size){if(fail_write&&key==79)return -1;assert(size<=128);memcpy(data[key],value,size);sizes[key]=(int)size;++writes;return (int)size;}
+int persist_write_data(uint32_t key,const void *value,size_t size){if(fail_write&&(key==80||key==81))return -1;assert(size<=128);memcpy(data[key],value,size);sizes[key]=(int)size;++writes;return (int)size;}
 int persist_write_int(uint32_t key,int32_t value){return persist_write_data(key,&value,4);}
 int persist_write_bool(uint32_t key,bool value){uint8_t b=value;return persist_write_data(key,&b,1);}
 #include "display_preferences.c"
@@ -33,18 +33,19 @@ int main(void){
  display_load(&value);assert(value.value[DISPLAY_MODE]==DISPLAY_EXPLICIT&&value.value[DISPLAY_TEXT_SIZE]==0&&value.revision==0);
  persist_write_int(2,0x123456);persist_write_int(3,0x654321);persist_write_int(75,0xabcdef);persist_write_bool(74,true);persist_write_bool(7,true);persist_write_bool(71,false);
  display_load(&value);assert(value.value[0]==0x123456&&value.value[1]==0x654321&&value.value[3]==0xabcdef&&value.value[DISPLAY_MODE]==DISPLAY_QUIET&&value.value[DISPLAY_CLOCK]==12&&!value.value[DISPLAY_ANIMATIONS]);
- value.value[DISPLAY_ROWS]=2;
+ value.value[DISPLAY_ROWS]=2;value.value[DISPLAY_FONTS+FONT_CLOCK]=0xf1234567;
  value.revision=0xffffffff;value.value[DISPLAY_TEXT_SIZE]=3;value.value[DISPLAY_MODE]=DISPLAY_FOLLOW;value.value[DISPLAY_MANUAL]=1;
  display_encode(&value,DISPLAY_APPLIED,DISPLAY_HELLO,bytes);assert(display_decode(bytes,sizeof(bytes),&decoded,&status,&flags));assert(!memcmp(&value,&decoded,sizeof(value))&&!status&&flags==DISPLAY_HELLO);
  uint8_t legacy[DISPLAY_LEGACY_BYTES];display_encode_legacy(&value,0,0,legacy);assert(display_decode(legacy,sizeof(legacy),&decoded,NULL,NULL));assert(decoded.value[DISPLAY_LOWER_DAY_BG]==value.value[DISPLAY_DAY_TEXT]);
+ uint8_t v2[DISPLAY_V2_BYTES];display_encode_v2(&value,0,0,v2);assert(display_decode(v2,sizeof(v2),&decoded,NULL,NULL));assert(!decoded.value[DISPLAY_FONTS+FONT_CLOCK]);
  assert(!display_decode(bytes,sizeof(bytes)-1,&decoded,NULL,NULL));bytes[1]=12;assert(!display_decode(bytes,sizeof(bytes),&decoded,NULL,NULL));
  assert(display_save(&value));display_load(&loaded);assert(!memcmp(&value,&loaded,sizeof(value)));assert(!persist_read_bool(74));
  int before=writes;assert(display_save(&value));assert(writes==before);
  const uint32_t previous_rgb=persist_read_int(2);value.value[0]=0x111122;value.revision=2;fail_write=true;assert(!display_save(&value));assert((uint32_t)persist_read_int(2)==previous_rgb);fail_write=false;
- display_load(&loaded);assert(loaded.value[0]==previous_rgb);corrupt_read=true;assert(!display_save(&value));corrupt_read=false;
+ display_load(&loaded);assert(loaded.value[0]==previous_rgb);corrupt_read=true;assert(!display_save(&value));corrupt_read=false;display_load(&loaded);assert(loaded.value[0]==previous_rgb);
  value.value[0]=0x1000000;assert(!display_save(&value));value.value[0]=0x123456;
  for(unsigned mode=0;mode<=2;++mode)for(unsigned size=0;size<=3;++size){value.value[DISPLAY_MODE]=mode;value.value[DISPLAY_TEXT_SIZE]=size;assert(display_save(&value));display_load(&loaded);assert(!memcmp(&loaded,&value,sizeof(value)));}
- sizes[78]=sizes[79]=5;display_load(&loaded);assert(loaded.value[0]==0x123456&&loaded.value[3]==0xabcdef&&loaded.value[DISPLAY_MODE]==DISPLAY_EXPLICIT);
+ sizes[78]=sizes[79]=sizes[80]=sizes[81]=5;display_load(&loaded);assert(loaded.value[0]==0x123456&&loaded.value[3]==0xabcdef&&loaded.value[DISPLAY_MODE]==DISPLAY_EXPLICIT);
  puts("native display: exact RGB migration, codec, all profiles/modes, readback failure, legacy mirrors and relaunch PASS");return 0;
 }
 '''

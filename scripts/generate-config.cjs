@@ -26,7 +26,26 @@ const bootstrap="window.__dynamicStartClay=function(page){var assets;window.clay
 const localization=require('../src/pkjs/localization'),words={};
 localization.languages.forEach(language=>{words[language]=localization.settingsStrings(language);});
 const bridge='('+require('../src/pkjs/settings-bridge').toString()+')('+JSON.stringify(words)+','+JSON.stringify(state.defaults)+','+JSON.stringify(state.preferencesKey)+');';
-html=html.slice(0,start)+'<script>'+bootstrap+'\n'+bridge+'</script>'+html.slice(end+9);
+// Fontkitten is a pinned, self-contained browser parser with one CJS dependency.
+function browserModule(file,requireExpression) {
+  return '(function(require){const module={exports:{}};'+fs.readFileSync(file,'utf8')+
+    '\nreturn module.exports;})('+requireExpression+')';
+}
+const fontkit=fs.readFileSync(require.resolve('fontkitten'),'utf8');
+const fontkitBody=fontkit.replace(/^import inflate from "tiny-inflate";/,'')
+  .replace(/export \{ create \};\s*$/,'return create;');
+if(fontkitBody===fontkit||/^(import|export) /m.test(fontkitBody))throw Error('Unexpected fontkitten module format');
+const notices=['fontkitten','tiny-inflate'].map(name=>fs.readFileSync(
+  path.join(root,'node_modules',name,'LICENSE'),'utf8')).join('\n');
+const fontTools='(function(){const inflate='+browserModule(require.resolve('tiny-inflate'),'null')+
+  ';const createFont=(function(){'+fontkitBody+'})();'+
+  'const assets='+browserModule(path.join(root,'src/common/font-assets.js'),'null')+';'+
+  'const compiler='+browserModule(path.join(root,'src/pkjs/font-compiler.js'),'()=>assets')+';'+
+  'const panel='+browserModule(path.join(root,'src/pkjs/settings-fonts.js'),
+    '(name)=>name==="./font-compiler"?compiler:assets')+
+  ';window.DynamicFonts=function(options){return panel.install(options,createFont);};})();';
+const fontScript='/*\n'+notices.replace(/\*\//g,'* /')+'\n*/\n'+require('terser').minify_sync(fontTools).code;
+html=html.slice(0,start)+'<script>'+fontScript.replace(/<\/script/gi,'<\\/script')+'\n'+bootstrap+'\n'+bridge+'</script>'+html.slice(end+9);
 html=html.replace('<form id="main-form"','<section id="dynamic-bootstrap"><h1>Dynamic</h1><p id="dynamic-bootstrap-status" role="status">Loading settings…</p><button type="button" id="dynamic-bootstrap-retry" hidden>Retry</button></section><form id="main-form"');
 // The inactive form contains no editable defaults; only a successful read starts Clay.
 html=html.replace('</head>','<meta name="color-scheme" content="light dark"><style id="xoce-settings-style">'+settingsStyle+'</style><style>#dynamic-bootstrap{max-width:512px;margin:0 auto;padding:24px 16px}#dynamic-bootstrap h1{margin-bottom:12px}#dynamic-bootstrap button{min-height:48px;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}</style></head>');

@@ -262,6 +262,8 @@ typedef struct {const char *value;}PavCard;
 typedef struct {int w;}GSize;
 static bool s_phone_connected=true;
 static struct {int secondary;}s_type={26};
+typedef struct {char activity_value[ACTIVITY_LINE_BYTES],activity_suffix[ACTIVITY_LINE_BYTES];}NativeState;
+static NativeState native,*s_native=&native;
 static bool pav_format_item(const PavCard *card,const PavDatum *datum,unsigned now,
     bool connected,char *out,size_t capacity){(void)datum;(void)now;(void)connected;snprintf(out,capacity,"%s",card->value);return true;}
 static GSize prv_measure(const char *text,int point){return (GSize){(int)strlen(text)*point/2};}

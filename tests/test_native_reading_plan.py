@@ -7,7 +7,7 @@ root=Path(__file__).resolve().parents[1]
 face='halftone'if(root/'src/c/halftone.c').exists()else'dynamic'
 native=(root/f'src/c/{face}.c').read_text()
 name='prv_view'if face=='halftone'else'prv_reading_pose'
-a=native.index(('static HalftoneView prv_view_once(WatchPose pose,int height) {'if face=='halftone'else'static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {'))
+a=native.index(('static HalftoneView prv_view_once(WatchPose pose,int height) {'if face=='halftone'else'static WatchPose prv_measure_reading_pose(WatchPose pose,int height,int *bottom) {'))
 b=native.index('\nstatic void prv_reading_caption',a)
 source=r'''
 #include <assert.h>
@@ -16,6 +16,8 @@ source=r'''
 #include <string.h>
 #include <time.h>
 #include "reading_layout.h"
+#include "font_store.h"
+static unsigned s_font_role=FONT_ACTIVITIES;
 #define READING_WIDTH READING_CONTENT_WIDTH
 typedef struct {float clock_size,number_size,row_y,label_y,peek,clock_y,context;} WatchPose;
 typedef struct {WatchPose pose;} HalftoneView;
@@ -26,6 +28,11 @@ typedef struct {char number[32],unit[32];} ReadingParts;
 typedef int ReadingState;
 typedef int PavCard;
 enum {COMPLICATION_MAX_TEXT_BYTES=64,COMPLICATION_MAX_LABEL_BYTES=32,READING_PART_BYTES=32,READING_VALUE=2,COMPLICATION_FLAG_BITMAP=4};
+typedef struct {
+ ReadingParts parts;
+ char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16],number[READING_PART_BYTES];
+} ReadingMeasureScratch;
+static ReadingMeasureScratch s_reading_measure;
 static bool s_rows,s_grid,s_grid_drawing;
 #define FULL_LAYOUT_HEIGHT 228
 static bool s_has_complications=true,s_depth_effect_enabled=false,s_large_text_enabled=false,s_text_shadow_enabled=false;
@@ -72,6 +79,7 @@ int main(void){
  wide=true;s_reading_numbers[0].overflow=false;CALL;assert(!measured_second);
  caption=true;CALL;assert(measured_second);
  caption=false;slot_state=0;s_grid=s_grid_drawing=true;CALL;assert(measured_second);
+ assert(s_font_role==FONT_ACTIVITIES);
 
  return 0;
 }

@@ -16,6 +16,12 @@ module.exports = [
   {type:'section',items:[
     {"type":"heading","defaultValue":"Colours"},
     {"type":"text","id":"dynamic-appearance-choice","defaultValue":"Watch appearance"},
+    {"type":"text","id":"dynamic-fonts","defaultValue":"Fonts"},
+    {"type":"input","messageKey":"FONT_WATCHFACE","label":"Whole watchface","defaultValue":0,"serializeValueAs":"integer"},
+    {"type":"input","messageKey":"FONT_CLOCK","label":"Clock","defaultValue":0,"serializeValueAs":"integer"},
+    {"type":"input","messageKey":"FONT_DATE","label":"Date","defaultValue":0,"serializeValueAs":"integer"},
+    {"type":"input","messageKey":"FONT_READINGS","label":"Readings","defaultValue":0,"serializeValueAs":"integer"},
+    {"type":"input","messageKey":"FONT_ACTIVITIES","label":"Activities","defaultValue":0,"serializeValueAs":"integer"},
     {"type":"text","id":"dynamic-appearance-unavailable","defaultValue":"Follow Pebble appearance is unavailable on this build. It uses your last Light or Dark choice."},
     {"type":"text","id":"dynamic-edit-palette","defaultValue":"Editing palette"},
     {"type":"toggle","messageKey":"SCREEN_SPLIT","defaultValue":false,"label":"Split clock and details"},

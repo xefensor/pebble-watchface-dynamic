@@ -84,8 +84,10 @@ class FinalGallery(unittest.TestCase):
         baseline=json.loads((ROOT/'store/gallery-reuse-baseline.json').read_text())
         version=json.loads((ROOT/'package.json').read_text())['version']
         stem=json.loads((ROOT/'store/listing.json').read_text()).get('artifact_stem',json.loads((ROOT/'store/listing.json').read_text())['name'].replace(' ','-'))
-        path=ROOT/'build/candidate'/(stem+'-'+version+'.pbw')
-        if not path.exists():self.skipTest('Native build is checked separately')
+        # Gallery reuse is pinned to the reviewed release. Development builds
+        # can intentionally change rendering and have a separate audit.
+        path=ROOT/'releases'/(stem+'-'+version+'.pbw')
+        if not path.exists():self.skipTest('Frozen gallery package is checked separately')
         with zipfile.ZipFile(path) as archive:
             native=archive.read('emery/pebble-app.bin');resources=archive.read('emery/app_resources.pbpack')
         original=identity(native,resources,baseline['candidateMenuId'])

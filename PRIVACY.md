@@ -24,6 +24,13 @@ Pebble controls those permissions and the selected providers. Music and
 notification readings and private descriptor labels stay transient and are
 excluded from persistent reading caches.
 
+Font import uses optional `ReadFiles` access for the file you choose. The
+phone processes font files locally and saves reusable glyph packages. Browsing
+Google Fonts uses optional Internet access to `api.github.com` and
+`raw.githubusercontent.com` for the catalog and font downloads. The watch
+stores glyph data for the applied font choices and temporarily stages replacements
+while saving. Resetting fonts clears the custom glyph data from the watch.
+
 ## Storage and display choices
 
 The bundled phone configuration page reads and saves preferences through

@@ -15,6 +15,10 @@ The third-party components below retain their own licenses.
 | Fredoka clock font and derived outlines | Copyright 2016 The Fredoka Project Authors | [SIL Open Font License 1.1](resources/fonts/OFL-Fredoka.txt) |
 | Roboto Condensed body fonts and derived metrics | Copyright 2011 The Roboto Project Authors | [SIL Open Font License 1.1](resources/fonts/OFL-RobotoCondensed.txt) |
 
+The bundled phone settings page includes Fontkitten and tiny-inflate under
+the MIT license. Their version and integrity are pinned in the lockfile, and
+the full notices are embedded in the configuration page.
+
 Font source snapshots, hashes and derivation details are recorded in
 [font provenance](resources/fonts/font-provenance.json). The exact library releases
 are recorded in [vendor/CORE.json](vendor/CORE.json) and

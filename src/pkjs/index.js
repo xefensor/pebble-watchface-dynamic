@@ -242,6 +242,8 @@ function systemClockFormat() {
 Pebble.addEventListener('appmessage', function(event) {
   var result=messageValue(event.payload||{},'DISPLAY_PREFERENCES_RESULT');
   if(result!==undefined)display.receive(result);
+  var fontResult=messageValue(event.payload||{},'FONT_RESULT');
+  if(fontResult!==undefined)display.receiveFont(fontResult);
   var presented=messageValue(event.payload||{},'ACTIVITY_PRESENTED');
   if(presented!==undefined)navigation.receive(presented);
   var format = messageValue(event.payload || {}, 'CLOCK_FORMAT');
@@ -400,11 +402,14 @@ Pebble.addEventListener('configmessage',function(event){
       event.respond(display.status());return;
     }
     if (message.type === 'save_settings') { event.respond(applyPhoneSettings(message.settings)); return; }
+    if (require('../common/font-host').handle(localStorage,message,event.respond)) return;
     if (message.type === 'load_settings') {
       invalidateSettings();
       var current = settingsState.read(localStorage);
       if (!current) { event.respond({ok:false}); return; }
-      event.respond(require('../common/settings-config')(current,settingsLanguage(),settingsMetadata(complications.status(),context.status()),systemClockFormat()));
+      var metadata=settingsMetadata(complications.status(),context.status());
+      metadata.fontLibrary=require('../common/font-assets').library(localStorage);
+      event.respond(require('../common/settings-config')(current,settingsLanguage(),metadata,systemClockFormat()));
       return;
     }
     event.respond({ok:false,notSaved:true});

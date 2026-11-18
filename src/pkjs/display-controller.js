@@ -1,9 +1,15 @@
 'use strict';
 var state=require('../common/display-state');
+var assets=require('../common/font-assets');
+var createFontDelivery=require('./font-delivery').create;
 function create(options){
   var storage=options.storage,send=options.send,later=options.later||setTimeout,cancel=options.cancel||clearTimeout;
+  // The bundled watch binary understands v3. An older native hello can still
+  // negotiate its original display format.
+  var typography=null,installed=[];
+  var fonts=createFontDelivery(storage,send,later,cancel);
   var generation=0,timer=null,attempts=0,activeRevision=null,mismatch=false,revisionPending=false,invalidated=null;
-  function stop(){if(timer!==null)cancel(timer);timer=null;}
+  function stop(){if(timer!==null)cancel(timer);timer=null;fonts.stop();}
   function status(){var result=state.status(storage);if(result.ok&&(mismatch||revisionPending)){result.delivery.applied=false;result.delivery.pending=true;result.delivery.state='pending';}return result;}
   function retry(g){if(g!==generation||attempts>=3)return;stop();timer=later(function(){timer=null;deliver(g);},500*attempts);}
   function deliver(g){
@@ -11,7 +17,20 @@ function create(options){
     var value;try{value=state.read(storage);}catch(ignored){return;}
     if(!value||!value.stored||!mismatch&&state.matches(value.record.applied,value.record))return;
     ++attempts;
-    send({DISPLAY_PREFERENCES:state.encode(value.record.values,value.record.revision)},function(){retry(g);},function(){retry(g);});
+    if(value.record.values.length===26&&typography===false)return;
+    var useTypography=typography===true||value.record.values.length===26||value.record.fontChanges===true;
+    var ids=assets.selected(value.record.values.slice(state.fields.length)).filter(function(id){return installed.indexOf(id)<0;});
+    fonts.stage(value.record.revision,ids,function(error){
+      if(g!==generation)return;
+      if(error){
+        value.record.error=error;
+        value.record.applied=null;
+        state.commit(storage,value.record);
+        return;
+      }
+      send({DISPLAY_PREFERENCES:state.encode(value.record.values,value.record.revision,0,false,useTypography)},
+        function(){retry(g);},function(){retry(g);});
+    });
   }
   function reconcile(force){
     if(force){mismatch=true;revisionPending=true;++generation;stop();activeRevision=null;}
@@ -35,14 +54,21 @@ function create(options){
   }
   function receive(input){
     var received=state.decode(input);if(!received)return false;
+    if(received.hello){
+      typography=!!received.typography;
+      installed=assets.selected(received.values.slice(state.fields.length));
+    }
     try{
       if(received.hello&&!received.status&&!state.hasNative(storage)){
         if(!state.adopt(storage,received.values))return false;
         if(options.changed)options.changed();
       }
       var value=state.read(storage);if(!value)return false;
-      if(!revisionPending&&value.stored&&value.record.revision!==invalidated&&received.revision===value.record.revision&&state.equal(received.values,value.record.values)){
-        if(!received.status){value.record.applied=state.encode(received.values,received.revision);value.record.error=null;
+      if(!revisionPending&&value.stored&&value.record.revision!==invalidated&&received.revision===value.record.revision&&state.equal(received.values,value.record.values)&&
+          (!typography&&!value.record.fontChanges||received.typography)){
+        if(!received.status){
+          installed=assets.selected(received.values.slice(state.fields.length));
+          value.record.applied=state.encode(received.values,received.revision,0,false,received.typography);value.record.error=null;
           if(!state.commit(storage,value.record)){mismatch=true;return false;}
           mismatch=false;invalidated=null;stop();return true;
         }
@@ -52,6 +78,6 @@ function create(options){
     }catch(ignored){}
     return false;
   }
-  return {reconcile:reconcile,receive:receive,status:status};
+  return {reconcile:reconcile,receive:receive,status:status,receiveFont:fonts.receive};
 }
 module.exports={create:create};

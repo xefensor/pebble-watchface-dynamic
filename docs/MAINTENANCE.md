@@ -26,13 +26,15 @@ reveals an invalid field before focusing it; asynchronous status must not change
 the screen, focus or scroll. Historical browser/emulator results do not validate a
 new build. Keep portable, packaged, simulated transport and real-device claims distinct.
 
-Native display key **79** owns a versioned 92-byte snapshot: revision, both raw
-RGB palettes, clock/status/animation/vibration choices, text size, appearance mode,
-last manual palette and the optional reading layout settings. Key **78** retains
-a complete compatible 60-byte v1 mirror. Validate the complete snapshot, verify persistence
-readback, then apply and reply. Legacy integer/boolean keys remain compatible
-mirrors. Keep raw RGB values before Pebble's GColor quantization. A profile change
-invalidates measured activity layout and painted-role cache before repaint.
+Native display keys **80** and **81** hold version-3 snapshots with typography
+choices. Key **82** selects the committed snapshot. Verify the staged snapshot
+before switching the selector. Keys **79** and **78** mirror the earlier 92-
+and 60-byte formats. Keep raw RGB values before Pebble's GColor quantization.
+A profile or font change invalidates measured activity layout and painted-role
+cache before repaint. Imported font slots hold read-only glyph packages once
+verified. A settings commit keeps the referenced slots, and reclaims every
+unused slot after commit, at startup, or when a transfer expires. Font packets
+are acknowledged separately through the existing outbox.
 Display replies own their outbox callbacks and never acknowledge a Core session.
 
 The existing `clay-settings` record remains the phone settings authority.

@@ -11,7 +11,7 @@ class FreshClay(unittest.TestCase):
             shutil.copyfile(ROOT/'scripts/generate-config.cjs',root/'scripts/generate-config.cjs')
             clay=root/'node_modules/@rebble/clay';clay.mkdir(parents=True)
             shutil.copyfile(ROOT/'node_modules/@rebble/clay/dist.zip',clay/'dist.zip')
-            for name in ('pebble-xoce-ui','pebble-activities','pebble-watchface-core'):
+            for name in ('pebble-xoce-ui','pebble-activities','pebble-watchface-core','fontkitten','tiny-inflate','terser'):
                 os.symlink(ROOT/'node_modules'/name,root/'node_modules'/name,target_is_directory=True)
             subprocess.run(['node','scripts/generate-config.cjs','--check'],cwd=root,check=True)
             self.assertFalse((clay/'dist').exists())

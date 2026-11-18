@@ -40,7 +40,7 @@ LEGACY_KEYS = (
     "SHOW_NOTIFICATIONS", "NOTIFICATION_PREVIEW", "NOTIFICATION_APPS",
     "SHOW_STATUS", "PANEL_TRANSITIONS", "ACCENT_COLOR",
 )
-APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "settings-preview-all.js", "settings-preview-round.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js", "display-controller.js", "display-state.js", "display-words.js"}
+APP_MODULES = {"index.js", "config.js", "localization.js", "settings-page.js", "settings-preview.js", "settings-preview-all.js", "settings-preview-round.js", "activity-presentation.js", "activity-navigation.js", "settings-state.js", "settings-config.js", "reading-label.js", "display-controller.js", "display-state.js", "display-words.js", "font-assets.js", "font-host.js", "font-delivery.js"}
 CORE_MODULES = {
     "readings.js", "message-queue.js", "complications.js", "complication-data.js",
 }
@@ -811,13 +811,16 @@ def same_renderer_with_sdk_metadata(root, content, reference):
             'Native preview renderer differs beyond verified SDK build metadata')
 
 
-def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp=False, allow_sdk_build_id=False):
+def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp=False,
+                           allow_sdk_build_id=False, historical_examples=False):
     source = (root / "src/pkjs/settings-preview.js").read_text(encoding="utf-8")
     exported = re.search(r"module\.exports\s*=\s*(\{.*\})\s*;\s*$", source, re.S)
     require(exported, "Native preview asset export is missing")
     preview = json.loads(exported.group(1))
     if version == "1.0.2" and preview["version"] == "1.0.1":
-        from historical_preview import audit_historical_preview
+        from historical_preview import audit_historical_examples, audit_historical_preview
+        if historical_examples:
+            return audit_historical_examples(root, "emery", resources)
         return audit_historical_preview(root, "emery", binary, resources)
     require(preview["version"] == version and len(preview["frames"]) == 24,
             "Native preview assets belong to a different release")
@@ -878,14 +881,17 @@ def audit_preview_identity(root, version, binary, resources, allow_sdk_timestamp
             "freshCaptureClaimed": False}
 
 
-def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow_sdk_build_id=False):
+def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False,
+          allow_sdk_build_id=False, historical_examples=False):
     package = json.loads((root / "package.json").read_text(encoding="utf-8"))
     settings = package["pebble"]
     require(package["version"] == "1.0.2", "Review this auditor for a different release version")
     require(settings["uuid"] == APP_UUID and settings["displayName"] == "Dynamic",
             "Dynamic's identity changed")
     require(settings["targetPlatforms"] == ["emery", "gabbro"] and
-            [p["name"] for p in settings["usesPermissions"]] == ["ReadMusic", "Notifications", "Location", "ReadWatchSettings"] and
+            [p["name"] for p in settings["usesPermissions"]] == ["ReadMusic", "Notifications", "Location", "ReadFiles", "Internet", "ReadWatchSettings"] and
+            next(p for p in settings["usesPermissions"] if p["name"]=="Internet")["parameters"] ==
+                {"domains":["api.github.com","raw.githubusercontent.com"]} and
             all(p["reason"] and p["required"] is False for p in settings["usesPermissions"]),
             "Unexpected platform or permission change")
     media_all = settings["resources"].get("media", [])
@@ -893,7 +899,8 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
     from launcher_icon import audit_launcher
     audit_launcher(root, media)
     font_media = media[:-1]
-    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT", "SCREEN_SPLIT", "READING_LAYOUT", "HIDE_READING_TITLES", "SHAKE_READINGS", "LOWER_BACKGROUND_COLOR", "LOWER_TEXT_COLOR", "NIGHT_LOWER_BACKGROUND_COLOR", "NIGHT_LOWER_TEXT_COLOR"),
+    require(tuple(settings["messageKeys"]) == LEGACY_KEYS + ("ANIMATIONS", "CLOCK_FORMAT", "NOTIFICATION_VIBRATION", "NIGHT_PALETTE", "NIGHT_BACKGROUND_COLOR", "NIGHT_TEXT_COLOR", "NIGHT_ACCENT_COLOR", "NOTIFICATION_APP_ONLY", "CONTEXT_STATE", "ACTIVITY_DATA", "REQUEST_ACTIVITIES", "SHOW_ACTIVITIES", "ACTIVITY_PRESENTED", "REQUEST_PRESENTATION", "TEXT_SIZE", "APPEARANCE_MODE", "MANUAL_APPEARANCE", "DISPLAY_PREFERENCES", "DISPLAY_PREFERENCES_RESULT", "SCREEN_SPLIT", "READING_LAYOUT", "HIDE_READING_TITLES", "SHAKE_READINGS", "LOWER_BACKGROUND_COLOR", "LOWER_TEXT_COLOR",  "NIGHT_LOWER_BACKGROUND_COLOR", "NIGHT_LOWER_TEXT_COLOR",
+        "FONT_WATCHFACE", "FONT_CLOCK", "FONT_DATE", "FONT_READINGS", "FONT_ACTIVITIES", "FONT_DATA", "FONT_RESULT"),
             "Preserve the earlier key prefix and append only display preference keys")
     keys = {name: 10000 + index for index, name in enumerate(settings["messageKeys"])}
     generated = json.loads((root / "build/js/message_keys.json").read_text())
@@ -984,7 +991,8 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
     require(len(source_map["sources"]) == len(source_map["sourcesContent"]),
             "Invalid source map")
     sdk_additions = audit_sdk_additions(root, source_map)
-    preview_identity = audit_preview_identity(root, package["version"], binary, resources, allow_sdk_timestamp, allow_sdk_build_id)
+    preview_identity = audit_preview_identity(root, package["version"], binary, resources,
+                                              allow_sdk_timestamp, allow_sdk_build_id, historical_examples)
     require(len(source_map["sources"]) == len(set(source_map["sources"])),
             "Source map has duplicate modules")
     hosts, modules, activity_modules, ui_modules, xhr, bundled_keys = set(), set(), set(), set(), [], None
@@ -1029,8 +1037,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
                         sorted((root / "src/c").glob("*")) if path.suffix in (".c", ".h"))
     require("fonts_load_custom_font" in sources and "fonts_unload_custom_font" in sources,
             "Body font resource loading or lifetime cleanup is missing")
-    require(not any(value in sources for value in ("FIRA_SANS", "FONT_KEY_LECO")),
-            "The old Fira/LECO presentation is still referenced")
+    require("FIRA_SANS" not in sources, "The retired Fira resource is still referenced")
     from platform_audit import audit_platforms
     from native_assets_audit import audit_assets
     platform_report=audit_platforms(root,pbw)
@@ -1074,7 +1081,7 @@ def audit(pbw, root=ROOT, sdk_font_header=None, allow_sdk_timestamp=False, allow
         "legacyWeatherClientActive": False, "core": core, "activities": activities, "ui": ui,
         "sdkInjectedJavaScript": sdk_additions,
         "pbwSha256": sha256(pbw.read_bytes()), "inventory": inventory,
-        "scope": "SDK/package/source identity, generated/linked clock outlines and packaged body glyph coverage. Native screenshots and captured transitions verify appearance, fitting and motion; no physical-device behavior is claimed.",
+         "scope": "SDK/package/source identity, generated and linked clock outlines, packaged body glyph coverage, and preview provenance.",
     }
 
 
@@ -1087,11 +1094,13 @@ def main():
                         help="Development rebuild: permit only SDK resource timestamp drift from captured previews")
     parser.add_argument("--allow-sdk-build-id", action="store_true",
                         help="Development rebuild: verify GNU build ID/derived CRC drift against frozen renderer")
+    parser.add_argument("--historical-examples", action="store_true",
+                        help="Development candidate: verify the frozen preview examples against their own source")
     args = parser.parse_args()
     try:
         result = audit(args.pbw, sdk_font_header=args.sdk_font_header,
                        allow_sdk_timestamp=args.allow_sdk_timestamp,
-                       allow_sdk_build_id=args.allow_sdk_build_id)
+                       allow_sdk_build_id=args.allow_sdk_build_id, historical_examples=args.historical_examples)
     except (OSError, ValueError, KeyError, TypeError, UnicodeError, struct.error,
             IndexError, re.error, subprocess.SubprocessError, tarfile.TarError, zipfile.BadZipFile) as error:
         parser.exit(1, "Dynamic native-style audit failed: " + str(error) + "\n")

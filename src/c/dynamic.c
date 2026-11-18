@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <math.h>
 #include <pebble-xoce-ui/pebble-xoce-ui.h>
 #include "complication_data.h"
 #include "context_data.h"
@@ -60,6 +61,13 @@ typedef struct {
   ActivityPlanCache cache;
 } ActivityPlan;
 
+typedef struct {
+  ReadingParts parts;
+  char text[COMPLICATION_MAX_TEXT_BYTES+5];
+  char caption[COMPLICATION_MAX_LABEL_BYTES+16];
+  char number[READING_PART_BYTES];
+} ReadingMeasureScratch;
+
 static Window *s_window;
 static Layer *s_window_layer, *s_background_layer, *s_context_layer;
 static GColor s_background_color, s_text_color, s_accent_color;
@@ -101,7 +109,7 @@ typedef struct {
   unsigned display_attempts;
   uint32_t display_generation,display_flight;
   bool display_pending,outbox_display;
-  bool display_legacy_reply;
+  uint8_t display_reply_size;
   WfcReadings core;
   WfcPhoneStatus legacy_context;
   DynamicContextSession session;
@@ -112,11 +120,22 @@ typedef struct {
   FontRasterContour clock_raster_contours[CLOCK_GLYPH_MAX_CONTOURS];
   int32_t clock_intersections[CLOCK_GLYPH_MAX_POINTS];
   uint8_t clock_coverage[FACE_WIDTH];
+  FontRasterPoint imported_points[FONT_MAX_POINTS];
+  FontRasterContour imported_contours[FONT_MAX_CONTOURS];
+  int32_t imported_crossings[FONT_MAX_POINTS];
+  uint8_t imported_outline[4*FONT_MAX_POINTS+FONT_MAX_CONTOURS];
   // Three UTF-8 weekday scalars + separator + DD.MM. + NUL fit in24 bytes.
   char compact_date[24],time_text[6],weekday[13],numeric_date[8];
   char activity_identity[PAV_PROVIDER_BYTES+PAV_ID_BYTES+2];
   uint8_t activity_visual[8];
   ActivityPlan activity_plan;
+  // Measurements and painting reuse these buffers sequentially on the app
+  // thread. Activity layout also measures the readings.
+  ReadingMeasureScratch reading_measure;
+  MusicLines reading_lines;
+  char ellipsis_prefix[COMPLICATION_MAX_TEXT_BYTES+5];
+  char activity_caption[ACTIVITY_LINE_BYTES];
+  char activity_value[ACTIVITY_LINE_BYTES],activity_suffix[ACTIVITY_LINE_BYTES];
   MediaTransition media_motion;
   ActivityNavigation navigation;
   WatchPose pose,pose_from,pose_target;
@@ -125,6 +144,7 @@ static NativeState *s_native;
 #define s_core (s_native->core)
 #define s_body_fonts (s_native->body_fonts)
 #define s_body_loaded (s_native->body_loaded)
+#define s_reading_measure (s_native->reading_measure)
 #define s_pose (s_native->pose)
 #define s_pose_from (s_native->pose_from)
 #define s_pose_target (s_native->pose_target)
@@ -148,10 +168,14 @@ static unsigned prv_reading_index(unsigned home){
  return reading_grid_slot(prv_reading_mask(),s_reading_page,home+s_reading_home_offset);
 }
 static const ComplicationSlot *prv_reading_slot(unsigned home){unsigned index=prv_reading_index(home);return index<COMPLICATION_SLOT_COUNT?&s_native->core.complications.slots[index]:NULL;}
+static AppTimer *s_font_stage_timer;
+static uint8_t s_font_reply[FONT_REPLY_BYTES];
+static bool s_font_pending, s_outbox_font;
 static AppTimer *s_context_timer, *s_startup_timer, *s_motion_timer,*s_activity_timer,*s_presentation_timer;
 static const uint8_t s_body_points[] = {14,16,20,22,24,26,28,32};
 #define BODY_FONT_COUNT (sizeof(s_body_points)/sizeof(s_body_points[0]))
 static DynamicType s_type;
+static unsigned s_font_role=FONT_ACTIVITIES;
 static unsigned s_system_text_size;
 static const uint8_t s_body_resources[BODY_FONT_COUNT] = {RESOURCE_ID_FONT_BODY_14,
   RESOURCE_ID_FONT_BODY_16,RESOURCE_ID_FONT_BODY_20,RESOURCE_ID_FONT_BODY_22,
@@ -167,10 +191,12 @@ static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom);
 static void prv_sync_layers(void);
 static void prv_send_clock_format(void);
 static void prv_send_display(void);
+static void prv_send_font(void);
 static void prv_display_reply(const DisplayPreferences *value,uint8_t status,uint8_t flags);
 static void prv_schedule_context_expiry(void);
 static void prv_context_expired(void *context);
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point);
+static const ClockGlyph *prv_clock_glyph(uint32_t code);
 static MusicTextMetrics prv_activity_clock_measure(void *context,const char *text,int point);
 static void prv_activity_reset(void);
 static int prv_activity_top(void);
@@ -329,24 +355,136 @@ static GFont prv_body(int point) {
   for(size_t i=0;i<BODY_FONT_COUNT;++i) if(s_body_points[i]==point) return s_body_fonts[i];
   return s_body_fonts[0];
 }
-static GSize prv_measure(const char *text,int point) {
-  return graphics_text_layout_get_content_size(text,prv_body(point),GRect(0,0,2048,512),
+static uint32_t prv_selected_font(void) {
+  return font_choice(s_native->display.value+DISPLAY_FONTS,s_font_role);
+}
+
+static bool prv_imported_glyph(uint32_t id,uint32_t code,FontGlyph *glyph) {
+  if(font_store_glyph(id,code,glyph))return true;
+  const uint32_t global=s_native->display.value[DISPLAY_FONTS+FONT_WATCHFACE];
+  return global!=id&&font_store_glyph(global,code,glyph);
+}
+
+static GFont prv_system_font(uint32_t id,int point,int *size) {
+  const char *key;
+  if(id==FONT_BITHAM){
+    *size=point>=42?42:30;
+    key=*size==42?FONT_KEY_BITHAM_42_BOLD:FONT_KEY_BITHAM_30_BLACK;
+  }else if(id==FONT_LECO){
+    *size=point>=60?60:point>=42?42:point>=32?32:20;
+    key=*size==60?FONT_KEY_LECO_60_BOLD_NUMBERS_AM_PM:*size==42?FONT_KEY_LECO_42_NUMBERS:
+        *size==32?FONT_KEY_LECO_32_BOLD_NUMBERS:FONT_KEY_LECO_20_BOLD_NUMBERS;
+  }else{
+    *size=point>=28?28:point>=24?24:point>=18?18:14;
+    key=*size==28?FONT_KEY_GOTHIC_28_BOLD:*size==24?FONT_KEY_GOTHIC_24_BOLD:
+        *size==18?FONT_KEY_GOTHIC_18_BOLD:FONT_KEY_GOTHIC_14_BOLD;
+  }
+  return fonts_get_system_font(key);
+}
+
+static GSize prv_measure_font(const char *text,GFont font) {
+  return graphics_text_layout_get_content_size(text,font,GRect(0,0,2048,512),
       GTextOverflowModeFill,GTextAlignmentLeft);
 }
+
+static MusicTextMetrics prv_system_measure(const char *text,uint32_t id,int requested) {
+  int point;
+  const GFont font=prv_system_font(id,requested,&point);
+  const GSize measured=prv_measure_font(text,font);
+  const int ascent=*text?(point*4+4)/5:0;
+  return (MusicTextMetrics){measured.w,ascent,body_text_descent(text,prv_point(point))};
+}
+
+typedef struct { float advance,low,high;int ascent,descent; } ImportedTextMetrics;
+static ImportedTextMetrics prv_imported_measure(const char *text,uint32_t id,float point,bool numeric) {
+  const float scale=point/FONT_UNITS;
+  ImportedTextMetrics metrics={0};
+  const unsigned char *cursor=(const unsigned char *)text;
+  while(*cursor){
+    const unsigned char *start=cursor;
+    const uint32_t code=body_metric_next_codepoint(&cursor);
+    FontGlyph glyph;
+    float advance,left=0,right,top,bottom;
+    if(prv_imported_glyph(id,code,&glyph)){
+      advance=glyph.advance*scale;left=glyph.left*scale;right=glyph.right*scale;
+      top=glyph.top*scale;bottom=-glyph.bottom*scale;
+    }else if(numeric){
+      const ClockGlyph *fallback=prv_clock_glyph(code);
+      if(!fallback)continue;
+      const float legacy=point/CLOCK_FONT_UNITS_PER_EM;
+      advance=fallback->advance*legacy;left=fallback->x_min*legacy;right=fallback->x_max*legacy;
+      top=fallback->y_max*legacy;bottom=-fallback->y_min*legacy;
+    }else{
+      char character[5];const size_t length=cursor-start;
+      if(length>4)continue;
+      memcpy(character,start,length);character[length]=0;
+      const int body=prv_point(prv_round(point));
+      advance=right=prv_measure_font(character,prv_body(body)).w;
+      top=body_text_ascent(character,body);bottom=body_text_descent(character,body);
+    }
+    if(metrics.advance+left<metrics.low)metrics.low=metrics.advance+left;
+    if(metrics.advance+right>metrics.high)metrics.high=metrics.advance+right;
+    metrics.advance+=advance;
+    const int ascent=(int)ceilf(top),descent=(int)ceilf(bottom);
+    if(ascent>metrics.ascent)metrics.ascent=ascent;
+    if(descent>metrics.descent)metrics.descent=descent;
+  }
+  if(metrics.advance>metrics.high)metrics.high=metrics.advance;
+  return metrics;
+}
+
+static MusicTextMetrics prv_body_measure(const char *text,int point) {
+  const uint32_t id=prv_selected_font();
+  if(id==FONT_GOTHIC)return prv_system_measure(text,id,point);
+  if(id>FONT_LECO){
+    const ImportedTextMetrics metrics=prv_imported_measure(text,id,point,false);
+    return (MusicTextMetrics){(int)ceilf(metrics.high-metrics.low),metrics.ascent,metrics.descent};
+  }
+  return (MusicTextMetrics){prv_measure_font(text,prv_body(point)).w,
+    body_text_ascent(text,point),body_text_descent(text,point)};
+}
+
+static void prv_draw_imported(GContext *ctx,const char *text,uint32_t id,float x,
+    float baseline,float point,GColor color,bool numeric,int width,GTextAlignment alignment);
+
+static GSize prv_measure(const char *text,int point) {
+  const MusicTextMetrics metrics=prv_body_measure(text,prv_point(point));
+  return GSize(metrics.width,metrics.ascent+metrics.descent);
+}
+
+static int prv_text_ascent(const char *text,int point) {
+  const uint32_t id=prv_selected_font();
+  return id?prv_body_measure(text,point).ascent:body_text_ascent(text,point);
+}
+
+static int prv_text_descent(const char *text,int point) {
+  const uint32_t id=prv_selected_font();
+  return id?prv_body_measure(text,point).descent:body_text_descent(text,point);
+}
+
 static void prv_text(GContext *ctx,const char *text,int point,int x,int baseline,
                      int width,GColor color,GTextAlignment alignment) {
   point=prv_point(point);
-  if(width>0&&color.argb!=s_background_color.argb&&body_text_ascent(text,point)>0)
-    prv_note_reading_ink(baseline-body_text_ascent(text,point));
+  if(width<=0)return;
+  const uint32_t id=prv_selected_font();
+  if(id>FONT_LECO){
+    prv_draw_imported(ctx,text,id,x,baseline,point,color,false,width,alignment);
+    return;
+  }
+  int size=point;
+  const GFont font=id==FONT_GOTHIC?prv_system_font(id,point,&size):prv_body(point);
+  const int ascent=prv_text_ascent(text,point);
+  if(color.argb!=s_background_color.argb&&ascent>0)prv_note_reading_ink(baseline-ascent);
   graphics_context_set_text_color(ctx,color);
-  graphics_draw_text(ctx,text,prv_body(point),GRect(x,baseline-point,width,point+12),
+  graphics_draw_text(ctx,text,font,GRect(x,baseline-size,width,size+12),
       GTextOverflowModeFill,alignment,NULL);
 }
 static void prv_ellipsize(char *text,size_t capacity,int point,int width) {
   if(prv_measure(text,point).w<=width) return;
   if(capacity<4){if(capacity)text[0]='\0';return;}
-  char prefix[COMPLICATION_MAX_TEXT_BYTES+5];
-  const size_t prefix_capacity=capacity-3<sizeof(prefix)?capacity-3:sizeof(prefix);
+  char *const prefix=s_native->ellipsis_prefix;
+  const size_t limit=sizeof(s_native->ellipsis_prefix);
+  const size_t prefix_capacity=capacity-3<limit?capacity-3:limit;
   watch_layout_copy_utf8(text,prefix,prefix_capacity);
   while(watch_layout_pop_utf8(prefix)) {
     const size_t length=strlen(prefix);
@@ -388,6 +526,21 @@ static float prv_vector_width(const char *text,float point) {
     const ClockGlyph *glyph=prv_clock_glyph(body_metric_next_codepoint(&cursor));
     if(glyph==NULL) return -1;
     advance+=glyph->advance;
+  }
+  const uint32_t id=prv_selected_font();
+  if(id>FONT_LECO){
+    const ImportedTextMetrics metrics=prv_imported_measure(text,id,point,true);
+    return metrics.high-metrics.low;
+  }
+  if(id){
+    const int size=prv_round(point);
+    if(size>=90){
+      // Layout fitters use 100px as a normalized design size.
+      int nominal;
+      (void)prv_system_font(id,60,&nominal);
+      return prv_system_measure(text,id,nominal).width*point/nominal;
+    }
+    return prv_system_measure(text,id,size).width;
   }
   return advance*point/CLOCK_FONT_UNITS_PER_EM;
 }
@@ -434,9 +587,11 @@ static void prv_gpath_glyph(GContext *ctx,const ClockGlyph *glyph,float x,float 
       gpath_draw_filled(ctx,&s_clock_path);
     }
 }
-typedef struct { GContext *ctx; GColor colors[FONT_RASTER_COVERAGE+1]; } ClockPaint;
+typedef struct { GContext *ctx; GColor colors[FONT_RASTER_COVERAGE+1]; int left,right; } ClockPaint;
 static void prv_clock_row(void *context,int y,int first,int end,const uint8_t *coverage) {
   ClockPaint *paint=context;
+  if(first<paint->left)first=paint->left;
+  if(end>paint->right)end=paint->right;
   for(int x=first;x<end;) {
     const GColor color=paint->colors[coverage[x]];
     const int begin=x++;
@@ -467,8 +622,8 @@ static bool prv_raster_glyph(ClockPaint *paint,const ClockGlyph *glyph,
   return font_raster_rows(s_clock_raster_points,at,s_clock_raster_contours,
       glyph->contour_count,FACE_WIDTH,FULL_LAYOUT_HEIGHT,scratch,prv_clock_row,paint);
 }
-static void prv_vector(GContext *ctx,const char *text,float x,float baseline,float point,GColor color) {
-  ClockPaint paint={.ctx=ctx};
+static ClockPaint prv_font_paint(GContext *ctx,GColor color,int left,int right) {
+  ClockPaint paint={.ctx=ctx,.left=left,.right=right};
   const unsigned fr=(color.argb>>4)&3,fg=(color.argb>>2)&3,fb=color.argb&3;
   const unsigned br=(s_background_color.argb>>4)&3,bg=(s_background_color.argb>>2)&3,bb=s_background_color.argb&3;
   for(unsigned i=0;i<=FONT_RASTER_COVERAGE;++i) {
@@ -478,6 +633,96 @@ static void prv_vector(GContext *ctx,const char *text,float x,float baseline,flo
       (((fg*i+bg*back+half)/FONT_RASTER_COVERAGE)<<2)|
        ((fb*i+bb*back+half)/FONT_RASTER_COVERAGE)};
   }
+  return paint;
+}
+
+static int16_t prv_font_coordinate(const uint8_t *bytes) {
+  return (int16_t)(bytes[0]|bytes[1]<<8);
+}
+
+static void prv_draw_imported(GContext *ctx,const char *text,uint32_t id,float x,
+    float baseline,float point,GColor color,bool numeric,int width,GTextAlignment alignment) {
+  const ImportedTextMetrics metrics=prv_imported_measure(text,id,point,numeric);
+  const float actual=metrics.high-metrics.low;
+  ClockPaint paint=prv_font_paint(ctx,color,numeric?0:prv_round(x),numeric?FACE_WIDTH:prv_round(x)+width);
+  if(!numeric && actual<width){
+    if(alignment==GTextAlignmentCenter)x+=(width-actual)/2;
+    if(alignment==GTextAlignmentRight)x+=width-actual;
+  }
+  x-=metrics.low;
+  const float scale=point/FONT_UNITS;
+  const unsigned char *cursor=(const unsigned char *)text;
+  while(*cursor && x<paint.right){
+    const unsigned char *start=cursor;
+    const uint32_t code=body_metric_next_codepoint(&cursor);
+    FontGlyph glyph;
+    if(prv_imported_glyph(id,code,&glyph)){
+      if(glyph.bytes && glyph.bytes<=sizeof(s_native->imported_outline) &&
+          font_store_outline(&glyph,s_native->imported_outline)){
+        unsigned at=0,points=0,contours=0;
+        while(at<glyph.bytes && contours<FONT_MAX_CONTOURS){
+          const unsigned count=s_native->imported_outline[at++];
+          if(count<3||points+count>FONT_MAX_POINTS||at+count*4>glyph.bytes)break;
+          s_native->imported_contours[contours++]=(FontRasterContour){points,count};
+          for(unsigned i=0;i<count;++i){
+            const int16_t px=prv_font_coordinate(s_native->imported_outline+at);
+            const int16_t py=prv_font_coordinate(s_native->imported_outline+at+2);
+            s_native->imported_points[points++]=(FontRasterPoint){
+              prv_round((x+px*scale)*FONT_RASTER_ONE),
+              prv_round((baseline-py*scale)*FONT_RASTER_ONE)};
+            at+=4;
+          }
+        }
+        const FontRasterScratch scratch={s_clock_coverage,sizeof(s_clock_coverage),
+            s_native->imported_crossings,FONT_MAX_POINTS};
+        if(at==glyph.bytes)font_raster_rows_with_rule(s_native->imported_points,points,
+            s_native->imported_contours,contours,FACE_WIDTH,FULL_LAYOUT_HEIGHT,scratch,
+            prv_clock_row,&paint,true);
+      }
+      x+=glyph.advance*scale;
+    }else if(numeric){
+      const ClockGlyph *fallback=prv_clock_glyph(code);
+      const float legacy=point/CLOCK_FONT_UNITS_PER_EM;
+      if(fallback){
+        prv_raster_glyph(&paint,fallback,x,baseline,legacy);
+        x+=fallback->advance*legacy;
+      }
+    }else{
+      char character[5];const size_t length=cursor-start;
+      if(length>4)continue;
+      memcpy(character,start,length);character[length]=0;
+      const int body=prv_point(prv_round(point)),left=prv_round(x);
+      const GFont font=prv_body(body);
+      const int advance=prv_measure_font(character,font).w;
+      if(left>=paint.left && left+advance<=paint.right){
+        graphics_context_set_text_color(ctx,color);
+        graphics_draw_text(ctx,character,font,GRect(left,prv_round(baseline)-body,
+            advance+1,body+12),GTextOverflowModeFill,GTextAlignmentLeft,NULL);
+        if(color.argb!=s_background_color.argb)
+          prv_note_reading_ink(prv_round(baseline)-body_text_ascent(character,body));
+      }
+      x+=advance;
+    }
+  }
+}
+
+static void prv_vector(GContext *ctx,const char *text,float x,float baseline,float point,GColor color) {
+  const uint32_t id=prv_selected_font();
+  if(id>FONT_LECO){
+    prv_draw_imported(ctx,text,id,x,baseline,point,color,true,0,GTextAlignmentLeft);
+    return;
+  }
+  if(id){
+    int size;
+    const GFont font=prv_system_font(id,prv_round(point),&size);
+    const GSize bounds=prv_measure_font(text,font);
+    if(color.argb!=s_background_color.argb)prv_note_reading_ink(prv_round(baseline)-(size*4+4)/5);
+    graphics_context_set_text_color(ctx,color);
+    graphics_draw_text(ctx,text,font,GRect(prv_round(x),prv_round(baseline)-size,bounds.w+1,size+12),
+        GTextOverflowModeFill,GTextAlignmentLeft,NULL);
+    return;
+  }
+  ClockPaint paint=prv_font_paint(ctx,color,0,FACE_WIDTH);
   const float scale=point/CLOCK_FONT_UNITS_PER_EM;
   const unsigned char *cursor=(const unsigned char *)text;
   while(*cursor) {
@@ -743,25 +988,25 @@ static const char *prv_caption(const ComplicationSlot *slot,unsigned kind,unsign
   return buffer;
 }
 static void prv_fit_reading_numbers(WatchPose pose) {
+  ReadingMeasureScratch *const scratch=&s_reading_measure;
   ReadingNumberInput input[2]={0};
   const time_t now=time(NULL);
   if(s_has_complications)for(unsigned i=0;i<2;++i){
     const ComplicationSlot *slot=prv_reading_slot(i);
-    char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];
     if(!slot||!complication_is_selected(slot)||reading_state(slot,now)!=READING_VALUE||
-        !prv_slot_text(slot,text,sizeof(text)))continue;
-    ReadingParts parts;const bool numeric=reading_parts(text,&parts);
-    const unsigned kind=reading_semantic(slot,&parts,numeric);
-    prv_caption(slot,kind,i,i18n_get_system_locale(),caption,sizeof(caption));
+        !prv_slot_text(slot,scratch->text,sizeof(scratch->text)))continue;
+    const bool numeric=reading_parts(scratch->text,&scratch->parts);
+    const unsigned kind=reading_semantic(slot,&scratch->parts,numeric);
+    prv_caption(slot,kind,i,i18n_get_system_locale(),scratch->caption,sizeof(scratch->caption));
     if(numeric){
-      char number[READING_PART_BYTES];reading_native_number(parts.number,number,sizeof(number));
+      reading_native_number(scratch->parts.number,scratch->number,sizeof(scratch->number));
       const bool symbol=(slot->flags&COMPLICATION_FLAG_BITMAP)||
           (kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&kind<=COMPLICATION_SEMANTIC_CONDITION);
-      input[i]=(ReadingNumberInput){prv_vector_width(number,100),
-          parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0,prv_reading_icon_size(),symbol,
-          symbol&&!strcmp(parts.unit,"%"),caption[0]||!strcmp(parts.unit,"%")};
+      input[i]=(ReadingNumberInput){prv_vector_width(scratch->number,100),
+          scratch->parts.unit[0]?prv_measure(scratch->parts.unit,s_type.secondary).w:0,prv_reading_icon_size(),symbol,
+          symbol&&!strcmp(scratch->parts.unit,"%"),scratch->caption[0]||!strcmp(scratch->parts.unit,"%")};
     }else{
-      const float width=prv_vector_width(text,100);
+      const float width=prv_vector_width(scratch->text,100);
       if(width>0)input[i]=(ReadingNumberInput){width,0,0,false,false,true};
     }
   }
@@ -773,7 +1018,8 @@ static void prv_fit_reading_numbers(WatchPose pose) {
   reading_number_pair(input,prv_round(pose.number_size),s_reading_numbers);
 #endif
 }
-static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
+static WatchPose prv_measure_reading_pose(WatchPose pose,int height,int *bottom) {
+  ReadingMeasureScratch *const scratch=&s_reading_measure;
   if(s_grid&&!s_grid_drawing&&pose.context<.001f&&pose.peek<.001f){
     if(bottom)*bottom=FULL_LAYOUT_HEIGHT-2;
     return pose;
@@ -793,36 +1039,34 @@ static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
   if(s_has_complications)for(unsigned i=0;i<2;++i) {
     const ComplicationSlot *slot=prv_reading_slot(i);
     if(!slot||!complication_is_selected(slot))continue;
-    char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];
-    ReadingParts parts;
     const ReadingState state=reading_state(slot,time(NULL));
-    const bool value=state==READING_VALUE&&prv_slot_text(slot,text,sizeof(text));
-    if(!value)snprintf(text,sizeof(text),"%s",reading_state_label(state,i18n_get_system_locale()));
-    const bool numeric=value&&reading_parts(text,&parts);
-    const unsigned kind=reading_semantic(slot,&parts,numeric);
-    prv_caption(slot,kind,i,i18n_get_system_locale(),caption,sizeof(caption));
-    if(s_grid_drawing&&state!=READING_VALUE&&!caption[0])
-      watch_layout_copy_utf8(reading_label(slot,kind,prv_reading_index(i),i18n_get_system_locale()),caption,sizeof(caption));
-    MusicTextMetrics first=prv_music_measure(NULL,text,s_type.secondary);
-    const char *second=caption;
-    bool has_second=caption[0]!=0,overflow=false;
+    const bool value=state==READING_VALUE&&prv_slot_text(slot,scratch->text,sizeof(scratch->text));
+    if(!value)snprintf(scratch->text,sizeof(scratch->text),"%s",reading_state_label(state,i18n_get_system_locale()));
+    const bool numeric=value&&reading_parts(scratch->text,&scratch->parts);
+    const unsigned kind=reading_semantic(slot,&scratch->parts,numeric);
+    prv_caption(slot,kind,i,i18n_get_system_locale(),scratch->caption,sizeof(scratch->caption));
+    if(s_grid_drawing&&state!=READING_VALUE&&!scratch->caption[0])
+      watch_layout_copy_utf8(reading_label(slot,kind,prv_reading_index(i),i18n_get_system_locale()),scratch->caption,sizeof(scratch->caption));
+    MusicTextMetrics first=prv_music_measure(NULL,scratch->text,s_type.secondary);
+    const char *second=scratch->caption;
+    bool has_second=scratch->caption[0]!=0,overflow=false;
     if(numeric) {
-      char number[READING_PART_BYTES];reading_native_number(parts.number,number,sizeof(number));
+      reading_native_number(scratch->parts.number,scratch->number,sizeof(scratch->number));
       const ReadingNumberLayout fit=s_reading_numbers[i];overflow=fit.overflow;
       first=fit.overflow?prv_music_measure(NULL,reading_overflow_label(i18n_get_system_locale()),s_type.secondary):
-          prv_activity_clock_measure(NULL,number,fit.point);
-      if(!fit.overflow&&!fit.unit_below&&parts.unit[0]) {
-        const MusicTextMetrics unit=prv_music_measure(NULL,parts.unit,s_type.secondary);
+          prv_activity_clock_measure(NULL,scratch->number,fit.point);
+      if(!fit.overflow&&!fit.unit_below&&scratch->parts.unit[0]) {
+        const MusicTextMetrics unit=prv_music_measure(NULL,scratch->parts.unit,s_type.secondary);
         if(unit.ascent>first.ascent)first.ascent=unit.ascent;
         if(unit.descent>first.descent)first.descent=unit.descent;
       }
-      if(!has_second&&fit.unit_below){second=parts.unit;has_second=true;}
-    } else if(value&&prv_vector_width(text,100)>0) {
+      if(!has_second&&fit.unit_below){second=scratch->parts.unit;has_second=true;}
+    } else if(value&&prv_vector_width(scratch->text,100)>0) {
       const ReadingNumberLayout fit=s_reading_numbers[i];overflow=fit.overflow;
       first=fit.overflow?prv_music_measure(NULL,reading_overflow_label(i18n_get_system_locale()),s_type.secondary):
-          prv_activity_clock_measure(NULL,text,fit.point);
+          prv_activity_clock_measure(NULL,scratch->text,fit.point);
     } else if(first.width>READING_WIDTH&&!has_second) {
-      second=text;has_second=true;
+      second=scratch->text;has_second=true;
     }
     /* Overflow can wrap just like a text-only value. Reserve its second
      * line before placing the clock/activity, using the same fit as paint. */
@@ -841,16 +1085,24 @@ static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
   if(bottom)*bottom=prv_round(pose.row_y+(second_line?pose.label_y+second_descent:(first_height+1)/2));
   return pose;
 }
+static WatchPose prv_reading_pose(WatchPose pose,int height,int *bottom) {
+  const unsigned previous=s_font_role;
+  s_font_role=FONT_READINGS;
+  const WatchPose result=prv_measure_reading_pose(pose,height,bottom);
+  s_font_role=previous;
+  return result;
+}
+
 static void prv_reading_caption(GContext *ctx,const char *caption,const char *qualifier,
                                  int center,const WatchPose *p) {
   const int baseline=prv_round(p->row_y+p->label_y);
   if(!caption[0]||
-      baseline+body_text_descent(caption,s_type.secondary)>prv_reading_height()-2)return;
+      baseline+prv_text_descent(caption,s_type.secondary)>prv_reading_height()-2)return;
   int caption_width=READING_WIDTH;
 #ifdef PBL_ROUND
   if(s_grid_drawing){
-    const int top=baseline-body_text_ascent(caption,s_type.secondary);
-    const int bottom=baseline+body_text_descent(caption,s_type.secondary);
+    const int top=baseline-prv_text_ascent(caption,s_type.secondary);
+    const int bottom=baseline+prv_text_descent(caption,s_type.secondary);
     const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),GRect(0,top,FACE_WIDTH,bottom-top+1),6);
     caption_width=band.size.w/2-10;
     center=band.origin.x+band.size.w*(center<FACE_WIDTH/2?1:3)/4;
@@ -880,21 +1132,21 @@ static void prv_age_mark(GContext *ctx,int center,const WatchPose *p) {
 static int prv_reading_text(GContext *ctx,const char *text,int center,const WatchPose *p,
                             bool second_line,GColor color,bool complete) {
   const int second=prv_round(p->row_y+p->label_y);
-  second_line=second_line&&second+body_text_descent(text,s_type.secondary)<=prv_reading_height()-2;
-  MusicLines lines;
+  second_line=second_line&&second+prv_text_descent(text,s_type.secondary)<=prv_reading_height()-2;
+  MusicLines *const lines=&s_native->reading_lines;
   music_wrap(text,s_type.secondary,READING_WIDTH,second_line?2:1,false,
-      prv_music_measure,NULL,&lines);
-  if(complete&&!lines.complete)return 0;
-  for(int i=0;i<lines.count;++i) {
-    const char *line=lines.text[i];
-    const int ascent=body_text_ascent(line,s_type.secondary);
-    const int descent=body_text_descent(line,s_type.secondary);
+      prv_music_measure,NULL,lines);
+  if(complete&&!lines->complete)return 0;
+  for(int i=0;i<lines->count;++i) {
+    const char *line=lines->text[i];
+    const int ascent=prv_text_ascent(line,s_type.secondary);
+    const int descent=prv_text_descent(line,s_type.secondary);
     const int baseline=i?second:prv_round(p->row_y+(ascent-descent)/2.0f);
     if(baseline+descent>prv_reading_height()-2)return 0;
     prv_text(ctx,line,s_type.secondary,center-READING_WIDTH/2,baseline,
         READING_WIDTH,color,GTextAlignmentCenter);
   }
-  return lines.count;
+  return lines->count;
 }
 static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
   if(!s_has_complications||!prv_reading_slot(index)||!complication_is_selected(prv_reading_slot(index)))return;
@@ -906,15 +1158,15 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
 #endif
   const char *locale=i18n_get_system_locale();
   const ReadingState state=reading_state(slot,time(NULL));
-  char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];
-  const bool has_text=state==READING_VALUE&&prv_slot_text(slot,text,sizeof(text));
-  ReadingParts parts;const bool numeric=has_text&&reading_parts(text,&parts);
-  const unsigned kind=reading_semantic(slot,&parts,numeric);
-  prv_caption(slot,kind,index,locale,caption,sizeof(caption));
+  ReadingMeasureScratch *const scratch=&s_reading_measure;
+  const bool has_text=state==READING_VALUE&&prv_slot_text(slot,scratch->text,sizeof(scratch->text));
+  const bool numeric=has_text&&reading_parts(scratch->text,&scratch->parts);
+  const unsigned kind=reading_semantic(slot,&scratch->parts,numeric);
+  prv_caption(slot,kind,index,locale,scratch->caption,sizeof(scratch->caption));
   if(state!=READING_VALUE) {
     // Unavailable/expired sources retain public identity, never old values.
     prv_reading_text(ctx,reading_state_label(state,locale),center,p,false,prv_muted_text(1),false);
-    prv_reading_caption(ctx,caption[0]?caption:reading_label(slot,kind,prv_reading_index(index),locale),
+    prv_reading_caption(ctx,scratch->caption[0]?scratch->caption:reading_label(slot,kind,prv_reading_index(index),locale),
         reading_qualifier(slot,kind,locale),center,p);
     return;
   }
@@ -927,24 +1179,24 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
       prv_draw_bitmap(ctx,slot,center-size/2,prv_round(p->row_y-size/2),size,prv_accent_color(),false);
     }
   } else if(numeric) {
-    char number[READING_PART_BYTES];reading_native_number(parts.number,number,sizeof(number));
-    const int unit_width=parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0;
+    reading_native_number(scratch->parts.number,scratch->number,sizeof(scratch->number));
+    const int unit_width=scratch->parts.unit[0]?prv_measure(scratch->parts.unit,s_type.secondary).w:0;
     const ReadingNumberLayout layout=s_reading_numbers[index];
     if(layout.overflow)goto overflow;
     {
       float x=center-layout.width/2.0f;
       if(layout.icon) {prv_draw_symbol(ctx,slot,prv_round(x+icon_size/2.0f),prv_round(p->row_y),icon_size,kind);x+=icon_size+READING_ICON_GAP;}
-      MusicTextMetrics ink=prv_activity_clock_measure(NULL,number,layout.point);
-      if(!layout.unit_below&&parts.unit[0]) {
-        const int ascent=body_text_ascent(parts.unit,s_type.secondary),descent=body_text_descent(parts.unit,s_type.secondary);
+      MusicTextMetrics ink=prv_activity_clock_measure(NULL,scratch->number,layout.point);
+      if(!layout.unit_below&&scratch->parts.unit[0]) {
+        const int ascent=prv_text_ascent(scratch->parts.unit,s_type.secondary),descent=prv_text_descent(scratch->parts.unit,s_type.secondary);
         if(ascent>ink.ascent)ink.ascent=ascent;
         if(descent>ink.descent)ink.descent=descent;
       }
       const float baseline=p->row_y+(ink.ascent-ink.descent)/2.0f;
-      prv_vector(ctx,number,x,baseline,layout.point,s_text_color);
-      if(parts.unit[0]) {
+      prv_vector(ctx,scratch->number,x,baseline,layout.point,s_text_color);
+      if(scratch->parts.unit[0]) {
         const int left=layout.unit_below?center-unit_width/2:prv_round(x+layout.number_width+READING_UNIT_GAP);
-        prv_text(ctx,parts.unit,s_type.secondary,left,
+        prv_text(ctx,scratch->parts.unit,s_type.secondary,left,
             layout.unit_below?prv_round(p->row_y+p->label_y):prv_round(baseline),unit_width+2,s_text_color,GTextAlignmentLeft);
       }
       second_line=layout.unit_below;
@@ -952,25 +1204,25 @@ static void prv_draw_reading(GContext *ctx,unsigned index,const WatchPose *p) {
   } else if(has_text) {
     // Clock-like scalars keep every glyph; arbitrary numeric shapes must not
     // become an ellipsis merely because their unit is not in our formatter.
-    const float at100=prv_vector_width(text,100);
+    const float at100=prv_vector_width(scratch->text,100);
     if(at100>0) {
       const ReadingNumberLayout layout=s_reading_numbers[index];
       if(!layout.overflow) {
-        const MusicTextMetrics ink=prv_activity_clock_measure(NULL,text,layout.point);
-        prv_vector(ctx,text,center-layout.width/2.0f,p->row_y+(ink.ascent-ink.descent)/2.0f,layout.point,s_text_color);
+        const MusicTextMetrics ink=prv_activity_clock_measure(NULL,scratch->text,layout.point);
+        prv_vector(ctx,scratch->text,center-layout.width/2.0f,p->row_y+(ink.ascent-ink.descent)/2.0f,layout.point,s_text_color);
       } else goto overflow;
     } else {
       const bool number=(slot->semantic_flags&COMPLICATION_SEMANTIC_VALUE)!=0;
-      const int lines=prv_reading_text(ctx,text,center,p,!caption[0],s_text_color,number);
+      const int lines=prv_reading_text(ctx,scratch->text,center,p,!scratch->caption[0],s_text_color,number);
       second_line=lines>1;
       if(number&&!lines)goto overflow;
     }
   } else goto overflow;
   goto finish;
  overflow:
-  second_line=prv_reading_text(ctx,reading_overflow_label(locale),center,p,!caption[0],s_text_color,false)>1;
+  second_line=prv_reading_text(ctx,reading_overflow_label(locale),center,p,!scratch->caption[0],s_text_color,false)>1;
  finish:
-  if(!second_line&&caption[0])prv_reading_caption(ctx,caption,reading_qualifier(slot,kind,locale),center,p);
+  if(!second_line&&scratch->caption[0])prv_reading_caption(ctx,scratch->caption,reading_qualifier(slot,kind,locale),center,p);
   if(aged)prv_age_mark(ctx,center,p);
 }
 static void prv_draw_reading_grid(GContext *ctx,WatchPose pose){
@@ -990,12 +1242,12 @@ static void prv_draw_reading_grid(GContext *ctx,WatchPose pose){
 static void prv_draw_reading_row(GContext *ctx,unsigned home,WatchPose pose){
  const ComplicationSlot *slot=prv_reading_slot(home);if(!s_has_complications||!slot||!complication_is_selected(slot))return;
  const char *locale=i18n_get_system_locale();const ReadingState state=reading_state(slot,time(NULL));
- char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];ReadingParts parts;
- bool value=state==READING_VALUE&&prv_slot_text(slot,text,sizeof(text));
- if(!value)snprintf(text,sizeof(text),"%s",reading_state_label(state,locale));
- bool numeric=value&&reading_parts(text,&parts);unsigned kind=reading_semantic(slot,&parts,numeric);
- prv_caption(slot,kind,home,locale,caption,sizeof(caption));
- if(!s_hide_titles&&!caption[0])watch_layout_copy_utf8(reading_label(slot,kind,reading_page_slot(s_reading_page,home),locale),caption,sizeof(caption));
+ ReadingMeasureScratch *const scratch=&s_reading_measure;
+ bool value=state==READING_VALUE&&prv_slot_text(slot,scratch->text,sizeof(scratch->text));
+ if(!value)snprintf(scratch->text,sizeof(scratch->text),"%s",reading_state_label(state,locale));
+ bool numeric=value&&reading_parts(scratch->text,&scratch->parts);unsigned kind=reading_semantic(slot,&scratch->parts,numeric);
+ prv_caption(slot,kind,home,locale,scratch->caption,sizeof(scratch->caption));
+ if(!s_hide_titles&&!scratch->caption[0])watch_layout_copy_utf8(reading_label(slot,kind,reading_page_slot(s_reading_page,home),locale),scratch->caption,sizeof(scratch->caption));
  const int center=prv_round(pose.row_y+home*pose.label_y),height=s_type.secondary+10;
  GRect band=GRect(8,center-height/2,FACE_WIDTH-16,height);
 #ifdef PBL_ROUND
@@ -1003,34 +1255,34 @@ static void prv_draw_reading_row(GContext *ctx,unsigned home,WatchPose pose){
 #endif
  int left=band.origin.x,right=left+band.size.w;const bool symbol=(slot->flags&COMPLICATION_FLAG_BITMAP)||(kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&kind<=COMPLICATION_SEMANTIC_CONDITION);
  if(symbol){prv_draw_symbol(ctx,slot,left+9,center,18,kind);left+=22;}
- const int baseline=center+(body_text_ascent(text,s_type.secondary)-body_text_descent(text,s_type.secondary))/2;
+ const int baseline=center+(prv_text_ascent(scratch->text,s_type.secondary)-prv_text_descent(scratch->text,s_type.secondary))/2;
  if(numeric){
-   char number[READING_PART_BYTES];reading_native_number(parts.number,number,sizeof(number));
-   const int unit=parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w+2:0;
+   reading_native_number(scratch->parts.number,scratch->number,sizeof(scratch->number));
+   const int unit=scratch->parts.unit[0]?prv_measure(scratch->parts.unit,s_type.secondary).w+2:0;
    const char *qualifier=reading_qualifier(slot,kind,locale);
    const int required=qualifier[0]?prv_measure(qualifier,s_type.secondary).w+8:0;
    int point=prv_round(pose.number_size),width;
-   while(point>22&&prv_vector_width(number,point)+unit+required>right-left)point-=2;
-   width=prv_round(prv_vector_width(number,point))+unit;
+   while(point>22&&prv_vector_width(scratch->number,point)+unit+required>right-left)point-=2;
+   width=prv_round(prv_vector_width(scratch->number,point))+unit;
    if(width+required<=right-left){
-     MusicTextMetrics ink=prv_activity_clock_measure(NULL,number,point);
+     MusicTextMetrics ink=prv_activity_clock_measure(NULL,scratch->number,point);
      int numeric_baseline=center+(ink.ascent-ink.descent)/2;
      int label_width=right-left-width-8;if(label_width<0)label_width=0;
-     prv_ellipsize(caption,sizeof(caption),s_type.secondary,label_width);
-     if(required&&strcmp(caption,qualifier))watch_layout_copy_utf8(qualifier,caption,sizeof(caption));
-     if(caption[0])prv_text(ctx,caption,s_type.secondary,left,baseline,label_width,prv_muted_text(1),GTextAlignmentLeft);
-     prv_vector(ctx,number,right-width,numeric_baseline,point,s_text_color);
-     if(unit)prv_text(ctx,parts.unit,s_type.secondary,right-unit+2,baseline,unit,s_text_color,GTextAlignmentLeft);
+     prv_ellipsize(scratch->caption,sizeof(scratch->caption),s_type.secondary,label_width);
+     if(required&&strcmp(scratch->caption,qualifier))watch_layout_copy_utf8(qualifier,scratch->caption,sizeof(scratch->caption));
+     if(scratch->caption[0])prv_text(ctx,scratch->caption,s_type.secondary,left,baseline,label_width,prv_muted_text(1),GTextAlignmentLeft);
+     prv_vector(ctx,scratch->number,right-width,numeric_baseline,point,s_text_color);
+     if(unit)prv_text(ctx,scratch->parts.unit,s_type.secondary,right-unit+2,baseline,unit,s_text_color,GTextAlignmentLeft);
      return;
    }
-   snprintf(text,sizeof(text),"%s",reading_overflow_label(locale));
+   snprintf(scratch->text,sizeof(scratch->text),"%s",reading_overflow_label(locale));
  }
  if(!value&&(slot->flags&COMPLICATION_FLAG_BITMAP)){/* unavailable state wins over old artwork */}
- int width=prv_measure(text,s_type.secondary).w;
+ int width=prv_measure(scratch->text,s_type.secondary).w;
  int label_width=right-left-width-8;
- if(label_width>0){prv_ellipsize(caption,sizeof(caption),s_type.secondary,label_width);if(caption[0])prv_text(ctx,caption,s_type.secondary,left,baseline,label_width,prv_muted_text(1),GTextAlignmentLeft);}
- if(width>right-left){prv_ellipsize(text,sizeof(text),s_type.secondary,right-left);width=right-left;}
- prv_text(ctx,text,s_type.secondary,right-width,baseline,width,s_text_color,GTextAlignmentLeft);
+ if(label_width>0){prv_ellipsize(scratch->caption,sizeof(scratch->caption),s_type.secondary,label_width);if(scratch->caption[0])prv_text(ctx,scratch->caption,s_type.secondary,left,baseline,label_width,prv_muted_text(1),GTextAlignmentLeft);}
+ if(width>right-left){prv_ellipsize(scratch->text,sizeof(scratch->text),s_type.secondary,right-left);width=right-left;}
+ prv_text(ctx,scratch->text,s_type.secondary,right-width,baseline,width,s_text_color,GTextAlignmentLeft);
 }
 static void prv_lower_palette(bool lower,GColor *background,GColor *text){
  *background=s_background_color;*text=s_text_color;
@@ -1057,11 +1309,11 @@ static void prv_draw_status(GContext *ctx,WatchPose p) {
     graphics_draw_line(ctx,GPoint(bx-1,y+10),GPoint(bx+8,y));
   }
 }
-static void prv_draw_date(GContext *ctx,WatchPose p) {
+static void prv_draw_date_text(GContext *ctx,WatchPose p) {
 #ifdef PBL_ROUND
   {
-  const int baseline=prv_round(p.date_y),height=body_text_ascent(s_compact_date_buffer,s_type.date)+body_text_descent(s_compact_date_buffer,s_type.date);
-  const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),GRect(0,baseline-body_text_ascent(s_compact_date_buffer,s_type.date),FACE_WIDTH,height),6);
+  const int baseline=prv_round(p.date_y),height=prv_text_ascent(s_compact_date_buffer,s_type.date)+prv_text_descent(s_compact_date_buffer,s_type.date);
+  const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),GRect(0,baseline-prv_text_ascent(s_compact_date_buffer,s_type.date),FACE_WIDTH,height),6);
   const char *date=prv_measure(s_compact_date_buffer,s_type.date).w<=band.size.w?s_compact_date_buffer:s_numeric_date_buffer;
   prv_utility_text(ctx,date,true,band.origin.x,baseline,band.size.w,s_text_color,GTextAlignmentCenter);
   return;
@@ -1076,20 +1328,31 @@ static void prv_draw_date(GContext *ctx,WatchPose p) {
   const int width=compact?76:200;
   const int center=compact?158+prv_round(10*(1-alpha)):100;
   const int baseline=compact?36:31-prv_round(6*(1-alpha));
+  s_font_role=FONT_CLOCK;
   const float clock_width=prv_vector_width(s_time_buffer,p.clock_size);
   const float available=watch_lerp(184,108,context);
   const float point=clock_width>available?p.clock_size*available/clock_width:p.clock_size;
   const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
+  s_font_role=FONT_DATE;
   const char *text=compact?s_numeric_date_buffer:s_compact_date_buffer;
   const GSize date=prv_measure(text,s_type.date);
-  const bool rows_overlap=baseline+body_text_descent(text,s_type.date)+3>p.clock_y-clock.ascent&&
-      baseline-body_text_ascent(text,s_type.date)-3<p.clock_y+clock.descent;
+  const bool rows_overlap=baseline+prv_text_descent(text,s_type.date)+3>p.clock_y-clock.ascent&&
+      baseline-prv_text_ascent(text,s_type.date)-3<p.clock_y+clock.descent;
   if(rows_overlap&&center-date.w/2-3<p.clock_x+clock.width/2&&
       center+date.w/2+3>p.clock_x-clock.width/2)return;
   prv_utility_text(ctx,text,true,center-width/2,baseline,width,
       prv_faded_text(alpha),GTextAlignmentCenter);
 }
+static void prv_draw_date(GContext *ctx,WatchPose p) {
+  const unsigned previous=s_font_role;
+  s_font_role=FONT_DATE;
+  prv_draw_date_text(ctx,p);
+  s_font_role=previous;
+}
+
 static void prv_draw_background(Layer *layer,GContext *ctx) {
+  const unsigned previous=s_font_role;
+  s_font_role=FONT_CLOCK;
   graphics_context_set_fill_color(ctx,s_split?s_lower_background:s_background_color);
   graphics_fill_rect(ctx,layer_get_bounds(layer),0,GCornerNone);
   graphics_context_set_antialiased(ctx,true);
@@ -1110,10 +1373,12 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   int reading_top=FULL_LAYOUT_HEIGHT;
   if(s_split)s_reading_ink_top=&reading_top;
   GColor background,text;prv_lower_palette(true,&background,&text);
+  s_font_role=FONT_READINGS;
   if(s_grid&&p.context<.001f&&p.peek<.001f&&!s_layout_active&&!s_peek_transition){prv_draw_reading_grid(ctx,p);}
   else if(s_rows){prv_draw_reading_row(ctx,0,p);prv_draw_reading_row(ctx,1,p);}
   else {prv_draw_reading(ctx,0,&p);prv_draw_reading(ctx,1,&p);}
   s_reading_ink_top=NULL;
+  s_font_role=FONT_CLOCK;
   s_background_color=background;s_text_color=text;
   if(s_split){
     const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
@@ -1128,11 +1393,11 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
     prv_draw_date(ctx,p);
   }
   prv_draw_status(ctx,p);
+  s_font_role=previous;
 }
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point) {
-  (void)context;point=prv_point(point);
-  return (MusicTextMetrics){prv_measure(text,point).w,body_text_ascent(text,point),
-      body_text_descent(text,point)};
+  (void)context;
+  return prv_body_measure(text,prv_point(point));
 }
 static void prv_activity_reset(void) {
   s_native->activity_identity[0]=0;
@@ -1141,6 +1406,12 @@ static void prv_activity_reset(void) {
 }
 static MusicTextMetrics prv_activity_clock_measure(void *context,const char *text,int point) {
   (void)context;int ascent=0,descent=0;
+  const uint32_t id=prv_selected_font();
+  if(id>FONT_LECO){
+    const ImportedTextMetrics metrics=prv_imported_measure(text,id,point,true);
+    return (MusicTextMetrics){(int)ceilf(metrics.high-metrics.low),metrics.ascent,metrics.descent};
+  }
+  if(id)return prv_system_measure(text,id,point);
   const unsigned char *cursor=(const unsigned char *)text;
   while(*cursor) {
     const ClockGlyph *glyph=prv_clock_glyph(body_metric_next_codepoint(&cursor));
@@ -1185,6 +1456,8 @@ static void prv_activity_append(char *text,size_t capacity,const char *tail) {
 }
 static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t now,
     int width,bool wrap_essential,const char *state,const char *qualifier,char *text,size_t capacity) {
+  char *const value=s_native->activity_value;
+  const size_t value_capacity=sizeof(s_native->activity_value);
   text[0]=0;
   if(!pav_format_item(card,datum,now,s_phone_connected,text,capacity))return false;
   const bool essential=datum->type!=PAV_TEXT;
@@ -1193,27 +1466,28 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
   const char *label=activity_role(card,datum);
   if(label[0]) {
     if(datum->type==PAV_TEXT) {
-      char value[ACTIVITY_LINE_BYTES];watch_layout_copy_utf8(text,value,sizeof(value));
+      watch_layout_copy_utf8(text,value,value_capacity);
       watch_layout_copy_utf8(label,text,capacity);
       watch_layout_copy_utf8(": ",text+strlen(text),capacity-strlen(text));
       watch_layout_copy_utf8(value,text+strlen(text),capacity-strlen(text));
     } else prv_activity_append(text,capacity,label);
   }
   if(!essential&&state&&state[0]) {
-    char value[ACTIVITY_LINE_BYTES];watch_layout_copy_utf8(text,value,sizeof(value));
+    watch_layout_copy_utf8(text,value,value_capacity);
     watch_layout_copy_utf8(state,text,capacity);prv_activity_append(text,capacity,value);
   }
   if(qualifier&&qualifier[0])prv_activity_append(text,capacity,qualifier);
   if(essential) {
-    char value[ACTIVITY_LINE_BYTES];
-    if(!pav_format_item(card,datum,now,s_phone_connected,value,sizeof(value)))return false;
-    if(state&&state[0])prv_activity_append(value,sizeof(value),state);
+    if(!pav_format_item(card,datum,now,s_phone_connected,value,value_capacity))return false;
+    if(state&&state[0])prv_activity_append(value,value_capacity,state);
     const int value_width=prv_measure(value,s_type.secondary).w;
     if(prv_measure(text,s_type.secondary).w>width) {
-      const size_t n=strlen(value);char suffix[ACTIVITY_LINE_BYTES];
-      watch_layout_copy_utf8(text+n,suffix,sizeof(suffix));
+      const size_t n=strlen(value);
+      char *const suffix=s_native->activity_suffix;
+      const size_t suffix_capacity=sizeof(s_native->activity_suffix);
+      watch_layout_copy_utf8(text+n,suffix,suffix_capacity);
       if(width-value_width<prv_measure(" · …",s_type.secondary).w)suffix[0]=0;
-      else prv_ellipsize(suffix,sizeof(suffix),s_type.secondary,width-value_width);
+      else prv_ellipsize(suffix,suffix_capacity,s_type.secondary,width-value_width);
       watch_layout_copy_utf8(value,text,capacity);
       watch_layout_copy_utf8(suffix,text+strlen(text),capacity-strlen(text));
     }
@@ -1226,24 +1500,23 @@ static bool prv_activity_line(const PavCard *card,const PavDatum *datum,uint32_t
 /* Keep the text scan out of the caller frame while the pair is measured.
  * Emery's app stack must not hold both scratch groups at once. */
 static __attribute__((noinline)) int prv_activity_reading_top(int bottom) {
+  ReadingMeasureScratch *const scratch=&s_reading_measure;
   const int detailed_top=bottom+1>ACTIVITY_CONTENT_TOP?bottom+1:ACTIVITY_CONTENT_TOP;
   if(s_has_complications)for(unsigned i=0;i<2;++i) {
     const ComplicationSlot *slot=prv_reading_slot(i);
     if(!slot||!complication_is_selected(slot))continue;
     if(reading_state(slot,time(NULL))!=READING_VALUE||reading_is_aged(slot,time(NULL)))
       return detailed_top;
-    char text[COMPLICATION_MAX_TEXT_BYTES+5],caption[COMPLICATION_MAX_LABEL_BYTES+16];
-    ReadingParts parts;
-    if(!prv_slot_text(slot,text,sizeof(text))||!reading_parts(text,&parts))return detailed_top;
-    const unsigned kind=reading_semantic(slot,&parts,true);
-    prv_caption(slot,kind,i,i18n_get_system_locale(),caption,sizeof(caption));
-    if(caption[0])return detailed_top;
+    if(!prv_slot_text(slot,scratch->text,sizeof(scratch->text))||!reading_parts(scratch->text,&scratch->parts))return detailed_top;
+    const unsigned kind=reading_semantic(slot,&scratch->parts,true);
+    prv_caption(slot,kind,i,i18n_get_system_locale(),scratch->caption,sizeof(scratch->caption));
+    if(scratch->caption[0])return detailed_top;
     const bool symbol=(slot->flags&COMPLICATION_FLAG_BITMAP)||
         (kind>=COMPLICATION_SEMANTIC_TEMPERATURE&&kind<=COMPLICATION_SEMANTIC_CONDITION);
-    char number[READING_PART_BYTES];reading_native_number(parts.number,number,sizeof(number));
-    const ReadingNumberLayout fit=reading_number_layout(prv_vector_width(number,100),28,
-        parts.unit[0]?prv_measure(parts.unit,s_type.secondary).w:0,18,
-        symbol,symbol&&!strcmp(parts.unit,"%"),false);
+    reading_native_number(scratch->parts.number,scratch->number,sizeof(scratch->number));
+    const ReadingNumberLayout fit=reading_number_layout(prv_vector_width(scratch->number,100),28,
+        scratch->parts.unit[0]?prv_measure(scratch->parts.unit,s_type.secondary).w:0,18,
+        symbol,symbol&&!strcmp(scratch->parts.unit,"%"),false);
     if(fit.unit_below)return detailed_top;
   }
   return ACTIVITY_EXPANDED_TOP;
@@ -1256,7 +1529,11 @@ static __attribute__((noinline)) int prv_activity_top(void) {
 #ifdef PBL_ROUND
   return bottom+4;
 #else
-  return prv_activity_reading_top(bottom);
+  const unsigned previous=s_font_role;
+  s_font_role=FONT_READINGS;
+  const int top=prv_activity_reading_top(bottom);
+  s_font_role=previous;
+  return top;
 #endif
 }
 
@@ -1304,12 +1581,14 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
   bool footer_symbol=true;int footer_point=media?dynamic_music_artist_point(s_type):s_type.body;
   const bool fold_support=!media&&out->support[0]&&card->main.type!=PAV_TEXT;
   if(!media&&(out->role[0]||fold_support)) {
-    char caption[sizeof(out->support)];caption[0]=0;
+    char *const caption=s_native->activity_caption;
+    const size_t caption_capacity=sizeof(s_native->activity_caption);
+    caption[0]=0;
     const char *paused=card->source_state==PAV_PAUSED?language->paused:"";
-    if(paused[0])watch_layout_copy_utf8(paused,caption,sizeof(caption));
+    if(paused[0])watch_layout_copy_utf8(paused,caption,caption_capacity);
     if(fold_support) {
-      if(caption[0])prv_activity_append(caption,sizeof(caption),out->support);
-      else watch_layout_copy_utf8(out->support,caption,sizeof(caption));
+      if(caption[0])prv_activity_append(caption,caption_capacity,out->support);
+      else watch_layout_copy_utf8(out->support,caption,caption_capacity);
     }
     /* Required state/datum goes first. Optional identity is what ellipsizes. */
     if(prv_measure(caption,s_type.body).w>144)footer_symbol=false;
@@ -1317,16 +1596,16 @@ static void prv_prepare_activity(const PavCard *card,uint32_t now,ActivityPlan *
       /* The formatter admitted the atomic detail at22pt. A forced second
        * line must retain that fit, rather than ellipsizing its final unit. */
       if(prv_measure(out->support,s_type.body).w>180)footer_point=s_type.secondary;
-      watch_layout_copy_utf8(paused,caption,sizeof(caption));
+      watch_layout_copy_utf8(paused,caption,caption_capacity);
       const size_t at=strlen(caption);
-      if(at+1<sizeof(caption)){caption[at]='\n';caption[at+1]=0;watch_layout_copy_utf8(out->support,caption+at+1,sizeof(caption)-at-1);}
+      if(at+1<caption_capacity){caption[at]='\n';caption[at+1]=0;watch_layout_copy_utf8(out->support,caption+at+1,caption_capacity-at-1);}
       footer_symbol=false;
     } else if(prv_measure(caption,s_type.body).w>180&&prv_measure(caption,s_type.secondary).w<=180) {
       footer_point=s_type.secondary;footer_symbol=false;
     }
     const char *label=activity_role(card,&card->main);
-    activity_footer_optional(caption,sizeof(caption),label,footer_point,footer_symbol?144:180,prv_music_measure,NULL);
-    activity_footer_optional(caption,sizeof(caption),activity_identity(card),footer_point,footer_symbol?144:180,prv_music_measure,NULL);
+    activity_footer_optional(caption,caption_capacity,label,footer_point,footer_symbol?144:180,prv_music_measure,NULL);
+    activity_footer_optional(caption,caption_capacity,activity_identity(card),footer_point,footer_symbol?144:180,prv_music_measure,NULL);
     if(fold_support||!out->support[0]) {
       watch_layout_copy_utf8(caption,out->support,sizeof(out->support));footer=out->support;layout_support="";
     } else {
@@ -1716,12 +1995,19 @@ static void prv_send_display(void){
   if(!s_transport_ready||!s_phone_connected||!s_native->display_pending||s_native->display_attempts>=3)return;
   DictionaryIterator *out;if(app_message_outbox_begin(&out)!=APP_MSG_OK)return;
   ++s_native->display_attempts;
-  dict_write_data(out,MESSAGE_KEY_DISPLAY_PREFERENCES_RESULT,s_native->display_reply,s_native->display_legacy_reply?DISPLAY_LEGACY_BYTES:DISPLAY_BYTES);
+  dict_write_data(out,MESSAGE_KEY_DISPLAY_PREFERENCES_RESULT,s_native->display_reply,s_native->display_reply_size);
   s_native->outbox_display=true;s_native->display_pending=false;s_native->display_flight=s_native->display_generation;
   if(app_message_outbox_send()!=APP_MSG_OK){s_native->outbox_display=false;s_native->display_pending=true;}
 }
 static void prv_display_reply(const DisplayPreferences *v,uint8_t status,uint8_t flags){
-  if(s_native->display_legacy_reply)display_encode_legacy(v,status,flags,s_native->display_reply);else display_encode(v,status,flags,s_native->display_reply);++s_native->display_generation;
+  if(flags==DISPLAY_HELLO)s_native->display_reply_size=DISPLAY_BYTES;
+  if(s_native->display_reply_size==DISPLAY_LEGACY_BYTES)display_encode_legacy(v,status,flags,s_native->display_reply);
+  else if(s_native->display_reply_size==DISPLAY_V2_BYTES)display_encode_v2(v,status,flags,s_native->display_reply);
+  else {
+    s_native->display_reply_size=DISPLAY_BYTES;
+    display_encode(v,status,flags,s_native->display_reply);
+  }
+  ++s_native->display_generation;
   s_native->display_attempts=0;s_native->display_pending=true;prv_send_display();
 }
 static void prv_display_apply(const DisplayPreferences *v){
@@ -1788,7 +2074,81 @@ static uint32_t prv_context_request_value(const Tuple *marker) {
   return value <= CONTEXT_MAX_SESSION_TOKEN ? value : 0;
 }
 
+static void prv_send_font(void) {
+  if(!s_transport_ready || !s_phone_connected || !s_font_pending)return;
+  DictionaryIterator *out;
+  if(app_message_outbox_begin(&out)!=APP_MSG_OK)return;
+  dict_write_data(out,MESSAGE_KEY_FONT_RESULT,s_font_reply,sizeof(s_font_reply));
+  if(app_message_outbox_send()==APP_MSG_OK) {
+    s_font_pending=false;
+    s_outbox_font=true;
+  }
+}
+
+static void prv_font_stage_expired(void *context) {
+  (void)context;
+  s_font_stage_timer=NULL;
+  font_store_discard_staged();
+}
+
+// Display writes and layout can both need substantial stack space. Finish the
+// verified write in its own frame before laying out the active view.
+static __attribute__((noinline)) void prv_receive_display(DictionaryIterator *iterator,
+    bool *layout_changed,bool *clock_changed,bool *background_changed) {
+  DisplayPreferences next=s_native->display;
+  Tuple *request=dict_find(iterator,MESSAGE_KEY_DISPLAY_PREFERENCES);uint8_t status=0,flags=0;
+  bool valid=false;
+  if(request)valid=request->type==TUPLE_BYTE_ARRAY&&display_decode(request->value->data,request->length,&next,&status,&flags)&&next.revision&&!status&&!flags;
+  else {
+    static const uint32_t *const keys[]={&MESSAGE_KEY_BACKGROUND_COLOR,&MESSAGE_KEY_TEXT_COLOR,&MESSAGE_KEY_ACCENT_COLOR,&MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,&MESSAGE_KEY_NIGHT_TEXT_COLOR,&MESSAGE_KEY_NIGHT_ACCENT_COLOR,&MESSAGE_KEY_CLOCK_FORMAT,&MESSAGE_KEY_SHOW_STATUS,&MESSAGE_KEY_ANIMATIONS,&MESSAGE_KEY_NOTIFICATION_VIBRATION,&MESSAGE_KEY_TEXT_SIZE,&MESSAGE_KEY_APPEARANCE_MODE,&MESSAGE_KEY_MANUAL_APPEARANCE};
+    for(unsigned i=0;i<DISPLAY_LEGACY_FIELDS;++i){uint32_t value;if(!native_setting_value(dict_find(iterator,*keys[i]),&value))continue;
+      DisplayPreferences candidate=next;candidate.value[i]=value;if(display_valid(&candidate))next=candidate;
+    }
+    uint32_t value;
+    if(!dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_USE_12_HOUR),&value)&&value<=1)next.value[DISPLAY_CLOCK]=value?12:24;
+    if(!dict_find(iterator,MESSAGE_KEY_APPEARANCE_MODE)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&value)&&value<=1)next.value[DISPLAY_MODE]=value?DISPLAY_QUIET:DISPLAY_EXPLICIT;
+    valid=memcmp(&next,&s_native->display,sizeof(next))!=0;
+  }
+  uint32_t format;
+  if(native_setting_value(dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT),&format)&&format==WATCH_CLOCK_QUERY){s_format_reply_pending=true;prv_send_clock_format();}
+  if(valid&&request&&request->length==DISPLAY_LEGACY_BYTES){for(unsigned i=DISPLAY_LEGACY_FIELDS;i<DISPLAY_FIELDS;++i)next.value[i]=s_native->display.value[i];}
+  if(valid&&request&&request->length<DISPLAY_BYTES)
+    memcpy(next.value+DISPLAY_FONTS,s_native->display.value+DISPLAY_FONTS,FONT_ROLES*sizeof(uint32_t));
+  if(valid){
+    s_native->display_reply_size=request?request->length:DISPLAY_BYTES;
+    if(font_store_ready(next.value+DISPLAY_FONTS,next.revision)&&display_save(&next)){
+      const bool font_changed=memcmp(next.value+DISPLAY_FONTS,s_native->display.value+DISPLAY_FONTS,FONT_ROLES*sizeof(uint32_t))!=0;
+      if(request&&request->length==DISPLAY_BYTES){
+        font_store_apply(next.value+DISPLAY_FONTS);
+        if(s_font_stage_timer){app_timer_cancel(s_font_stage_timer);s_font_stage_timer=NULL;}
+      }
+      if(font_changed){
+        prv_clear_media_motion();
+        s_native->activity_plan.cache.valid=false;
+        s_native->activity_plan.cache.drawn=false;
+        *layout_changed=true;
+      }
+      *layout_changed|=memcmp(next.value+DISPLAY_SPLIT,s_native->display.value+DISPLAY_SPLIT,(DISPLAY_V2_FIELDS-DISPLAY_SPLIT)*sizeof(uint32_t))!=0;
+      *background_changed=true;
+      *clock_changed=next.value[DISPLAY_CLOCK]!=s_native->display.value[DISPLAY_CLOCK];
+      *layout_changed|=next.value[DISPLAY_TEXT_SIZE]!=s_native->display.value[DISPLAY_TEXT_SIZE]||next.value[DISPLAY_ANIMATIONS]!=s_native->display.value[DISPLAY_ANIMATIONS];
+      if(*layout_changed){activity_navigation_update(&s_native->navigation,s_session.token,s_activities.snapshot.view_sequence,ACTIVITY_NAV_ABSENT,ACTIVITY_NAV_ABSENT,0,0,(uint32_t)time(NULL));}
+      prv_display_apply(&next);
+      prv_display_reply(&next,DISPLAY_APPLIED,request?0:DISPLAY_HELLO);
+    }else if(request)prv_display_reply(&next,DISPLAY_SAVE_FAILED,0);
+  }
+}
+
 static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
+  Tuple *font=dict_find(iterator,MESSAGE_KEY_FONT_DATA);
+  if(font && font->type==TUPLE_BYTE_ARRAY &&
+      font_store_receive(font->value->data,font->length,s_font_reply)) {
+    if(s_font_stage_timer)app_timer_cancel(s_font_stage_timer);
+    s_font_stage_timer=app_timer_register(60000,prv_font_stage_expired,NULL);
+    s_font_pending=true;
+    prv_send_font();
+    return;
+  }
   bool layout_changed=false,clock_changed=false,background_changed=false;
   Tuple *activity_data=dict_find(iterator,MESSAGE_KEY_ACTIVITY_DATA);
   const uint32_t activity_request=prv_context_request_value(dict_find(iterator,MESSAGE_KEY_REQUEST_ACTIVITIES));
@@ -1850,38 +2210,7 @@ static void prv_inbox_received(DictionaryIterator *iterator, void *context) {
       if(s_shake&&!reading_page_present(prv_reading_mask(),s_reading_page))s_reading_page=reading_page_next(prv_reading_mask(),s_reading_page);
     }
   }
-  DisplayPreferences next=s_native->display;bool changed=false;
-  Tuple *request=dict_find(iterator,MESSAGE_KEY_DISPLAY_PREFERENCES);uint8_t status=0,flags=0;
-  bool valid=false;
-  if(request)valid=request->type==TUPLE_BYTE_ARRAY&&display_decode(request->value->data,request->length,&next,&status,&flags)&&next.revision&&!status&&!flags;
-  else {
-    static const uint32_t *const keys[]={&MESSAGE_KEY_BACKGROUND_COLOR,&MESSAGE_KEY_TEXT_COLOR,&MESSAGE_KEY_ACCENT_COLOR,&MESSAGE_KEY_NIGHT_BACKGROUND_COLOR,&MESSAGE_KEY_NIGHT_TEXT_COLOR,&MESSAGE_KEY_NIGHT_ACCENT_COLOR,&MESSAGE_KEY_CLOCK_FORMAT,&MESSAGE_KEY_SHOW_STATUS,&MESSAGE_KEY_ANIMATIONS,&MESSAGE_KEY_NOTIFICATION_VIBRATION,&MESSAGE_KEY_TEXT_SIZE,&MESSAGE_KEY_APPEARANCE_MODE,&MESSAGE_KEY_MANUAL_APPEARANCE};
-    for(unsigned i=0;i<DISPLAY_LEGACY_FIELDS;++i){uint32_t value;if(!native_setting_value(dict_find(iterator,*keys[i]),&value))continue;
-      DisplayPreferences candidate=next;candidate.value[i]=value;if(display_valid(&candidate))next=candidate;
-    }
-    uint32_t value;
-    if(!dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_USE_12_HOUR),&value)&&value<=1)next.value[DISPLAY_CLOCK]=value?12:24;
-    if(!dict_find(iterator,MESSAGE_KEY_APPEARANCE_MODE)&&native_setting_value(dict_find(iterator,MESSAGE_KEY_NIGHT_PALETTE),&value)&&value<=1)next.value[DISPLAY_MODE]=value?DISPLAY_QUIET:DISPLAY_EXPLICIT;
-    changed=memcmp(&next,&s_native->display,sizeof(next))!=0;valid=changed;
-  }
-  uint32_t format;
-  if(native_setting_value(dict_find(iterator,MESSAGE_KEY_CLOCK_FORMAT),&format)&&format==WATCH_CLOCK_QUERY){s_format_reply_pending=true;prv_send_clock_format();}
-  if(valid&&request&&request->length==DISPLAY_LEGACY_BYTES){for(unsigned i=DISPLAY_LEGACY_FIELDS;i<DISPLAY_FIELDS;++i)next.value[i]=s_native->display.value[i];}
-  s_native->display_legacy_reply=request&&request->type==TUPLE_BYTE_ARRAY&&request->length==DISPLAY_LEGACY_BYTES;
-  if(valid){
-    if(display_save(&next)){
-      layout_changed|=memcmp(next.value+DISPLAY_SPLIT,s_native->display.value+DISPLAY_SPLIT,(DISPLAY_FIELDS-DISPLAY_SPLIT)*sizeof(uint32_t))!=0;
-      background_changed=true;
-      clock_changed=next.value[DISPLAY_CLOCK]!=s_native->display.value[DISPLAY_CLOCK];
-      layout_changed|=next.value[DISPLAY_TEXT_SIZE]!=s_native->display.value[DISPLAY_TEXT_SIZE]||next.value[DISPLAY_ANIMATIONS]!=s_native->display.value[DISPLAY_ANIMATIONS];
-      // Type and optical settings paint in the background layer as well as
-      // the activity layer. Invalidate both immediately after a verified save.
-      background_changed|=layout_changed||next.value[DISPLAY_STATUS]!=s_native->display.value[DISPLAY_STATUS];
-      if(layout_changed){activity_navigation_update(&s_native->navigation,s_session.token,s_activities.snapshot.view_sequence,ACTIVITY_NAV_ABSENT,ACTIVITY_NAV_ABSENT,0,0,(uint32_t)time(NULL));}
-      prv_display_apply(&next);
-      prv_display_reply(&next,DISPLAY_APPLIED,request?0:DISPLAY_HELLO);
-    }else if(request)prv_display_reply(&next,DISPLAY_SAVE_FAILED,0);
-  }
+  prv_receive_display(iterator,&layout_changed,&clock_changed,&background_changed);
   if(clock_changed)prv_update_clock();
   else if(layout_changed)prv_apply_unobstructed_layout();
   if(background_changed&&s_background_layer)prv_dirty(s_background_layer);
@@ -1892,19 +2221,21 @@ static void prv_inbox_dropped(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_WARNING, "Complication message dropped: %d", reason);
 }
 static void prv_outbox_failed(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  if(s_native->outbox_display){s_native->outbox_display=false;if(s_native->display_flight==s_native->display_generation)s_native->display_pending=true;prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
-  if(s_outbox_presentation){s_outbox_presentation=false;s_native->navigation.pending=true;prv_send_display();return;}
-  if(s_outbox_format_only){s_outbox_format_only=false;prv_send_display();prv_send_presentation();return;}
+  if(s_outbox_font){s_outbox_font=false;prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
+  if(s_native->outbox_display){s_native->outbox_display=false;if(s_native->display_flight==s_native->display_generation)s_native->display_pending=true;prv_send_display();prv_send_clock_format();prv_send_presentation();prv_send_font();return;}
+  if(s_outbox_presentation){s_outbox_presentation=false;s_native->navigation.pending=true;prv_send_display();prv_send_font();return;}
+  if(s_outbox_format_only){s_outbox_format_only=false;prv_send_display();prv_send_presentation();prv_send_font();return;}
   dynamic_context_request_failed(&s_session);
   APP_LOG(APP_LOG_LEVEL_WARNING, "Complication request failed: %d", reason);
-  prv_send_display();prv_send_clock_format();
+  prv_send_display();prv_send_clock_format();prv_send_font();
 }
 static void prv_outbox_sent(DictionaryIterator *iterator, void *context) {
-  if(s_native->outbox_display){s_native->outbox_display=false;prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
+  if(s_outbox_font){s_outbox_font=false;prv_send_font();prv_send_display();prv_send_clock_format();prv_send_presentation();return;}
+  if(s_native->outbox_display){s_native->outbox_display=false;prv_send_display();prv_send_clock_format();prv_send_presentation();prv_send_font();return;}
   if(s_outbox_presentation)s_outbox_presentation=false;
   else if(s_outbox_format_only)s_outbox_format_only=false;
   else dynamic_context_request_acknowledged(&s_session);
-  prv_send_display();prv_send_clock_format();prv_send_presentation();
+  prv_send_display();prv_send_clock_format();prv_send_presentation();prv_send_font();
 }
 
 
@@ -1958,7 +2289,9 @@ static bool prv_init(void) {
   pav_state_init(&s_activities,s_session.token,s_phone_connected);
   persist_write_int(PERSIST_KEY_CONTEXT_SESSION,(int32_t)s_session.token);
   s_battery=battery_state_service_peek();
-  DisplayPreferences saved;display_load(&saved);prv_display_apply(&saved);
+  DisplayPreferences saved;display_load(&saved);
+  font_store_load();font_store_apply(saved.value+DISPLAY_FONTS);
+  prv_display_apply(&saved);
   persist_delete(PERSIST_KEY_TEXT_SHADOW);persist_delete(PERSIST_KEY_LARGE_TEXT);
   persist_delete(PERSIST_KEY_LAYOUT_STYLE);wfc_readings_load_cache(&s_core,time(NULL));
   prv_apply_colors();
@@ -1987,6 +2320,7 @@ static bool prv_init(void) {
 static void prv_deinit(void) {
   if(s_gesture_subscribed)accel_tap_service_unsubscribe();
   if(!s_native)return;
+  if(s_font_stage_timer)app_timer_cancel(s_font_stage_timer);
   if(s_startup_timer)app_timer_cancel(s_startup_timer);
   if(s_context_timer)app_timer_cancel(s_context_timer);
   if(s_activity_timer)app_timer_cancel(s_activity_timer);

@@ -154,6 +154,7 @@ module.exports = function() {
     '.component-select label,.dynamic-choice label{display:block}',
     '.component-select .value{margin-top:9px;padding:9px 28px 9px 12px;min-height:var(--control-height);border:1px solid var(--line);border-radius:8px;background:var(--field);font-size:15px}',
     '.component-select .value:after{right:12px;top:50%;margin-top:0;transform:translateY(-50%);border-top-color:var(--accent)}',
+    '[data-font-panel] h3{margin:0 0 8px;font-size:17px}[data-font-panel]>.dynamic-details{margin-top:12px}[data-font-panel] button:disabled{opacity:.65}',
     '.dynamic-choice select{display:block;width:100%;margin-top:9px;min-height:var(--control-height);padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-choice select:focus-visible,button:focus-visible,summary:focus-visible{outline:var(--focus-width) solid var(--accent);outline-offset:3px}',
     '.dynamic-preview-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 16px}',
@@ -280,6 +281,9 @@ module.exports = function() {
       return value && typeof value === 'object' ? value : {};
     }
     var data = transport('dynamic-settings-data');
+    var fontKeys=['FONT_WATCHFACE','FONT_CLOCK','FONT_DATE','FONT_READINGS','FONT_ACTIVITIES'];
+    var fontPanel;
+    fontKeys.forEach(function(key){show(field(key),false);});
     var words = transport('dynamic-settings-strings');
     if (typeof data.language === 'string') { document.documentElement.lang = data.language; }
     var assets = transport('dynamic-preview-assets');
@@ -853,6 +857,7 @@ module.exports = function() {
         var preferences = JSON.parse(previous('__dynamicActivityPreferences') || '{}');
         activityOrder = (preferences.order || []).slice(); activityHidden = (preferences.hidden || []).slice();
         syncActivityValue();
+        if(fontPanel)fontPanel.refresh();
         renderApps(); updateNotifications(); updateColors(); renderActivities();
         phonePhase = 'ready'; restoring = false; updateDirty();
       });
@@ -863,7 +868,7 @@ module.exports = function() {
       submitHost.appendChild(reloadSaved);
     }
     function signature() {
-      return JSON.stringify(['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR','BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].map(function(key) { return field(key).get(); }).concat([notification.get() && appMode.value === 'selected' ? appEntry.value.trim() : '',activityValue()]));
+      return JSON.stringify(['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR','BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','CLOCK_FORMAT','ANIMATIONS','SHOW_STATUS','SHOW_ACTIVITIES','SHOW_MUSIC','SHOW_NOTIFICATIONS','NOTIFICATION_PREVIEW','NOTIFICATION_APP_ONLY','NOTIFICATION_VIBRATION','NOTIFICATION_APPS','NIGHT_PALETTE','NIGHT_BACKGROUND_COLOR','NIGHT_TEXT_COLOR','NIGHT_ACCENT_COLOR','TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].concat(fontKeys).map(function(key) { return field(key).get(); }).concat([notification.get() && appMode.value === 'selected' ? appEntry.value.trim() : '',activityValue()]));
     }
     updateDirty = function() {
       if (!initialSnapshot || restoring) { return; }
@@ -995,31 +1000,51 @@ module.exports = function() {
         var source=(data.slots||[])[selected];
         samples.push({home:home,text:source&&source.value?[source.label,source.value]:examples[selected]});
       }
-      function previewTextInk(text,size,bold){
+      function previewTextInk(text,size,bold,role){
+        if(fontPanel&&fontPanel.custom())return fontPanel.preview(ctx,role,text,size,bold);
         ctx.font=(bold?'bold ':'')+size+'px sans-serif';var measured=ctx.measureText(text);
         return {ascent:typeof measured.actualBoundingBoxAscent==='number'?measured.actualBoundingBoxAscent:size*.75,
           descent:typeof measured.actualBoundingBoxDescent==='number'?measured.actualBoundingBoxDescent:size*.2};
       }
-      var clockBottom=clock+previewTextInk('13:05',point,true).descent,readingTop=previewHeight;
+      function paintText(text,size,bold,role,x,y,width){
+        if(fontPanel&&fontPanel.custom())fontPanel.preview(ctx,role,text,size,bold,x,y,width);
+        else{ctx.font=(bold?'bold ':'')+size+'px sans-serif';ctx.fillText(text,x,y,width);}
+      }
+      var clockBottom=clock+previewTextInk('13:05',point,true,1).descent,readingTop=previewHeight;
       samples.forEach(function(sample){
         var y=reading+(rows?sample.home*34:four?Math.floor(sample.home/2)*52-20:0);
-        readingTop=Math.min(readingTop,y-previewTextInk(sample.text[1],rows?23:28,true).ascent);
-        if(rows&&!field('HIDE_READING_TITLES').get())readingTop=Math.min(readingTop,y-previewTextInk(sample.text[0],14,false).ascent);
+        readingTop=Math.min(readingTop,y-previewTextInk(sample.text[1],rows?23:28,true,3).ascent);
+        if(rows&&!field('HIDE_READING_TITLES').get())readingTop=Math.min(readingTop,y-previewTextInk(sample.text[0],14,false,3).ascent);
       });
       if(!samples.length)readingTop=reading;
       var divider=Math.max(0,Math.min(previewHeight,Math.round((clockBottom+readingTop)/2)));
       ctx.clearRect(0,0,previewWidth,previewHeight);ctx.save();
       if(roundPreview){ctx.beginPath();ctx.arc(130,130,130,0,Math.PI*2);ctx.clip();}
       ctx.fillStyle=css(bg);ctx.fillRect(0,0,previewWidth,previewHeight);ctx.fillStyle=css(lowBg);ctx.fillRect(0,divider,previewWidth,previewHeight-divider);
-      ctx.fillStyle=css(ink);ctx.textAlign='center';ctx.font='bold '+point+'px sans-serif';ctx.fillText('13:05',previewWidth/2,clock);
-      ctx.font='16px sans-serif';ctx.fillText('SUN · 1.11.',previewWidth/2,active?16:31);
+      ctx.fillStyle=css(ink);ctx.textAlign='center';
+      var time=Number(field('CLOCK_FORMAT').get())||Number(assets.systemFormat)||24;
+      paintText(time===12?'1:05':'13:05',point,true,1,previewWidth/2,clock,previewWidth-24);
+      paintText('SUN · 1.11.',16,false,2,previewWidth/2,active?16:31);
       samples.forEach(function(item){
         var i=item.home,sample=item.text;
         ctx.fillStyle=css(lowInk);
-        if(rows){var y=reading+i*34;ctx.textAlign='left';ctx.font='14px sans-serif';if(!field('HIDE_READING_TITLES').get())ctx.fillText(sample[0],roundPreview?60:12,y,previewWidth*.42);ctx.textAlign='right';ctx.font='bold 23px sans-serif';ctx.fillText(sample[1],previewWidth-(roundPreview?45:12),y,previewWidth*.46);}
-        else {var x=previewWidth*(i%2?0.75:0.25),y=reading+(four?Math.floor(i/2)*52-20:0);ctx.textAlign='center';ctx.font='bold 28px sans-serif';ctx.fillText(sample[1],x,y,previewWidth*.43);ctx.font='13px sans-serif';if(!field('HIDE_READING_TITLES').get())ctx.fillText(sample[0],x,y+23,previewWidth*.43);}
+        if(rows){
+          var y=reading+i*34;
+          ctx.textAlign='left';
+          if(!field('HIDE_READING_TITLES').get())paintText(sample[0],14,false,3,roundPreview?60:12,y,previewWidth*.42);
+          ctx.textAlign='right';paintText(sample[1],23,true,3,previewWidth-(roundPreview?45:12),y,previewWidth*.46);
+        }else{
+          var x=previewWidth*(i%2?0.75:0.25),line=reading+(four?Math.floor(i/2)*52-20:0);
+          ctx.textAlign='center';paintText(sample[1],28,true,3,x,line,previewWidth*.43);
+          if(!field('HIDE_READING_TITLES').get())paintText(sample[0],13,false,3,x,line+23,previewWidth*.43);
+        }
       });
-      if(active){ctx.fillStyle=css(lowInk);ctx.textAlign='center';ctx.font='bold 22px sans-serif';ctx.fillText(previewState==='timer'?'02:30':previewState==='music'?'Music':'Notification',previewWidth/2,previewHeight-37,previewWidth-40);ctx.font='13px sans-serif';ctx.fillText(t('samplePreview'),previewWidth/2,previewHeight-15);}
+      if(active){
+        ctx.fillStyle=css(lowInk);ctx.textAlign='center';
+        paintText(previewState==='timer'?'02:30':previewState==='music'?t('previewMusic'):t('previewMessage'),
+          22,true,4,previewWidth/2,previewHeight-37,previewWidth-40);
+        paintText(t('samplePreview'),13,false,4,previewWidth/2,previewHeight-15);
+      }
       ctx.restore();previewCaption.textContent=previewDescription('layoutApproximation');timelineCaption.hidden=previewState!=='timeline';disabledCaption.hidden=true;formatCaption.hidden=true;
       canvas.setAttribute('aria-label',t('layoutApproximation'));
     }
@@ -1037,7 +1062,7 @@ module.exports = function() {
       updatePreviewMode();
       var enhanced=!!field('SCREEN_SPLIT').get()||Number(field('READING_LAYOUT').get())!==0||!!field('HIDE_READING_TITLES').get()||!!field('SHAKE_READINGS').get();
       if(pageChoice){pageChoice.disabled=!field('SHAKE_READINGS').get();if(pageChoice.disabled)pageChoice.value='0';}
-      if(enhanced){drawLayoutPreview();return;}
+      if(enhanced||fontPanel&&fontPanel.custom()){drawLayoutPreview();return;}
 
       var format = Number(field('CLOCK_FORMAT').get());
       if (format !== 12 && format !== 24) { format = Number(assets.systemFormat) === 12 ? 12 : 24; }
@@ -1108,6 +1133,11 @@ module.exports = function() {
     ['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR'].forEach(function(key){field(key).on('input change',updateColors);});
     field('CLOCK_FORMAT').on('change',renderPreview);
     field('SHOW_MUSIC').on('change',renderPreview);
+    var fontsHost=node(item('dynamic-fonts'));
+    if(fontsHost)fontsHost.setAttribute('data-font-panel','');
+    if(fontsHost&&window.DynamicFonts)fontPanel=window.DynamicFonts({host:fontsHost,bridge:bridge,
+      fields:fontKeys.map(field),library:data.fontLibrary,translate:t,
+      update:function(){renderPreview();updateDirty();}});
     updateNotifications(); updateColors();
     initialSnapshot = signature();
     confirmedForm = JSON.parse(JSON.stringify(clay.serialize()));
@@ -1125,7 +1155,10 @@ module.exports = function() {
       if(!displayLabel)return;
       var dirty=signature()!==initialSnapshot, saved=data.save||{};
       displayHost.hidden=dirty||phonePhase==='saving'||phonePhase==='uncertain'||!saved.state||saved.state==='none';
-      setLiveText(displayLabel,t(saved.applied?'Watch updated':saved.error?'Watch update failed':'Waiting for watch'));
+      var fontError={watch_font_missing:'Reimport this font on the phone',watch_font_space:'Not enough space for the new fonts',
+        watch_font_transfer:'Could not send fonts to the watch'};
+      setLiveText(displayLabel,t(saved.applied?'Watch updated':fontError[saved.error]||
+        (saved.error?'Watch update failed':'Waiting for watch')));
       displayRetry.hidden=!watchRetryAvailable(bridge,saved);
       displayRetry.disabled=dirty||displayBusy||phonePhase==='saving'||phonePhase==='uncertain';
     }

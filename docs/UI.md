@@ -7,8 +7,8 @@ Readable Roboto Condensed utility roles and dominant Fredoka values are the acce
 
 Dynamic has an independent Text Size choice: Follow Pebble, Small, Medium or
 Large. Follow Pebble reads the system size on launch; manual choices use the same
-profiles. All apply only to supporting Roboto typography. Medium retains the established roles; the main Fredoka clock
-keeps its original numerals, sizes, position, proportions and rasterization.
+profiles. They apply to supporting text roles. Medium retains the established
+sizes. The default Fredoka clock keeps its original shaping and layout.
 
 | Effective size | Date | Text body | Roboto labels, captions and units | Music artist |
 | --- | --- | --- | --- | --- |
@@ -101,12 +101,30 @@ The pinned SDK has no supported system appearance API. An existing Follow Pebble
 Appearance choice stays saved and uses the last Manual Light/Dark fallback. Its
 legacy option is disabled for new selection; the page explains the limit. An
 unrelated Save retains it until the user explicitly chooses another mode.
-Global watch settings and Dynamic's main Fredoka clock remain independent.
+The font choices belong to Dynamic’s watchface settings.
 The page distinguishes a verified phone save from Applied on watch. A complete
 native snapshot, persisted and read back with the exact revision, confirms the
 latter. Transport ACKs and previous revisions do not. A phone-only save remains
 pending across reopening; Retry and reconnect use the same transport queue.
 Polling preserves unsaved drafts and never starts activity/source work.
+
+### Fonts
+
+The Colours screen offers a font for the whole watchface and optional overrides
+for the clock, date, readings and activities. Dynamic Default uses the
+original Fredoka clock and numeric values with Roboto Condensed supporting
+text. Reset fonts clears the whole selection and its overrides. Pebble Bitham
+and LECO are available for the clock, and Pebble Gothic is available throughout.
+Stock fonts use the sizes supplied by the firmware.
+
+Browse Google Fonts or import a TrueType or OpenType file up to 4 MiB in the phone settings.
+The phone keeps reusable font imports. Save sends only the font packages
+used by the four roles and the watch keeps one copy per font. If every role
+has an override, the whole-watchface font can be reclaimed too. The last applied
+typography remains visible during transfer and works after an offline restart.
+Missing characters use a whole-watchface fallback when available, then Dynamic's
+default font for the affected role. The preview uses sample data and approximates
+system fonts. Its unchanged historical examples retain their original provenance.
 
 ## Native/phone verification
 

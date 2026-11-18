@@ -34,10 +34,10 @@ static int32_t font_raster_ceil(int32_t value, int32_t divisor) {
 
 // The font generator unions overlapping strokes first. Filling every contour
 // together with the even-odd rule preserves both counters and disjoint parts.
-static bool font_raster_rows(const FontRasterPoint *points, size_t point_count,
+static bool font_raster_rows_with_rule(const FontRasterPoint *points, size_t point_count,
                              const FontRasterContour *contours, size_t contour_count,
                              int width, int height, FontRasterScratch scratch,
-                             FontRasterRow draw_row, void *context) {
+                             FontRasterRow draw_row, void *context, bool nonzero) {
   if (!points || !point_count || !contours || !contour_count || !draw_row ||
       width <= 0 || height <= 0 || !scratch.coverage || !scratch.intersections ||
       width > 4096 || height > 4096 ||
@@ -101,20 +101,29 @@ static bool font_raster_rows(const FontRasterPoint *points, size_t point_count,
             // membership in [left,right), including fractional intersections.
             const int32_t x = low.x + (int32_t)(numerator / denominator +
                                                (numerator % denominator > 0));
+            const int32_t crossing = nonzero ? x * 2 + (a.y < b.y) : x;
             size_t at = count++;
-            while (at && scratch.intersections[at - 1] > x) {
+            while (at && scratch.intersections[at - 1] > crossing) {
               scratch.intersections[at] = scratch.intersections[at - 1];
               --at;
             }
-            scratch.intersections[at] = x;
+            scratch.intersections[at] = crossing;
           }
           a = b;
         }
       }
       if (count % 2) return false;
-      for (size_t i = 0; i < count; i += 2) {
-        int first = font_raster_ceil(scratch.intersections[i] - sample_half, sample_step);
-        int end = font_raster_ceil(scratch.intersections[i + 1] - sample_half, sample_step);
+      int winding = 0;
+      for (size_t i = 0; i + 1 < count; i += nonzero ? 1 : 2) {
+        int32_t left = scratch.intersections[i], right = scratch.intersections[i + 1];
+        if (nonzero) {
+          winding += (left & 1) ? 1 : -1;
+          if (!winding) continue;
+          left = font_raster_floor(left, 2);
+          right = font_raster_floor(right, 2);
+        }
+        int first = font_raster_ceil(left - sample_half, sample_step);
+        int end = font_raster_ceil(right - sample_half, sample_step);
         if (first < first_x * FONT_RASTER_SAMPLES) first = first_x * FONT_RASTER_SAMPLES;
         if (end > end_x * FONT_RASTER_SAMPLES) end = end_x * FONT_RASTER_SAMPLES;
         for (int at = first; at < end; ++at) ++scratch.coverage[at / FONT_RASTER_SAMPLES];
@@ -123,4 +132,12 @@ static bool font_raster_rows(const FontRasterPoint *points, size_t point_count,
     draw_row(context, y, first_x, end_x, scratch.coverage);
   }
   return true;
+}
+
+static inline bool font_raster_rows(const FontRasterPoint *points, size_t point_count,
+                            const FontRasterContour *contours, size_t contour_count,
+                            int width, int height, FontRasterScratch scratch,
+                            FontRasterRow draw_row, void *context) {
+  return font_raster_rows_with_rule(points, point_count, contours, contour_count,
+      width, height, scratch, draw_row, context, false);
 }

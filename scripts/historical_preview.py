@@ -63,7 +63,7 @@ def compare_renderer(reference_binary, reference_resources, binary, resources):
     return entries[-1]
 
 
-def audit_historical_preview(root, platform, binary, resources):
+def historical_source(root, platform):
     package = json.loads((root / 'package.json').read_text())
     old_version, new_version, digest = BASELINES[package['pebble']['displayName'].lower()]
     require(package['version'] == new_version, 'Historical preview review applies only to this candidate version')
@@ -80,6 +80,20 @@ def audit_historical_preview(root, platform, binary, resources):
         reference_resources = archive.read(platform + '/app_resources.pbpack')
     require(preview['source']['nativeRendererIdentity'] == renderer_identity(reference_binary, reference_resources),
             'Known baseline does not match original preview capture renderer provenance')
+    return old_version, new_version, digest, package, reference_binary, reference_resources
+
+
+def audit_historical_examples(root, platform, resources):
+    old_version, _, digest, _, _, reference_resources = historical_source(root, platform)
+    require(resource_entries(reference_resources, 8) == resource_entries(resources, 9)[:8],
+            'Historical preview font payload bytes differ')
+    return {'samples': 24, 'previewVersion': old_version, 'platform': platform,
+            'baselinePbwSha256': digest, 'historicalFramesRetained': True,
+            'fontPayloadsByteIdentical': True, 'freshCaptureClaimed': False}
+
+
+def audit_historical_preview(root, platform, binary, resources):
+    old_version, new_version, digest, package, reference_binary, reference_resources = historical_source(root, platform)
     icon = compare_renderer(reference_binary, reference_resources, binary, resources)
     launcher = audit_launcher(root, package['pebble']['resources']['media'], icon, binary)
     return {'samples': 24, 'previewVersion': old_version, 'candidateVersion': new_version,

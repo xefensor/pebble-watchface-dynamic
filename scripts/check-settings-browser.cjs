@@ -12,9 +12,11 @@ const send=(method,params={},sessionId)=>new Promise((ok,fail)=>{const n=++id;pe
 const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
 function sdk(initial){
  window.__errors=[];window.addEventListener('error',e=>__errors.push(e.message));window.addEventListener('unhandledrejection',e=>__errors.push(String(e.reason)));
- window.__saved=JSON.parse(sessionStorage.getItem('__testSavedPacket')||JSON.stringify(initial));window.__saveMode='success';window.__writes=[];window.__target='plugin';
+ window.__saved=JSON.parse(sessionStorage.getItem('__testSavedPacket')||JSON.stringify(initial));window.__saveMode='success';window.__writes=[];window.__target='plugin';window.__fontAssets={};
  window.Pebble={targets:()=>Promise.resolve([{id:__target}]),addEventListener:(name,callback)=>{if(name==='ready')document.addEventListener('DOMContentLoaded',()=>callback({target:'plugin'}));},sendMessage:async(target,m)=>{
   if(m.type==='load_settings')return __saved;
+  if(m.type==='font_store'){__fontAssets[m.asset.id]=m.asset;return {ok:true};}
+  if(m.type==='font_get')return {ok:!!__fontAssets[m.id],asset:__fontAssets[m.id]};
   if(m.type==='save_settings'){
    __writes.push(m.settings);
    if(__saveMode==='failure')return {ok:false,notSaved:true};
@@ -78,6 +80,34 @@ async function run(name,options,check){
    return {categories:4,save:true,paletteIsolation:true};
   }.toString()+')()');
   await screenshot('colours');return result;
+ });
+ await run('fonts',{platform:'emery'},async({evaluate,screenshot})=>{
+  const fixture=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
+  const result=await evaluate('('+async function(sample){
+   const {$,open,change,save,pause,check}=testHelpers();
+   await open('colours');
+   const panel=$('[data-font-panel]');
+   const action=name=>[...panel.querySelectorAll('button')].find(node=>node.textContent===name);
+   const whole=$('[data-font-role="FONT_WATCHFACE"]'),clock=$('[data-font-role="FONT_CLOCK"]');
+   panel.querySelectorAll('details').forEach(detail=>{detail.open=true;});
+   const fileInput=panel.querySelector('input[type=file]');
+   function loadFile(bytes){
+    const files=new DataTransfer();
+    files.items.add(new File([bytes],'Font.ttf',{type:'font/ttf'}));
+    fileInput.files=files.files;fileInput.dispatchEvent(new Event('change',{bubbles:true}));
+   }
+   loadFile(new Uint8Array(24));await pause();
+   check(panel.querySelector('[role=status]').textContent==='Could not import font','Invalid fonts report failure');
+   loadFile(Uint8Array.from(atob(sample),letter=>letter.charCodeAt(0)));await pause();
+   const chosen=Number(whole.value);
+   check(chosen>3&&__fontAssets[chosen],'Imported font enters the local library');
+   await change(clock,2);await save();
+   check(__saved.settings.FONT_WATCHFACE===chosen&&__saved.settings.FONT_CLOCK===2,'Whole-face and override save together');
+   action('Reset fonts').click();await pause();await save();
+   check(Object.keys(__saved.settings).filter(key=>key.startsWith('FONT_')).every(key=>!__saved.settings[key]),'Reset clears all roles');
+   return {fontImport:true,independentOverride:true,reset:true};
+  }.toString()+')('+JSON.stringify(fixture)+')');
+  await screenshot('fonts');return result;
  });
  await run('navigation-and-activities',{platform:'emery'},async({evaluate,screenshot})=>{
   const result=await evaluate('('+async function(){
