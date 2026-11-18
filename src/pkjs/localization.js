@@ -3793,7 +3793,26 @@ var COLOUR_LABELS = {
   ro:['Zi','Noapte','Mereu Zi','Mereu Noapte','Schimbă','De obicei Zi, iar în modul silențios Noapte.','Telefon deconectat','Indicatoarele de stare sunt dezactivate.'],
   tr:['Gündüz','Gece','Her zaman gündüz','Her zaman gece','Değiştir','Normalde gündüz, sessiz modda gece paleti kullanılır.','Telefon bağlantısı kesildi','Durum göstergeleri kapalı.']
 };
-[FONT_LABELS, EDITOR_LABELS, COLOUR_LABELS, require('./font-picker-words')].forEach(function(table) {
+var CONTROL_LABELS = {
+  en:['Change font','Edit','Complication setup'],
+  cs:['Změnit písmo','Upravit','Nastavení komplikací'],
+  sk:['Zmeniť písmo','Upraviť','Nastavenie komplikácií'],
+  de:['Schrift ändern','Bearbeiten','Komplikationen einrichten'],
+  fr:['Changer la police','Modifier','Configuration des complications'],
+  es:['Cambiar fuente','Editar','Configuración de complicaciones'],
+  it:['Cambia carattere','Modifica','Configurazione complicazioni'],
+  pt:['Mudar tipo de letra','Editar','Configuração de complicações'],
+  nl:['Lettertype wijzigen','Bewerken','Complicaties instellen'],
+  pl:['Zmień czcionkę','Edytuj','Konfiguracja komplikacji'],
+  da:['Skift skrifttype','Rediger','Opsætning af komplikationer'],
+  sv:['Byt typsnitt','Redigera','Ställ in komplikationer'],
+  no:['Endre skrifttype','Rediger','Oppsett av komplikasjoner'],
+  fi:['Vaihda fonttia','Muokkaa','Komplikaatioiden asetukset'],
+  hu:['Betűtípus módosítása','Szerkesztés','Komplikációk beállítása'],
+  ro:['Schimbă fontul','Editează','Configurarea complicațiilor'],
+  tr:['Yazı tipini değiştir','Düzenle','Komplikasyon kurulumu']
+};
+[FONT_LABELS, EDITOR_LABELS, COLOUR_LABELS, CONTROL_LABELS, require('./font-picker-words')].forEach(function(table) {
   Object.keys(table).forEach(function(language) {
     table.en.forEach(function(key,index) {
       MESSAGES[language][key]=table[language][index];

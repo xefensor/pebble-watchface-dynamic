@@ -85,6 +85,34 @@ function helpers(){
  return {$,visible,pause,setting,change,choose,toggle,click,open,check,save,palette,appearance};
 }
 const reports=[];
+async function tap(evaluate,sessionId,selector,scroll=true){
+ const touch=await evaluate('('+function(selector,scroll){
+  const element=document.querySelector(selector);
+  if(!testHelpers().visible(element))throw Error('Missing touch target '+selector);
+  if(scroll)element.scrollIntoView({block:'center'});
+  const {left,top,width,height}=element.getBoundingClientRect();
+  const point={x:left+width/2,y:top+height/2};
+  if(!element.contains(document.elementFromPoint(point.x,point.y)))throw Error('Unreachable touch target '+selector);
+  return point;
+ }.toString()+')('+JSON.stringify(selector)+','+scroll+')');
+ await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch]},sessionId);
+ await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
+ await wait(200);
+}
+async function verifyColourAction(evaluate,sessionId){
+ const background='[data-setting="BACKGROUND_COLOR"]';
+ await evaluate('testHelpers().open("colours")');
+ await tap(evaluate,sessionId,background+' .dynamic-control-action');
+ await evaluate('('+async function(background){
+  const {$,check,click}=testHelpers();
+  const row=$(background),opener=row.querySelector('label'),swatch=row.querySelector('.dynamic-control-action .value');
+  check(swatch&&opener.getAttribute('aria-expanded')==='true','The labelled swatch opens the existing colour picker');
+  const previous=swatch.style.backgroundColor;
+  const option=row.querySelector('.color-box.selectable:not(.selected)');
+  await click(background+' .color-box[data-value="'+option.dataset.value+'"]');
+  check(swatch.style.backgroundColor!==previous&&opener.getAttribute('aria-expanded')==='false','Choosing a colour updates the visible swatch and closes the picker');
+ }.toString()+')('+JSON.stringify(background)+')');
+}
 async function verifyDisconnected(evaluate){
  const native=fs.readFileSync(path.join(root,'src/c/dynamic.c'),'utf8');
  const mask=native.match(/disconnected_glyph\[16\]\s*=\s*\{([^}]+)\}/);
@@ -214,29 +242,18 @@ async function run(name,options,check){
  await run('fonts',{platform:'emery'},async({evaluate,screenshot,sessionId})=>{
   const fixture=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
   await send('Emulation.setTouchEmulationEnabled',{enabled:true},sessionId);
-  async function tap(selector,scroll=true){
-   const touch=await evaluate('('+function(selector,scroll){
-    const button=document.querySelector(selector);
-    if(!testHelpers().visible(button))throw Error('Missing touch target '+selector);
-    if(scroll)button.scrollIntoView({block:'center'});
-    const {left,top,width,height}=button.getBoundingClientRect();
-    const point={x:left+width/2,y:top+height/2};
-    if(!button.contains(document.elementFromPoint(point.x,point.y)))throw Error('Unreachable touch target '+selector);
-    return point;
-   }.toString()+')('+JSON.stringify(selector)+','+scroll+')');
-   await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch]},sessionId);
-   await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
-   await wait(200);
-  }
-  await tap('[data-font-role="FONT_WATCHFACE"]',false);
-  assert.ok(await evaluate('testHelpers().visible(document.querySelector("[data-font-picker]"))'),'Tapping the whole-face row opens its picker');
+  await tap(evaluate,sessionId,'[data-font-role="FONT_WATCHFACE"] .dynamic-control-action',false);
+  assert.ok(await evaluate('testHelpers().visible(document.querySelector("[data-font-picker]"))'),'Tapping Change font opens the whole-face picker');
   for(const id of [1,0]){
-   await tap('[data-font-choice="'+id+'"]');
+   await tap(evaluate,sessionId,'[data-font-choice="'+id+'"]');
    await evaluate('('+function(id){
     const {$,visible,check}=testHelpers();
     check(visible($('[data-font-picker]')),'Selecting a font keeps the picker open for the next choice');
     const selected=document.querySelectorAll('[data-font-choice][aria-pressed="true"]');
     check(selected.length===1&&selected[0].dataset.fontChoice===String(id),'Only the latest choice is marked selected');
+    const other=$('[data-font-choice][aria-pressed="false"]');
+    const marker=button=>getComputedStyle(button,'::before');
+    check(marker(other).borderStyle==='solid'&&marker(other).backgroundImage==='none'&&marker(selected[0]).backgroundImage!=='none','Every choice has a visible radio circle and only the active one is filled');
     check(Number($('[data-font-role="FONT_WATCHFACE"]').dataset.fontId)===id,'The draft uses the tapped font');
    }.toString()+')('+id+')');
    if(id===1)await screenshot('picker');
@@ -247,7 +264,7 @@ async function run(name,options,check){
   await send('Input.dispatchKeyEvent',{...enterKey,type:'keyUp'},sessionId);
   await wait(150);
   assert.equal(await evaluate('document.activeElement.matches(\'[data-font-choice="1"][aria-pressed="true"]\')'),true,'Keyboard selection retains focus on the activated choice');
-  await tap('[data-font-choice="0"]');
+  await tap(evaluate,sessionId,'[data-font-choice="0"]');
   await evaluate('('+async function(sample){
    const {$,click,check,visible,pause}=testHelpers();
    const file=$('[data-font-panel] input[type=file]');
@@ -295,14 +312,16 @@ async function run(name,options,check){
    check(Object.keys(__saved.settings).filter(key=>key.startsWith('FONT_')).every(key=>!__saved.settings[key]),'Reset clears all font roles');
    check(!$('[data-font-status]').textContent.includes('ready to save'),'Reset clears obsolete import feedback');
   }.toString()+')()');
-  return {touchPicker:true,successiveFontChoices:true,keyboardChoice:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true};
+  await verifyColourAction(evaluate,sessionId);
+  return {touchPicker:true,successiveFontChoices:true,keyboardChoice:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true,colourEdit:true};
  });
  let clayResponse;
- await run('legacy-fonts',{legacy:true,platform:'emery'},async({evaluate,screenshot})=>{
+ await run('legacy-fonts',{legacy:true,platform:'emery'},async({evaluate,screenshot,sessionId})=>{
+  await send('Emulation.setTouchEmulationEnabled',{enabled:true},sessionId);
+  await tap(evaluate,sessionId,'[data-setting="FONT_WATCHFACE"] summary .dynamic-control-action',false);
   await evaluate('('+async function(){
    const {$,click,visible,check}=testHelpers();
    const row='[data-setting="FONT_WATCHFACE"]';
-   await click(row+' summary');
    const select=$(row+' select'),picker=$(row+' details');
    check(picker.open&&!visible(select),'Legacy font choices open inline');
    for(const id of ['1','120077']){
@@ -314,6 +333,7 @@ async function run(name,options,check){
    check($(row+' summary').textContent.includes('Saved <Bold> 25%'),'Saved font name is decoded in the current selection');
   }.toString()+')()');
   await screenshot('selected');
+  await verifyColourAction(evaluate,sessionId);
   await evaluate('('+async function(){
    const {$,open,palette,click,appearance,check,visible,change}=testHelpers();
    await open('colours');await palette('day');await click('[data-preset="dark"]');
@@ -323,7 +343,7 @@ async function run(name,options,check){
   await evaluate('testHelpers().click(".component-submit button[type=submit]")');
   clayResponse=await evaluate('decodeURIComponent(location.hash.slice(1))');
   assert.equal(Number(JSON.parse(clayResponse).FONT_WATCHFACE.value),120077,'Legacy Save submits the last choice');
-  return {successiveFontChoices:true,savedFontLabel:true,serializedSave:true};
+  return {successiveFontChoices:true,savedFontLabel:true,serializedSave:true,colourEdit:true};
  });
  await run('legacy-colours-reopened',{legacy:true,response:clayResponse,platform:'emery'},async({evaluate})=>{
   await evaluate('('+async function(){
@@ -408,7 +428,8 @@ async function run(name,options,check){
    await open('layout');check(!visible($('#dynamic-reading-page')),'Unused preview page hidden');
    $('#dynamic-preview-expand').click();await pause();check(visible($('#dynamic-preview-controls')),'Expanded preview');
    await toggle('SHAKE_READINGS');check(visible($('#dynamic-reading-page')),'Shake page available');
-   $('#dynamic-reading-setup').open=true;check(document.querySelectorAll('.dynamic-reading').length===5,'Five setup slots');
+   check($('#dynamic-reading-setup summary').textContent==='Complication setup','The setup label describes the disclosure');
+   await click('#dynamic-reading-setup summary');check(document.querySelectorAll('.dynamic-reading').length===5,'Five setup slots');
    await choose('READING_LAYOUT',0);await open('colours');
    await toggle('SCREEN_SPLIT');check(!visible(setting('LOWER_BACKGROUND_COLOR')),'Solid hides day details');
    await testHelpers().palette('night');check(!visible(setting('NIGHT_LOWER_BACKGROUND_COLOR')),'Solid hides night details');

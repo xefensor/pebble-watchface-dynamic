@@ -146,7 +146,6 @@ module.exports = function() {
     '.component-select .value{margin-top:9px;padding:9px 28px 9px 12px;min-height:var(--control-height);border:1px solid var(--line);border-radius:8px;background:var(--field);font-size:15px}',
     '.component-select .value:after{right:12px;top:50%;margin-top:0;transform:translateY(-50%);border-top-color:var(--accent)}',
     '[data-font-panel] h3{margin:0 0 8px;font-size:17px}[data-font-panel]>.dynamic-details{margin-top:12px}[data-font-panel] button:disabled{opacity:.65}',
-    '[data-font-panel] summary[data-font-role]{min-height:44px;padding:8px 0;cursor:pointer;font-weight:650}[data-font-panel] summary .dynamic-font-value{display:block;color:var(--muted);font-weight:400;overflow-wrap:anywhere}',
     '.dynamic-choice select{display:block;width:100%;margin-top:9px;min-height:var(--control-height);padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-size:15px}',
     '.dynamic-choice select:focus-visible,button:focus-visible,summary:focus-visible{outline:var(--focus-width) solid var(--accent);outline-offset:3px}',
     '.dynamic-preview-stage{width:212px;max-width:100%;margin:0 auto 14px;border:6px solid #101216;border-radius:var(--card-radius);overflow:hidden;background:#fff;line-height:0}',
@@ -282,13 +281,16 @@ module.exports = function() {
           // Clay keeps the serialized select. The inline choices let the user
           // try several fonts without reopening the phone's native dialog.
           var label=row.querySelector('label'),picker=make('details');
-          var summary=make('summary',label.querySelector('.label').textContent);
+          var summary=make('summary',null,'dynamic-font-row');
+          var action=make('span',t('Change font'),'dynamic-control-action');
           var current=make('span',null,'dynamic-font-value');
           var choices=make('div',null,'dynamic-font-options');
           var buttons=[];
           row.setAttribute('data-font-panel','');
           summary.dataset.fontRole=key;
+          summary.appendChild(make('strong',label.querySelector('.label').textContent));
           summary.appendChild(current);
+          summary.appendChild(action);
           picker.appendChild(summary);
           picker.appendChild(choices);
           Array.prototype.forEach.call(select.options,function(option){
@@ -296,9 +298,6 @@ module.exports = function() {
             var button=make('button',option.textContent,'dynamic-font-option');
             button.type='button';
             button.dataset.fontChoice=option.value;
-            var check=make('span','✓');
-            check.setAttribute('aria-hidden','true');
-            button.appendChild(check);
             button.addEventListener('click',function(){setting.set(option.value);});
             choices.appendChild(button);
             buttons.push(button);
@@ -306,12 +305,11 @@ module.exports = function() {
           function syncChoice(){
             current.textContent=select.selectedIndex<0?'':select.options[select.selectedIndex].textContent;
             buttons.forEach(function(button,index){
-              var selected=index===select.selectedIndex;
-              button.setAttribute('aria-pressed',String(selected));
-              button.lastChild.hidden=!selected;
+              button.setAttribute('aria-pressed',String(index===select.selectedIndex));
             });
           }
           setting.on('change',syncChoice);
+          picker.addEventListener('toggle',function(){action.textContent=t(picker.open?'Done':'Change font');});
           syncChoice();
           label.hidden=true;
           row.appendChild(picker);
@@ -457,6 +455,13 @@ module.exports = function() {
     clay.getItemsByType('color').forEach(function(value) {
       var element = node(value), opener = element && element.querySelector('label');
       if (!opener) { return; }
+      var swatch=opener.querySelector('.value');
+      if (swatch) {
+        var action=make('span',null,'dynamic-control-action');
+        swatch.before(action);
+        action.appendChild(swatch);
+        action.appendChild(make('span',t('Edit')));
+      }
       opener.tabIndex = 0;opener.setAttribute('role','button');opener.setAttribute('aria-haspopup','true');
       paletteControllers.push(installPaletteKeyboard(element,opener,document));
     });
@@ -902,7 +907,7 @@ module.exports = function() {
     }
     var readingHelp=node(item('dynamic-reading-help'));
     var readingDetails=make('details',null,'dynamic-setup');readingDetails.id='dynamic-reading-setup';
-    readingDetails.appendChild(make('summary',t('Choose complications')));
+    readingDetails.appendChild(make('summary',t('Complication setup')));
     readings.parentNode.insertBefore(readingDetails,readings);readingDetails.appendChild(readings);readingDetails.appendChild(readingHelp);
     renderReadings();
     field('SHAKE_READINGS').on('change',renderReadings);field('READING_LAYOUT').on('change',renderReadings);

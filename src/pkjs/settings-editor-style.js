@@ -195,6 +195,33 @@ body {
   align-items: center;
   min-height: var(--control-height);
 }
+#main-form .dynamic-control-action {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--accent);
+  font-size: .875rem;
+  font-weight: 650;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#main-form .component-color .dynamic-control-action {
+  flex-shrink: 0;
+  max-width: 50%;
+}
+#main-form .component-color .dynamic-control-action .value {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
 #main-form .section [data-setting="TEXT_SIZE"] label {
   display: flex;
   align-items: center;
@@ -341,24 +368,26 @@ body {
 }
 #main-form [data-font-panel] .dynamic-font-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "role arrow" "value arrow";
+  grid-template-columns: minmax(0, 1fr) fit-content(45%);
+  grid-template-areas: "role action" "value action";
   gap: 2px 10px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+#main-form [data-font-panel] summary.dynamic-font-row::marker { content: ""; }
+#main-form [data-font-panel] summary.dynamic-font-row::-webkit-details-marker {
+  display: none;
 }
 #main-form [data-font-panel] .dynamic-font-list > .dynamic-font-row {
-  grid-template-columns: minmax(0, 1fr) minmax(64px, 34%) auto;
-  grid-template-areas: "role sample arrow" "value sample arrow";
+  grid-template-areas: "role action" "value action" "sample action";
   min-height: 70px;
 }
 #main-form .dynamic-font-row strong {
   grid-area: role;
   font-weight: 720;
 }
-#main-form .dynamic-font-arrow {
-  grid-area: arrow;
-  font-size: 1.4rem;
-  font-weight: 500;
-  color: var(--muted);
+#main-form .dynamic-font-row .dynamic-control-action {
+  grid-area: action;
 }
 #main-form .dynamic-font-row .dynamic-font-value {
   grid-area: value;
@@ -371,9 +400,9 @@ body {
   grid-area: sample;
   display: block;
   width: 100%;
-  max-width: 136px;
+  max-width: 112px;
   height: auto;
-  justify-self: end;
+  justify-self: start;
 }
 #main-form [data-font-panel] details[data-font-overrides] {
   margin: 4px 0;
@@ -381,13 +410,20 @@ body {
   border: 0;
 }
 #main-form [data-font-panel] details[data-font-overrides] > summary { margin-bottom: 0; }
-#main-form [data-font-panel] .dynamic-font-option[aria-pressed="true"],
-#main-form [data-font-panel] .dynamic-font-option[aria-selected="true"] {
+#main-form [data-font-panel] .dynamic-font-option[aria-pressed="true"] {
   color: var(--accent);
   font-weight: 750;
 }
-#main-form [data-font-panel] .dynamic-font-option > [aria-hidden="true"] {
-  margin-inline: auto 2px;
+#main-form [data-font-panel] .dynamic-font-option::before {
+  content: "";
+  box-sizing: border-box;
+  flex: 0 0 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+#main-form [data-font-panel] .dynamic-font-option[aria-pressed="true"]::before {
+  background: radial-gradient(circle, currentColor 0 4px, transparent 5px);
 }
 #main-form [data-font-panel] :is([data-font-reset], [data-font-back]) {
   margin: 0;

@@ -128,11 +128,9 @@ function install(options, createFont) {
     row.setAttribute('aria-controls','dynamic-font-picker');
     const value = make('span');
     value.className = 'dynamic-font-value';
-    const arrow = make('span');
-    arrow.setAttribute('aria-hidden','true');
-    arrow.className = 'dynamic-font-arrow';
-    arrow.textContent = '›';
-    row.append(make('strong',names[role]),value,arrow);
+    const action = make('span','Change font');
+    action.className = 'dynamic-control-action';
+    row.append(make('strong',names[role]),value,action);
     row.addEventListener('click',() => openPicker(role));
     rows.push({row,value});
   }
@@ -224,10 +222,6 @@ function install(options, createFont) {
     });
     drawSpecimen();
   }
-  function markChoice(btn, selected) {
-    btn.setAttribute('aria-pressed',String(selected));
-    btn.lastElementChild.hidden = !selected;
-  }
   function showChoices() {
     choices.replaceChildren();
     const current = Number(fields[editing].get());
@@ -236,11 +230,7 @@ function install(options, createFont) {
       btn.className = 'dynamic-font-option';
       btn.dataset.fontChoice = String(id);
       btn.textContent = fontName(editing,id);
-      const check = make('span');
-      check.textContent = '✓';
-      check.setAttribute('aria-hidden','true');
-      btn.append(check);
-      markChoice(btn,id === current);
+      btn.setAttribute('aria-pressed',String(id === current));
       btn.addEventListener('click',() => choose(id));
     }
     choices.append(make('h4','Built-in fonts'));
@@ -283,7 +273,7 @@ function install(options, createFont) {
     fields[editing].set(id);
     status.textContent = '';
     for (const btn of choices.querySelectorAll('[data-font-choice]')) {
-      markChoice(btn,Number(btn.dataset.fontChoice) === id);
+      btn.setAttribute('aria-pressed',String(Number(btn.dataset.fontChoice) === id));
     }
     refresh();
     update();
