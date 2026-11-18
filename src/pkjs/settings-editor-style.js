@@ -220,6 +220,63 @@ body {
 #main-form .section[data-screen] :is(.dynamic-choice select, .component-select .value, .component-input input, .dynamic-app-entry input, .dynamic-presets button, .dynamic-palette-actions button, .dynamic-reorder) {
   border-radius: 4px;
 }
+#main-form .dynamic-appearance-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+#main-form .dynamic-appearance-summary > div { min-width: 0; }
+#main-form #dynamic-appearance-title {
+  display: block;
+  color: var(--muted);
+  font-size: .875rem;
+}
+#main-form #dynamic-appearance-saved { display: block; overflow-wrap: anywhere; }
+#main-form #dynamic-appearance-change {
+  width: auto;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--accent);
+  font: 650 1rem/1.25 var(--font-family);
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#main-form .dynamic-palette-buttons {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+#main-form .dynamic-palette-buttons button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: none;
+  font: 650 1rem/1.25 var(--font-family);
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#main-form .dynamic-palette-buttons [aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--field);
+  color: var(--accent);
+}
 #main-form .dynamic-secondary-nav {
   display: grid;
   gap: 0;

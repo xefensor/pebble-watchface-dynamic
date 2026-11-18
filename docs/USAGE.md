@@ -185,17 +185,16 @@ priority over completing an outgoing animation.
 2. Configure slots 1–2 in the phone app's **Complications** settings. These are
    shared Pebble choices and can affect other faces using those slots. Dynamic
    retains their left/right positions and the selected provider's units.
-3. Open Dynamic's **Appearance** group. Try the independent Idle, Music, Timer,
-   Title only, Message and Timeline examples without changing any content or
-   privacy preference. Section shortcuts reach Content and Connection & help
-   without changing browser history. The 24 native samples cover six states, two clock
-   formats and two themes. They are layout/colour examples, not live data.
-4. Choose Light / Dark / Custom, accent and Follow Pebble / 12-hour / 24-hour.
-   Returning to Custom restores that session's custom palette. Follow Pebble
-   examples use the last OS format reported by the watch; an unknown format is
-   explicitly labelled as an illustrative example. The read-only format query
-   never changes the watchface's clock preference. Optionally choose a Quiet
-   Time palette. Expand **Share colours** for a preset code such as
+3. Open **Colours**. **Watch appearance** shows the saved rule. Choose **Change**
+   to use Day all the time, Night all the time, or Night during Quiet Time.
+   Tap **Day** or **Night** to edit and preview that palette. Choose **Phone
+   disconnected** in the scene selector to see the connection badge against
+   those colours. Previewing a palette or a scene leaves your settings alone.
+4. Set the palette's background, text and accent colours, or apply a Light or
+   Dark preset. Clock format is in **Layout**. Follow Pebble
+   examples use the last OS format reported by the watch. When the format is
+   unknown, the preview labels it as an example. Expand **Share day colours**
+   in the Day editor for a preset code such as
    `DYN1-FFFFFF-000000-55AAFF`, which shares
    only background, text and accent colours; importing it changes no content,
    privacy, app-filter or vibration preference.

@@ -627,22 +627,74 @@ module.exports = function() {
     var night=field('NIGHT_PALETTE'),appearanceMode=field('APPEARANCE_MODE'),manualAppearance=field('MANUAL_APPEARANCE');
     show(night,false);show(appearanceMode,false);show(manualAppearance,false);
     function nightSelected(){return Number(appearanceMode.get())!==1&&Number(manualAppearance.get())===1;}
-    function appearanceValue(){return Number(appearanceMode.get())===0?'legacy':Number(appearanceMode.get())===1?'quiet':nightSelected()?'night':'day';}
-    var appearanceOptions=[['day',t('Day palette')],['night',t('Night palette')],['quiet',t('followQuietTime')]];
+    function appearanceRule(mode,manual){
+      if(Number(mode)===0)return 'legacy';
+      if(Number(mode)===1)return 'quiet';
+      return Number(manual)===1?'night':'day';
+    }
+    function appearanceValue(){return appearanceRule(appearanceMode.get(),manualAppearance.get());}
+    var ruleNames={day:t('Always Day'),night:t('Always Night'),quiet:t('followQuietTime'),legacy:t('followPebble')};
+    var appearanceOptions=[['day',ruleNames.day],['night',ruleNames.night],['quiet',ruleNames.quiet]];
     if(Number(appearanceMode.get())===0)appearanceOptions.push(['legacy',t('followPebble')]);
     var appearanceChoice=choice('dynamic-appearance-choice',t('Watch appearance'),appearanceOptions,appearanceValue());
     if(appearanceChoice.querySelector('[value="legacy"]'))appearanceChoice.querySelector('[value="legacy"]').disabled=true;
-    var editingPalette=choice('dynamic-edit-palette',t('Editing palette'),[['day',t('Day palette')],['night',t('Night palette')]],nightSelected()?'night':'day');
+    var appearanceLabel=appearanceChoice.parentNode,appearanceHost=appearanceLabel.parentNode;
+    var appearanceSummary=make('div',null,'dynamic-appearance-summary');
+    var appearanceTitle=appearanceLabel.firstChild;
+    appearanceTitle.id='dynamic-appearance-title';
+    appearanceChoice.setAttribute('aria-labelledby',appearanceTitle.id);
+    var savedRule=make('strong'),pendingRule=make('p',null,'description');
+    savedRule.id='dynamic-appearance-saved';pendingRule.id='dynamic-appearance-pending';
+    var ruleInfo=make('div');
+    ruleInfo.appendChild(appearanceTitle);ruleInfo.appendChild(savedRule);
+    var changeRule=make('button',t('Change'));
+    changeRule.id='dynamic-appearance-change';changeRule.type='button';
+    changeRule.setAttribute('aria-controls',appearanceChoice.id);
+    changeRule.setAttribute('aria-expanded','false');
+    appearanceSummary.appendChild(ruleInfo);appearanceSummary.appendChild(changeRule);
+    appearanceHost.insertBefore(appearanceSummary,appearanceLabel);
+    var quietHelp=make('p',t('Day normally, Night during Quiet Time.'),'description');
+    appearanceHost.appendChild(pendingRule);appearanceHost.appendChild(quietHelp);
+    appearanceLabel.hidden=true;
+    changeRule.addEventListener('click',function(){
+      var open=appearanceLabel.hidden;
+      appearanceLabel.hidden=!open;
+      changeRule.setAttribute('aria-expanded',String(open));
+      changeRule.textContent=t(open?'Done':'Change');
+    });
+    function updateAppearanceSummary(){
+      var saved=appearanceRule(confirmedValue('APPEARANCE_MODE'),confirmedValue('MANUAL_APPEARANCE'));
+      var draft=appearanceValue();
+      setLiveText(savedRule,ruleNames[saved]);
+      pendingRule.hidden=draft===saved;
+      setLiveText(pendingRule,draft===saved?'':t('saveUnsaved')+' · '+ruleNames[draft]);
+      quietHelp.hidden=saved!=='quiet'&&draft!=='quiet';
+    }
+    var editingPalette=nightSelected()?'night':'day';
+    var paletteEditor=node(item('dynamic-edit-palette'));clear(paletteEditor);
+    var paletteTitle=make('strong',t('Editing palette'));paletteTitle.id='dynamic-edit-palette-title';
+    var paletteButtons=make('div',null,'dynamic-palette-buttons');
+    paletteButtons.setAttribute('role','group');paletteButtons.setAttribute('aria-labelledby',paletteTitle.id);
+    ['day','night'].forEach(function(palette){
+      var button=make('button',t(palette==='day'?'Day':'Night'));
+      button.type='button';button.dataset.editPalette=palette;
+      button.addEventListener('click',function(){
+        editingPalette=palette;
+        updateColors();
+      });
+      paletteButtons.appendChild(button);
+    });
+    paletteEditor.appendChild(paletteTitle);paletteEditor.appendChild(paletteButtons);
     var previewPalette;
     function previewNight(){
-      return currentScreen==='colours'?editingPalette.value==='night':previewPalette?previewPalette.value==='quiet':nightSelected();
+      return currentScreen==='colours'?editingPalette==='night':previewPalette?previewPalette.value==='quiet':nightSelected();
     }
     var presetHost=node(item('dynamic-theme'));clear(presetHost);presetHost.appendChild(make('strong',t('Colour presets')));
     var presets=make('div',null,'dynamic-presets');presetHost.appendChild(presets);
     ['light','dark'].forEach(function(preset){
       var button=make('button',t(preset==='light'?'themeLight':'themeDark'));button.type='button';button.setAttribute('data-preset',preset);
       button.addEventListener('click',function(){
-        var prefix=editingPalette.value==='night'?'NIGHT_':'';
+        var prefix=editingPalette==='night'?'NIGHT_':'';
         field(prefix+'BACKGROUND_COLOR').set(preset==='light'?0xffffff:0);
         field(prefix+'TEXT_COLOR').set(preset==='light'?0:0xffffff);
         updateColors();updateDirty();
@@ -654,13 +706,16 @@ module.exports = function() {
       if(day&&dark)dark.textContent=day.textContent;
       field(key).on('change',updateColors);field('NIGHT_'+key).on('change',updateColors);
     });
+    function luminance(value){return [16,8,0].map(function(shift){var channel=((value>>shift)&255)/255;return channel<=.04045?channel/12.92:Math.pow((channel+.055)/1.055,2.4);}).reduce(function(sum,channel,index){return sum+channel*[.2126,.7152,.0722][index];},0);}
+    function ratio(first,second){var a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);}
     function updateColors(){
-      var editingNight=editingPalette.value==='night',split=!!field('SCREEN_SPLIT').get();
+      var editingNight=editingPalette==='night',split=!!field('SCREEN_SPLIT').get();
+      Array.prototype.forEach.call(paletteButtons.children,function(button){
+        button.setAttribute('aria-pressed',String(button.dataset.editPalette===editingPalette));
+      });
       paletteRoles.forEach(function(key,index){show(field(key),!editingNight&&(index<3||split));show(field('NIGHT_'+key),editingNight&&(index<3||split));});
       show(item('dynamic-palette-code'),!editingNight);
       var contrast=node(item('dynamic-contrast'));
-      function luminance(value){return [16,8,0].map(function(shift){var channel=((value>>shift)&255)/255;return channel<=.04045?channel/12.92:Math.pow((channel+.055)/1.055,2.4);}).reduce(function(sum,channel,index){return sum+channel*[.2126,.7152,.0722][index];},0);}
-      function ratio(first,second){var a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);}
       var prefix=editingNight?'NIGHT_':'',background=color(prefix+'BACKGROUND_COLOR'),foreground=color(prefix+'TEXT_COLOR');
       var low=ratio(background,foreground)<4.5||split&&ratio(color(editingNight?'NIGHT_LOWER_BACKGROUND_COLOR':'LOWER_BACKGROUND_COLOR'),color(editingNight?'NIGHT_LOWER_TEXT_COLOR':'LOWER_TEXT_COLOR'))<4.5;
       var adjusted=ratio(background,color(prefix+'ACCENT_COLOR'))<2;
@@ -672,7 +727,6 @@ module.exports = function() {
       else if(appearanceChoice.value!=='legacy'){manualAppearance.set(appearanceChoice.value==='night'?1:0);appearanceMode.set(2);}
       updateNight();updateDirty();
     });
-    editingPalette.addEventListener('change',updateColors);
 
     function paletteCode() {
       return 'DYN1-' + ['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR'].map(function(key) { return css(color(key)).slice(1).toUpperCase(); }).join('-');
@@ -907,6 +961,10 @@ module.exports = function() {
       clear(saveStatus);saveMessage=make('p');saveStatus.appendChild(saveMessage);
       submitHost.insertBefore(saveStatus,submitHost.firstChild);
     }
+    function confirmedValue(name) {
+      var value=confirmedForm[name];
+      return value && typeof value==='object' ? value.value : value;
+    }
     if (bridge && submitHost) {
       saveButton.classList.add('dynamic-primary-save');
       var actions = make('div',null,'dynamic-save-buttons');
@@ -914,13 +972,12 @@ module.exports = function() {
       discard.addEventListener('click',function() {
         if (phonePhase === 'saving' || phonePhase === 'uncertain' || !confirmedForm) return;
         restoring = true;
-        function previous(name) { var value = confirmedForm[name]; return value && typeof value === 'object' ? value.value : value; }
-        noticeMode.value = previous('NOTIFICATION_APP_ONLY') ? 'app' : previous('NOTIFICATION_PREVIEW') ? 'preview' : 'summary';
-        appMode.value = previous('NOTIFICATION_APPS') ? 'selected' : 'all';
-        entries = String(previous('NOTIFICATION_APPS') || '').split(',').map(function(value){return value.trim();}).filter(Boolean);
+        noticeMode.value = confirmedValue('NOTIFICATION_APP_ONLY') ? 'app' : confirmedValue('NOTIFICATION_PREVIEW') ? 'preview' : 'summary';
+        appMode.value = confirmedValue('NOTIFICATION_APPS') ? 'selected' : 'all';
+        entries = String(confirmedValue('NOTIFICATION_APPS') || '').split(',').map(function(value){return value.trim();}).filter(Boolean);
         appEntry.value = '';
-        Object.keys(confirmedForm).forEach(function(name) { var value = field(name); if (value) value.set(previous(name)); });
-        var preferences = JSON.parse(previous('__dynamicActivityPreferences') || '{}');
+        Object.keys(confirmedForm).forEach(function(name) { var value = field(name); if (value) value.set(confirmedValue(name)); });
+        var preferences = JSON.parse(confirmedValue('__dynamicActivityPreferences') || '{}');
         activityOrder = (preferences.order || []).slice(); activityHidden = (preferences.hidden || []).slice();
         syncActivityValue();
         if(fontPanel){fontPanel.dismiss(false);fontPanel.refresh();}
@@ -938,6 +995,7 @@ module.exports = function() {
     }
     updateDirty = function() {
       if (!initialSnapshot || restoring) { return; }
+      updateAppearanceSummary();
       var dirty = signature() !== initialSnapshot;
       var saved = data.save && data.save.state || 'none';
       var key = bridge ? phonePhase === 'saving' ? 'saveSending' : phonePhase === 'uncertain' ? 'phoneSaveUncertain' :
@@ -983,7 +1041,7 @@ module.exports = function() {
       var sceneLabel=make('label',null,'dynamic-preview-scene');
       sceneLabel.appendChild(make('span',t('Scene')));
       var sceneSelect=make('select');sceneSelect.id='dynamic-preview-scene';
-      [['idle','previewIdle'],['music','previewMusic'],['timer','previewTimer'],['notification-summary','previewBanner'],['notification','previewMessage'],['timeline','previewTimeline']].forEach(function(pair){
+      [['idle','previewIdle'],['disconnected','Phone disconnected'],['music','previewMusic'],['timer','previewTimer'],['notification-summary','previewBanner'],['notification','previewMessage'],['timeline','previewTimeline']].forEach(function(pair){
         var option=make('option',t(pair[1]));option.value=pair[0];sceneSelect.appendChild(option);
       });
       sceneLabel.appendChild(sceneSelect);previewHost.appendChild(sceneLabel);
@@ -1029,6 +1087,7 @@ module.exports = function() {
       disabledCaption = make('p',t('previewDisabled'),'dynamic-preview-note dynamic-example-disabled'); previewHost.appendChild(disabledCaption);
       formatCaption = make('p',t('previewUnknownFormat'),'dynamic-preview-note'); previewHost.appendChild(formatCaption);
       previewCaption = make('p',t('previewSettingsNote'),'dynamic-preview-note'); previewHost.appendChild(previewCaption);
+      previewCaption.id='dynamic-preview-caption';canvas.setAttribute('aria-describedby',previewCaption.id);
       timelineCaption = make('p',t('previewTimelineHelp'),'dynamic-preview-note'); timelineCaption.hidden = true; previewHost.appendChild(timelineCaption);
     }
     // One mounted preview follows the active screen; expanding never edits settings.
@@ -1054,14 +1113,47 @@ module.exports = function() {
       sceneSelect.value=previewState;
       renderPreview();
     }
-    function previewDescription(key){return key==='layoutApproximation'||key==='noExample'?t(key):t('sampleHelp')+(previewExpanded?' '+t(key):'');}
+    function previewDescription(key){
+      var caption=key==='layoutApproximation'||key==='noExample'?t(key):t('sampleHelp')+(previewExpanded?' '+t(key):'');
+      if(previewState==='disconnected'&&!field('SHOW_STATUS').get())return t('Status indicators are off.')+' '+caption;
+      return caption;
+    }
+    function drawDisconnectedBadge(ctx,background,lowerBackground,divider){
+      if(previewState!=='disconnected'||!field('SHOW_STATUS').get())return;
+      // The native idle status band puts the 20px badge at y=111 with a 4px inset.
+      var size=20,top=111,right=previewWidth-4;
+      if(roundPreview){
+        var center=previewWidth/2,radius=center-4;
+        var dy=Math.max(Math.abs(top-center),Math.abs(top+size-center));
+        right=center+Math.floor(Math.sqrt(radius*radius-dy*dy));
+      }
+      if(divider!==undefined&&top+size/2>=divider)background=lowerBackground;
+      function contrastInk(surface){return ratio(0,surface)>=ratio(0xffffff,surface)?0:0xffffff;}
+      var amber=luminance(background)>.4?0xaa5500:0xffaa00;
+      var badge=ratio(amber,background)>=3?amber:contrastInk(background);
+      var glyph=css(contrastInk(badge));
+      ctx.save();ctx.translate(right-size,top);
+      ctx.fillStyle=css(badge);
+      ctx.beginPath();ctx.moveTo(4,0);
+      ctx.arcTo(size,0,size,size,4);ctx.arcTo(size,size,0,size,4);
+      ctx.arcTo(0,size,0,0,4);ctx.arcTo(0,0,size,0,4);ctx.closePath();ctx.fill();
+      // Same pixel mask as prv_draw_disconnected. Bit 0 is the left edge.
+      var rows=[0x00c3,0x01c7,0x03ce,0x0edc,0x1cb8,0x1c70,0x0ee0,0x01c0,
+        0x0380,0x0760,0x0ef8,0x1cdc,0x3acc,0x73c0,0x61c0,0x00c0];
+      ctx.fillStyle=glyph;
+      for(var y=0;y<rows.length;y++)for(var x=0;x<16;x++){
+        if(rows[y]&(1<<x))ctx.fillRect(2+x,2+y,1,1);
+      }
+      ctx.restore();
+    }
     function drawLayoutPreview(){
       var ctx=canvas.getContext('2d'),nightMode=previewNight();
       var bg=color(nightMode?'NIGHT_BACKGROUND_COLOR':'BACKGROUND_COLOR'),ink=color(nightMode?'NIGHT_TEXT_COLOR':'TEXT_COLOR');
       var lowBg=field('SCREEN_SPLIT').get()?color(nightMode?'NIGHT_LOWER_BACKGROUND_COLOR':'LOWER_BACKGROUND_COLOR'):bg;
       var lowInk=field('SCREEN_SPLIT').get()?color(nightMode?'NIGHT_LOWER_TEXT_COLOR':'LOWER_TEXT_COLOR'):ink;
-      var layout=Number(field('READING_LAYOUT').get()),rows=layout===1,active=previewState!=='idle'&&previewState!=='timeline',page=pageChoice?Number(pageChoice.value):0;
-      var four=layout===2&&previewState==='idle',peek=previewState==='timeline';
+      var idle=previewState==='idle'||previewState==='disconnected',peek=previewState==='timeline';
+      var layout=Number(field('READING_LAYOUT').get()),rows=layout===1,active=!idle&&!peek,page=pageChoice?Number(pageChoice.value):0;
+      var four=layout===2&&idle;
       var profile=Number(field('TEXT_SIZE').get());
       var supportScale=profile===1 ? 0.86 : profile===3 ? 1.15 : 1;
       var clock=active?45:four?100:roundPreview?110:106,point=active?38:64,reading=active?72:roundPreview?160:159;
@@ -1126,8 +1218,8 @@ module.exports = function() {
           paintText(subtitle,13,false,4,previewWidth/2,previewHeight-15,previewWidth-64);
         }
       }
+      drawDisconnectedBadge(ctx,bg,lowBg,divider);
       ctx.restore();previewCaption.textContent=previewDescription('layoutApproximation');timelineCaption.hidden=previewState!=='timeline';disabledCaption.hidden=true;formatCaption.hidden=true;
-      canvas.setAttribute('aria-label',sceneSelect.selectedOptions[0].textContent+' · '+t('layoutApproximation'));
       if(peek){
         var key='timeline-'+time+'-'+(nightMode?'dark':'light');
         var frame=assets.frames[key];
@@ -1161,6 +1253,8 @@ module.exports = function() {
     }
     function drawPreview() {
       if (!canvas) { return; }
+      canvas.setAttribute('aria-label',t('samplePreview')+' · '+sceneSelect.selectedOptions[0].textContent+
+        ' · '+t(previewNight()?'Night palette':'Day palette'));
       var enhanced=!!field('SCREEN_SPLIT').get()||Number(field('READING_LAYOUT').get())!==0||!!field('HIDE_READING_TITLES').get()||!!field('SHAKE_READINGS').get();
       if(pageChoice){pageChoice.disabled=!field('SHAKE_READINGS').get();if(pageChoice.disabled)pageChoice.value='0';}
       if(enhanced||Number(field('TEXT_SIZE').get())||fontPanel&&fontPanel.custom()){drawLayoutPreview();return;}
@@ -1173,12 +1267,10 @@ module.exports = function() {
       var highlight = color(quietPreview ? 'NIGHT_ACCENT_COLOR' : 'ACCENT_COLOR');
       var exactTheme = highlight === 0x55AAFF && background === 0xFFFFFF && foreground === 0 ? 'light' :
         highlight === 0x55AAFF && background === 0 && foreground === 0xFFFFFF ? 'dark' : '';
-      var sampleState = previewState;
+      var sampleState = previewState==='disconnected'?'idle':previewState;
       var key = sampleState + '-' + format + '-' + (exactTheme || 'light');
       var frame = (assets.frames || {})[key];
       var ctx = canvas.getContext('2d');
-      canvas.setAttribute('aria-label',t('samplePreview') + ': ' + t({idle:'previewIdle',music:'previewMusic',timer:'previewTimer','notification-summary':'previewBanner',notification:'previewMessage',timeline:'previewTimeline'}[previewState]) +
-        (night.get() ? ' · ' + t(quietPreview ? 'previewQuietTime' : 'previewDay') : ''));
       previewCaption.textContent = previewDescription(exactTheme ? 'previewSettingsNote' : 'previewCustomHelp');
       timelineCaption.hidden = previewState !== 'timeline';
       disabledCaption.hidden = !(previewState === 'music' && !field('SHOW_MUSIC').get() ||
@@ -1226,12 +1318,16 @@ module.exports = function() {
         } }
         ctx.putImageData(pixels,0,0);
       }
-      withFrame(key,frame,draw);
+      withFrame(key,frame,function(image){
+        draw(image);
+        drawDisconnectedBadge(ctx,background);
+      });
     }
     ['SCREEN_SPLIT','READING_LAYOUT','HIDE_READING_TITLES','SHAKE_READINGS','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR','NIGHT_LOWER_BACKGROUND_COLOR','NIGHT_LOWER_TEXT_COLOR'].forEach(function(key){field(key).on('input change',updateColors);});
     field('CLOCK_FORMAT').on('change',renderPreview);
     field('TEXT_SIZE').on('change',renderPreview);
     field('SHOW_MUSIC').on('change',renderPreview);
+    field('SHOW_STATUS').on('change',renderPreview);
     if (!window.DynamicFonts) fontKeys.forEach(function(key,role){
       field(key).on('change',function(){previewFontRole(role);updateDirty();});
     });

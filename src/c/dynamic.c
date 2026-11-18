@@ -1288,26 +1288,55 @@ static void prv_lower_palette(bool lower,GColor *background,GColor *text){
  *background=s_background_color;*text=s_text_color;
  if(lower&&s_split){s_background_color=s_lower_background;s_text_color=s_lower_text;}
 }
-static void prv_draw_status(GContext *ctx,WatchPose p) {
+static void prv_draw_disconnected(GContext *ctx,int top,int split_y) {
+  const int size=20,inset=4;
+  GRect band=GRect(inset,top,FACE_WIDTH-2*inset,size);
+#ifdef PBL_ROUND
+  band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),band,inset);
+#endif
+  const int x=band.origin.x+band.size.w-size;
+  const GColor background=top+size/2>=split_y?s_lower_background:s_background_color;
+  const GColor badge={.argb=reading_warning_ink(background.argb)};
+  const GColor glyph={.argb=reading_contrast_ink(badge.argb)};
+  graphics_context_set_fill_color(ctx,badge);
+  graphics_fill_rect(ctx,GRect(x,top,size,size),4,GCornersAll);
+  // Pebble rounds a two-pixel line up to three pixels. The mask preserves
+  // the two-pixel stroke and the gap between the Bluetooth rune and its slash.
+  static const uint16_t disconnected_glyph[16]={
+    0x00c3,0x01c7,0x03ce,0x0edc,0x1cb8,0x1c70,0x0ee0,0x01c0,
+    0x0380,0x0760,0x0ef8,0x1cdc,0x3acc,0x73c0,0x61c0,0x00c0
+  };
+  graphics_context_set_fill_color(ctx,glyph);
+  for(int row=0;row<16;++row){
+    uint16_t bits=disconnected_glyph[row];
+    int column=0;
+    while(bits){
+      while(!(bits&1)){bits>>=1;++column;}
+      const int start=column;
+      while(bits&1){bits>>=1;++column;}
+      graphics_fill_rect(ctx,GRect(x+2+start,top+2+row,column-start,1),0,GCornerNone);
+    }
+  }
+}
+static void prv_draw_status(GContext *ctx,WatchPose p,int split_y) {
   if(!s_show_status)return;
   const int y=prv_round(watch_lerp(watch_lerp(115,45,watch_clamp(p.context)),104,p.peek));
-  int x=5;graphics_context_set_stroke_color(ctx,prv_warning_color());
-  graphics_context_set_fill_color(ctx,prv_warning_color());graphics_context_set_stroke_width(ctx,1);
-  if(s_battery.charge_percent<=10&&!s_battery.is_charging) {
-    xoce_ui_draw_content_icon(ctx,XOCE_ICON_BATTERY,GPoint(x+5,y+5),12,prv_warning_color());x+=12;
+  const bool watch_battery_low=s_battery.charge_percent<=10&&!s_battery.is_charging;
+  const bool phone_battery_low=wfc_phone_status_fresh(&s_context,time(NULL));
+  if(watch_battery_low||phone_battery_low) {
+    int x=5;
+#ifdef PBL_ROUND
+    const GRect band=xoce_ui_circle_band(GRect(0,0,FACE_WIDTH,FULL_LAYOUT_HEIGHT),
+        GRect(4,y-1,FACE_WIDTH-8,12),1);
+    x=band.origin.x+1;
+#endif
+    const GColor ink=prv_warning_color();
+    if(watch_battery_low) {
+      xoce_ui_draw_content_icon(ctx,XOCE_ICON_BATTERY,GPoint(x+5,y+5),12,ink);x+=12;
+    }
+    if(phone_battery_low)xoce_ui_draw_content_icon(ctx,XOCE_ICON_PHONE,GPoint(x+4,y+5),12,ink);
   }
-  if(wfc_phone_status_fresh(&s_context,time(NULL))) {
-    xoce_ui_draw_content_icon(ctx,XOCE_ICON_PHONE,GPoint(x+4,y+5),12,prv_warning_color());
-  }
-  if(!s_phone_connected) {
-    const int bx=185;
-    graphics_draw_line(ctx,GPoint(bx+3,y),GPoint(bx+3,y+10));
-    graphics_draw_line(ctx,GPoint(bx+3,y),GPoint(bx+7,y+3));
-    graphics_draw_line(ctx,GPoint(bx+7,y+3),GPoint(bx,y+8));
-    graphics_draw_line(ctx,GPoint(bx+3,y+10),GPoint(bx+7,y+7));
-    graphics_draw_line(ctx,GPoint(bx+7,y+7),GPoint(bx,y+2));
-    graphics_draw_line(ctx,GPoint(bx-1,y+10),GPoint(bx+8,y));
-  }
+  if(!s_phone_connected)prv_draw_disconnected(ctx,y-4,split_y);
 }
 static void prv_draw_date_text(GContext *ctx,WatchPose p) {
 #ifdef PBL_ROUND
@@ -1380,11 +1409,12 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
   s_reading_ink_top=NULL;
   s_font_role=FONT_CLOCK;
   s_background_color=background;s_text_color=text;
+  int divider=FULL_LAYOUT_HEIGHT;
   if(s_split){
     const MusicTextMetrics clock=prv_activity_clock_measure(NULL,s_time_buffer,prv_round(point));
     const int clock_bottom=prv_round(p.clock_y)+clock.descent;
     if(reading_top==FULL_LAYOUT_HEIGHT)reading_top=prv_round(p.row_y-p.number_size*.35f);
-    const int divider=split_boundary(clock_bottom,reading_top,FULL_LAYOUT_HEIGHT);
+    divider=split_boundary(clock_bottom,reading_top,FULL_LAYOUT_HEIGHT);
     // Readings are already painted on their palette. Fill only the clear
     // upper region, then paint the clock/date on the upper palette.
     graphics_context_set_fill_color(ctx,s_background_color);
@@ -1392,7 +1422,7 @@ static void prv_draw_background(Layer *layer,GContext *ctx) {
     prv_vector(ctx,s_time_buffer,p.clock_x-width/2,p.clock_y,point,s_text_color);
     prv_draw_date(ctx,p);
   }
-  prv_draw_status(ctx,p);
+  prv_draw_status(ctx,p,divider);
   s_font_role=previous;
 }
 static MusicTextMetrics prv_music_measure(void *context,const char *text,int point) {

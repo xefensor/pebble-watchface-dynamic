@@ -29,7 +29,7 @@ function sdk(initial){
   return {ok:true};
  }};
 }
-function legacyFontPage(){
+function legacyPage(response){
  const vm=require('node:vm');
  const entry=require.resolve('../src/pkjs/index'),companionRequire=require('node:module').createRequire(entry);
  const keys=Object.fromEntries(require('../package.json').pebble.messageKeys.map((name,index)=>[name,index]));
@@ -47,6 +47,7 @@ function legacyFontPage(){
   if(name==='@rebble/clay')return box.module.exports;
   return companionRequire(name);
  }});
+ if(response)handlers.webviewclosed({response});
  handlers.showConfiguration();
  assert.ok(url.startsWith('data:text/html'));
  // Give the standalone browser a same-page destination for Clay's submitted payload.
@@ -66,6 +67,11 @@ function helpers(){
   element.click();
   await pause();
  };
+ const palette=id=>click('[data-edit-palette="'+id+'"]');
+ const appearance=async value=>{
+  if(!visible($('#dynamic-appearance-choice-select')))await click('#dynamic-appearance-change');
+  await change('#dynamic-appearance-choice-select',value);
+ };
  const open=async id=>{
   const panel='#dynamic-screen-'+id;
   if(visible($(panel)))return;
@@ -76,9 +82,45 @@ function helpers(){
  };
  const check=(value,message)=>{if(!value)throw Error(message);};
  const save=async()=>{await click('.dynamic-primary-save');await new Promise(resolve=>setTimeout(resolve,250));};
- return {$,visible,pause,setting,change,choose,toggle,click,open,check,save};
+ return {$,visible,pause,setting,change,choose,toggle,click,open,check,save,palette,appearance};
 }
 const reports=[];
+async function verifyDisconnected(evaluate){
+ const native=fs.readFileSync(path.join(root,'src/c/dynamic.c'),'utf8');
+ const mask=native.match(/disconnected_glyph\[16\]\s*=\s*\{([^}]+)\}/);
+ assert.ok(mask,'Native disconnected badge mask');
+ const rows=mask[1].split(',').map(Number);
+ assert.equal(rows.length,16);
+ await evaluate('('+async function(rows){
+  const {$,open,change,check,toggle,palette,visible}=testHelpers();
+  const canvas=$('#dynamic-preview-canvas'),ctx=canvas.getContext('2d');
+  const pixels=()=>new Uint32Array(ctx.getImageData(0,0,canvas.width,canvas.height).data.buffer);
+  await open('colours');
+  for(const key of ['day','night']){
+   await palette(key);
+   await change('#dynamic-preview-scene','idle');const idle=pixels();
+   await change('#dynamic-preview-scene','disconnected');const lost=pixels();
+   let changed=0;
+   for(let i=0;i<idle.length;i++)if(idle[i]!==lost[i])changed++;
+   check(changed>=150&&changed<=400,'Disconnected scene paints a distinct badge on '+key);
+   const glyphX=canvas.width===200?178:236,glyphY=113;
+   const backing=lost[(glyphY-1)*canvas.width+glyphX+8];
+   for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    const pixel=lost[(glyphY+y)*canvas.width+glyphX+x];
+    check((pixel!==backing)===!!(rows[y]&(1<<x)),'Disconnected preview matches the native glyph at '+x+', '+y);
+   }
+   check(canvas.getAttribute('aria-label').includes('Phone disconnected'),'Preview announces the disconnected scene');
+  }
+  await open('layout');await toggle('SHOW_STATUS');await open('colours');
+  const description=document.getElementById(canvas.getAttribute('aria-describedby'));
+  check(visible(description)&&description.textContent.includes('Status indicators are off.'),'Preview explains the hidden indicator');
+  const disabled=pixels();await change('#dynamic-preview-scene','idle');
+  check(pixels().every((pixel,i)=>pixel===disabled[i]),'Disabled badge leaves the idle face intact');
+  await open('layout');await toggle('SHOW_STATUS');await open('colours');await palette('day');
+  check(!visible($('.dynamic-save-buttons')),'Previewing either palette and scene leaves the draft clean');
+  await open('fonts');
+ }.toString()+')('+JSON.stringify(rows)+')');
+}
 async function verifyTimeline(evaluate,platform){
  const assets=require('../src/pkjs/settings-preview-all');
  const frame=(platform==='gabbro'?assets.round:assets).frames['timeline-24-light'];
@@ -107,7 +149,7 @@ async function run(name,options,check){
  const settings=Object.assign(state.read({getItem:()=>null}),options.settings);
  const metadata={slots:[{label:'Temperature',value:'5°C',status:'ready'},{label:'Rain',value:'100%',status:'ready'},{label:'Phone',value:'78%',status:'ready'},{label:'Humidity',value:'68%',status:'ready'}],sources:{music:{state:'playing'},activities:{state:'ready'}},activityProviders:[{uuid:'50e9ef12-a5ab-4369-a3b5-3447bfba5151',name:'Timer',available:true}],save:{state:'saved',applied:true,pending:false}};
  const packet=require('../src/common/settings-config')(settings,options.language||'en',metadata,24);
- const html=options.legacy?legacyFontPage():fs.readFileSync(path.join(root,'config.html'),'utf8');
+ const html=options.legacy?legacyPage(options.response):fs.readFileSync(path.join(root,'config.html'),'utf8');
  const setup=options.legacy?'document.addEventListener("submit",event=>event.preventDefault(),true);':'('+sdk.toString()+')('+JSON.stringify(packet).replace(/</g,'\\u003c')+');';
  const injection='<script>window.__errors=[];addEventListener("error",e=>__errors.push(e.message));addEventListener("unhandledrejection",e=>__errors.push(String(e.reason)));'+setup+'window.testHelpers='+helpers.toString()+';</script>';
  const file=path.join(out,name+'.html');fs.writeFileSync(file,html.replace('<script>',()=>injection+'<script>'));
@@ -132,6 +174,7 @@ async function run(name,options,check){
 }
 (async()=>{
  for(const platform of ['emery','gabbro'])await run(platform,{platform},async({evaluate,screenshot})=>{
+  await verifyDisconnected(evaluate);
   const result=await evaluate('('+async function(){
    const {$,visible,setting,open,change,choose,save,pause,check}=testHelpers();
    check(visible($('#dynamic-screen-fonts')),'Fresh install opens the font editor');
@@ -158,14 +201,15 @@ async function run(name,options,check){
    check(visible(document.getElementById(next.getAttribute('aria-controls'))),'Editor tab names its visible panel');
    await open('layout');await choose('READING_LAYOUT',1);
    await open('colours');check(visible(setting('BACKGROUND_COLOR'))&&!visible(setting('NIGHT_BACKGROUND_COLOR')),'Only day palette');
-   await change('#dynamic-edit-palette-select','night');check(!visible(setting('BACKGROUND_COLOR'))&&visible(setting('NIGHT_BACKGROUND_COLOR')),'Only night palette');
+   await testHelpers().palette('night');check(!visible(setting('BACKGROUND_COLOR'))&&visible(setting('NIGHT_BACKGROUND_COLOR')),'Only night palette');
    $('[data-preset="light"]').click();await new Promise(resolve=>setTimeout(resolve,100));
    await save();check(__saved.settings.READING_LAYOUT===1,'Cross-category layout saved');check(__saved.settings.NIGHT_BACKGROUND_COLOR===0xffffff,'Night preset saved');check(__saved.settings.MANUAL_APPEARANCE===0&&__saved.settings.APPEARANCE_MODE===2,'Editing palette must not switch appearance');
    return {fontEditor:true,keyboardTabs:true,save:true,paletteIsolation:true};
   }.toString()+')()');
   await screenshot('colours');
+  await verifyDisconnected(evaluate);
   await verifyTimeline(evaluate,platform);
-  return {...result,textSizePreview:true,timelinePixels:true};
+  return {...result,textSizePreview:true,timelinePixels:true,disconnectedBadge:true};
  });
  await run('fonts',{platform:'emery'},async({evaluate,screenshot,sessionId})=>{
   const fixture=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
@@ -253,6 +297,7 @@ async function run(name,options,check){
   }.toString()+')()');
   return {touchPicker:true,successiveFontChoices:true,keyboardChoice:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true};
  });
+ let clayResponse;
  await run('legacy-fonts',{legacy:true,platform:'emery'},async({evaluate,screenshot})=>{
   await evaluate('('+async function(){
    const {$,click,visible,check}=testHelpers();
@@ -269,9 +314,26 @@ async function run(name,options,check){
    check($(row+' summary').textContent.includes('Saved <Bold> 25%'),'Saved font name is decoded in the current selection');
   }.toString()+')()');
   await screenshot('selected');
+  await evaluate('('+async function(){
+   const {$,open,palette,click,appearance,check,visible,change}=testHelpers();
+   await open('colours');await palette('day');await click('[data-preset="dark"]');
+   await palette('night');await change('#dynamic-preview-scene','disconnected');await palette('day');
+   await appearance('quiet');check(visible($('#dynamic-appearance-pending')),'Legacy rule stays pending before Save');
+  }.toString()+')()');
   await evaluate('testHelpers().click(".component-submit button[type=submit]")');
-  assert.equal(await evaluate('Number(JSON.parse(decodeURIComponent(location.hash.slice(1))).FONT_WATCHFACE.value)'),120077,'Legacy Save submits the last choice');
+  clayResponse=await evaluate('decodeURIComponent(location.hash.slice(1))');
+  assert.equal(Number(JSON.parse(clayResponse).FONT_WATCHFACE.value),120077,'Legacy Save submits the last choice');
   return {successiveFontChoices:true,savedFontLabel:true,serializedSave:true};
+ });
+ await run('legacy-colours-reopened',{legacy:true,response:clayResponse,platform:'emery'},async({evaluate})=>{
+  await evaluate('('+async function(){
+   const {$,open,palette,check,visible}=testHelpers();
+   await open('colours');await palette('day');
+   check($('#dynamic-appearance-choice-select').value==='quiet'&&!visible($('#dynamic-appearance-pending')),'Reopened Clay form reads the saved Quiet Time rule');
+   check($('#dynamic-palette-input').value.startsWith('DYN1-000000-FFFFFF'),'Reopened Clay form retains the Day colours');
+   check($('.component-submit button[type=submit]').disabled,'Preview opens with a clean saved draft');
+  }.toString()+')()');
+  return {paletteAndRulePersist:true};
  });
  await run('catalog',{platform:'gabbro'},async({evaluate,screenshot})=>{
   const sample=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
@@ -349,9 +411,9 @@ async function run(name,options,check){
    $('#dynamic-reading-setup').open=true;check(document.querySelectorAll('.dynamic-reading').length===5,'Five setup slots');
    await choose('READING_LAYOUT',0);await open('colours');
    await toggle('SCREEN_SPLIT');check(!visible(setting('LOWER_BACKGROUND_COLOR')),'Solid hides day details');
-   await change('#dynamic-edit-palette-select','night');check(!visible(setting('NIGHT_LOWER_BACKGROUND_COLOR')),'Solid hides night details');
+   await testHelpers().palette('night');check(!visible(setting('NIGHT_LOWER_BACKGROUND_COLOR')),'Solid hides night details');
    check(colourKeys.every(key=>!visible(setting(key))),'Inactive day palette hidden');
-   await change('#dynamic-appearance-choice-select','quiet');
+   await testHelpers().appearance('quiet');
    await open('activities');await click('.dynamic-back');check(visible($('#dynamic-screen-colours')),'Back restores the previous editor tab');
    await open('activities');check(!visible($('.dynamic-preview-card')),'No irrelevant activity preview');
    check(!visible($('.dynamic-activity-handle'))&&!visible($('.dynamic-activity-move')),'Normal list is compact');
@@ -369,7 +431,7 @@ async function run(name,options,check){
    check(__saved.settings.NOTIFICATION_APPS==='Signal','Draft app committed by global Save');check(__saved.settings.APPEARANCE_MODE===1,'Appearance saved');
    check(__saved.settings.READING_LAYOUT===0&&__saved.settings.SHAKE_READINGS===true,'Layout draft retained across all categories');
    await open('layout');check($('#dynamic-reading-setup').open,'Disclosure state retained');
-   await choose('READING_LAYOUT',2);await open('colours');await change('#dynamic-appearance-choice-select','night');
+   await choose('READING_LAYOUT',2);await open('colours');await testHelpers().appearance('night');
    $('.dynamic-discard').click();await pause();check($('#dynamic-appearance-choice-select').value==='quiet','Discard restores appearance adapter');
    await open('layout');check(setting('READING_LAYOUT').querySelector('select').value==='0','Discard restores another category');
    return {navigation:true,preview:true,conditionalControls:true,reorder:true,hiddenValidation:true,discard:true};
@@ -390,9 +452,11 @@ async function run(name,options,check){
    __saveMode='success';await save();check(__saved.settings.READING_LAYOUT===0,'Uncertain retry retains cross-category draft');
    await open('layout');await choose('READING_LAYOUT',2);__saveMode='delayed';await save();
    check($('.dynamic-primary-save').disabled,'Pending save cannot submit twice');
-   await open('colours');await change('#dynamic-appearance-choice-select','night');$('#dynamic-appearance-choice-select').focus();window.scrollTo(0,120);const before={focus:document.activeElement.id,scroll:window.scrollY};__finishSave();await pause();check(document.activeElement.id===before.focus&&Math.abs(window.scrollY-before.scroll)<=1,'Async save preserves focus and scroll');
+   await open('colours');await testHelpers().appearance('night');$('#dynamic-appearance-choice-select').focus();window.scrollTo(0,120);const before={focus:document.activeElement.id,scroll:window.scrollY};__finishSave();await pause();check(document.activeElement.id===before.focus&&Math.abs(window.scrollY-before.scroll)<=1,'Async save preserves focus and scroll');
    check(!$('.dynamic-primary-save').disabled,'An older successful save cannot clear newer edits');
+   check($('#dynamic-appearance-saved').textContent==='Always Day'&&$('#dynamic-appearance-pending').textContent.includes('Always Night'),'Rule summary distinguishes the saved snapshot from newer edits');
    __saveMode='success';await save();check(__saved.settings.MANUAL_APPEARANCE===1,'Newer edit is saved subsequently');
+   check($('#dynamic-appearance-saved').textContent==='Always Night'&&!visible($('#dynamic-appearance-pending')),'Rule summary advances only after confirmation');
    return {failure:true,uncertain:true,pending:true,watchReceipt:true,newerDraft:true};
   }.toString()+')()');await screenshot('saved');return result;
  });
@@ -403,22 +467,36 @@ async function run(name,options,check){
    await open('fonts');await choose('TEXT_SIZE',3);await save();
    check(__saved.settings.APPEARANCE_MODE===0&&__saved.settings.MANUAL_APPEARANCE===1,'Unrelated save preserves legacy fallback');
    check(__saved.settings.BACKGROUND_COLOR===0x123456&&__saved.settings.NIGHT_TEXT_COLOR===0xabcdef,'Untouched raw RGB values preserved');
-   await open('colours');await change('#dynamic-edit-palette-select','day');
+   await open('colours');await testHelpers().palette('day');
    $('.dynamic-palette-details').open=true;const input=$('#dynamic-palette-input');input.value='unfinished import';input.dispatchEvent(new Event('input',{bubbles:true}));
    await open('more');await open('colours');check(input.value==='unfinished import','Unapplied import draft survives navigation');
-   await change('#dynamic-appearance-choice-select','day');await save();check(__saved.settings.APPEARANCE_MODE===2,'Explicit appearance choice replaces legacy mode');
+   await testHelpers().appearance('day');await save();check(__saved.settings.APPEARANCE_MODE===2,'Explicit appearance choice replaces legacy mode');
    return {legacyPreserved:true,rawRgb:true,importDraft:true};
   }.toString()+')()');await screenshot('colours');return result;
  });
  await run('reload-saved',{platform:'emery'},async({evaluate,screenshot})=>{
   await evaluate('('+async function(){
-   const {$,open,choose,save}=testHelpers();await open('layout');await choose('READING_LAYOUT',1);await save();
+   const {$,open,choose,save,palette,appearance,click,check,visible}=testHelpers();
+   await open('colours');await palette('day');await click('[data-preset="dark"]');
+   await palette('night');await click('[data-preset="light"]');await palette('day');
+   check($('#dynamic-palette-input').value.startsWith('DYN1-000000-FFFFFF'),'Day edit survives a trip to Night and back');
+   await appearance('quiet');await open('layout');await choose('READING_LAYOUT',1);await save();
+   check(__saved.settings.BACKGROUND_COLOR===0&&__saved.settings.NIGHT_BACKGROUND_COLOR===0xffffff,'Both edited palettes are saved');
+   await open('colours');
+   check(!visible($('#dynamic-appearance-pending'))&&$('#dynamic-appearance-saved').textContent==='Follow Quiet Time','Saved summary confirms the selected rule');
+   await open('layout');
    await choose('READING_LAYOUT',0);__saveMode='uncertain';await save();await open('more');
    window.scrollTo(0,220);setTimeout(()=>$('.dynamic-reload-saved').click(),0);
   }.toString()+')()');
   await wait(1300);
   const result=await evaluate('('+function(){const {$,visible,setting,check}=testHelpers();check(visible($('#dynamic-screen-more')),'Reload restores category');check(setting('READING_LAYOUT').querySelector('select').value==='1','Reload reads confirmed saved value');check($('.dynamic-primary-save').disabled,'Reload has no unsaved draft');return {confirmedSettings:true,category:true};}.toString()+')()');
-  await screenshot('more');return result;
+  await screenshot('more');
+  await evaluate('('+async function(){
+   const {$,open,palette,check}=testHelpers();
+   await open('colours');await palette('day');
+   check($('#dynamic-palette-input').value.startsWith('DYN1-000000-FFFFFF'),'Reload keeps the saved Day colours');
+   check($('#dynamic-appearance-saved').textContent==='Follow Quiet Time'&&$('#dynamic-screen-colours').innerText.includes('Day normally, Night during Quiet Time.'),'Reload explains the confirmed automatic rule');
+  }.toString()+')()');return result;
  });
  for(const language of ['cs','de','fr','tr'])await run('narrow-'+language,{platform:language==='de'?null:'gabbro',width:320,language,dark:true},async({evaluate,screenshot,sessionId})=>{
   await evaluate('('+async function(){
@@ -429,7 +507,14 @@ async function run(name,options,check){
    check(document.documentElement.scrollWidth<=innerWidth,'Expanded narrow preview overflow');
    if($('#dynamic-preview-watch'))check(visible($('#dynamic-preview-watch')),'Unknown watch selector');
   }.toString()+')()');await screenshot('layout');
-  await evaluate('testHelpers().open("colours")');await screenshot('colours');
+  await evaluate('('+async function(){
+   const {$,open,check,palette,change}=testHelpers();await open('colours');
+   await palette('night');await change('#dynamic-preview-scene','disconnected');
+   for(const target of ['#dynamic-appearance-change','[data-edit-palette="day"]','[data-edit-palette="night"]']){
+    const rect=$(target).getBoundingClientRect();check(rect.height>=44&&rect.width>=44,'Palette editor has reachable touch targets');
+   }
+   $('#dynamic-appearance-change').scrollIntoView({block:'start'});
+  }.toString()+')()');await screenshot('colours');
   await evaluate('testHelpers().open("activities")');await screenshot('activities');
   await evaluate('('+async function(){
    const {check,pause,open,click}=testHelpers();const style=document.createElement('style');style.textContent='#main-form,#main-form input,#main-form select,#main-form button,#main-form label,#main-form .label,#main-form strong,#main-form small,#main-form p,#main-form summary,#main-form h3{font-size:32px!important}';document.head.appendChild(style);await pause();

@@ -88,12 +88,13 @@ Preserve UUID, appended message-key numbering, ACT3 source/run identity, observa
 
 ## Per-face display settings
 
-The phone page retains both Day and Night palettes independently. Appearance
-selects Day palette, Night palette or Follow Quiet Time. Palette editing is a
-separate choice and never switches the active appearance. Quiet Time selects
-Night only while Quiet Time is active. Switching modes never overwrites either
-palette. Background, text and accent editors always belong to the selected
-palette; its detail editors appear only with split background enabled.
+The Colours tab shows the saved watch appearance rule. Change offers Always Day,
+Always Night and Follow Quiet Time. A pending change stays labelled until the
+phone confirms the save. Follow Quiet Time uses Day normally and Night during
+Quiet Time. Day and Night buttons open the corresponding palette for editing
+and preview. Light and Dark are presets for the selected palette.
+Background, text and accent editors belong to the selected palette. Its detail
+editors appear when split background is enabled.
 The previous Quiet Time toggle migrates to Follow Quiet Time; other existing
 palettes migrate to Manual Light without changing their RGB values.
 
@@ -268,7 +269,10 @@ shows the delivery result and recovery actions when needed.
 The scene selector changes the preview independently of the draft.
 Preview options expose the sample palette, reading pages when shake is enabled,
 and a watch selector when WatchInfo is unavailable. On Colours the preview
-follows the edited palette. Choosing a clock, date or reading font shows idle.
+follows the edited palette. Phone disconnected previews the crossed-out Bluetooth
+badge on that palette. The watch shows the badge while it has lost its phone
+connection and clears it on reconnect. Turning off Status indicators also
+hides the badge in the preview. Choosing a clock, date or reading font shows idle.
 Day-only DYN1 import/export stays in its own disclosure and retains its format.
 
 Activity priority has a compact numbered list. Reorder exposes existing drag,

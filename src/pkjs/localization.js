@@ -3774,7 +3774,26 @@ var EDITOR_LABELS = {
   ro:['Editor de cadran','Previzualizare cadran','Aspect','Ajutor și stare','Scenă','Opțiuni de previzualizare'],
   tr:['Saat yüzü düzenleyicisi','Saat yüzü önizlemesi','Düzen','Yardım ve durum','Sahne','Önizleme seçenekleri']
 };
-[FONT_LABELS, EDITOR_LABELS, require('./font-picker-words')].forEach(function(table) {
+var COLOUR_LABELS = {
+  en:['Day','Night','Always Day','Always Night','Change','Day normally, Night during Quiet Time.','Phone disconnected','Status indicators are off.'],
+  cs:['Den','Noc','Vždy denní','Vždy noční','Změnit','Běžně denní paleta, v režimu klidu noční.','Telefon odpojen','Stavové ukazatele jsou vypnuté.'],
+  sk:['Deň','Noc','Vždy denná','Vždy nočná','Zmeniť','Bežne denná paleta, v tichom režime nočná.','Telefón odpojený','Stavové indikátory sú vypnuté.'],
+  de:['Tag','Nacht','Immer Tag','Immer Nacht','Ändern','Normalerweise Tag, während der Ruhezeit Nacht.','Telefon getrennt','Statusanzeigen sind ausgeschaltet.'],
+  fr:['Jour','Nuit','Toujours Jour','Toujours Nuit','Modifier','Jour par défaut, Nuit pendant le mode silencieux.','Téléphone déconnecté','Les indicateurs d’état sont désactivés.'],
+  es:['Día','Noche','Siempre Día','Siempre Noche','Cambiar','Día normalmente y Noche durante el modo silencioso.','Teléfono desconectado','Los indicadores de estado están desactivados.'],
+  it:['Giorno','Notte','Sempre Giorno','Sempre Notte','Modifica','Di norma Giorno, durante il periodo di quiete Notte.','Telefono disconnesso','Gli indicatori di stato sono disattivati.'],
+  pt:['Dia','Noite','Sempre Dia','Sempre Noite','Alterar','Dia normalmente e Noite durante o período de silêncio.','Telefone desligado do relógio','Os indicadores de estado estão desativados.'],
+  nl:['Dag','Nacht','Altijd Dag','Altijd Nacht','Wijzigen','Normaal Dag, tijdens de stille tijd Nacht.','Telefoonverbinding verbroken','Statusindicatoren staan uit.'],
+  pl:['Dzień','Noc','Zawsze dzień','Zawsze noc','Zmień','Zwykle paleta dzienna, w trybie cichym nocna.','Telefon rozłączony','Wskaźniki stanu są wyłączone.'],
+  da:['Dag','Nat','Altid dag','Altid nat','Skift','Normalt dag, nat i stilleperioden.','Telefonforbindelse afbrudt','Statusindikatorerne er slået fra.'],
+  sv:['Dag','Natt','Alltid dag','Alltid natt','Ändra','Vanligtvis dag, natt i tyst läge.','Telefon frånkopplad','Statusindikatorerna är avstängda.'],
+  no:['Dag','Natt','Alltid dag','Alltid natt','Endre','Vanligvis dag, natt i stilleperioden.','Telefonen er frakoblet','Statusindikatorene er slått av.'],
+  fi:['Päivä','Yö','Aina päivä','Aina yö','Muuta','Tavallisesti päivä, hiljaisena aikana yö.','Yhteys puhelimeen katkennut','Tilan ilmaisimet ovat poissa käytöstä.'],
+  hu:['Nappal','Éjszaka','Mindig nappali','Mindig éjszakai','Módosítás','Alapesetben nappali, csendes módban éjszakai színek.','Megszakadt a kapcsolat a telefonnal','Az állapotjelzők ki vannak kapcsolva.'],
+  ro:['Zi','Noapte','Mereu Zi','Mereu Noapte','Schimbă','De obicei Zi, iar în modul silențios Noapte.','Telefon deconectat','Indicatoarele de stare sunt dezactivate.'],
+  tr:['Gündüz','Gece','Her zaman gündüz','Her zaman gece','Değiştir','Normalde gündüz, sessiz modda gece paleti kullanılır.','Telefon bağlantısı kesildi','Durum göstergeleri kapalı.']
+};
+[FONT_LABELS, EDITOR_LABELS, COLOUR_LABELS, require('./font-picker-words')].forEach(function(table) {
   Object.keys(table).forEach(function(language) {
     table.en.forEach(function(key,index) {
       MESSAGES[language][key]=table[language][index];
