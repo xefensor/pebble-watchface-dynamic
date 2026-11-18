@@ -3755,9 +3755,30 @@ var FONT_LABELS = {
   ro:['Fonturi','Întregul cadran','Ora','Data','Valori','Fonturi pe secțiuni','Mai multe fonturi','Importă font','Resetează fonturile','Folosește fontul cadranului'],
   tr:['Yazı tipleri','Tüm saat yüzü','Saat','Tarih','Ölçümler','Bölüme göre yazı tipleri','Daha fazla yazı tipi','Yazı tipi içe aktar','Yazı tiplerini sıfırla','Saat yüzünün yazı tipini kullan']
 };
-Object.keys(FONT_LABELS).forEach(function(language) {
-  FONT_LABELS.en.forEach(function(key,index) {
-    MESSAGES[language][key]=FONT_LABELS[language][index];
-    LITERALS[key]=key;
+var EDITOR_LABELS = {
+  en:['Watchface editor','Watch preview','Layout','Help & status','Scene','Preview options'],
+  cs:['Editor ciferníku','Náhled ciferníku','Rozvržení','Nápověda a stav','Scéna','Možnosti náhledu'],
+  sk:['Editor ciferníka','Náhľad ciferníka','Rozloženie','Pomocník a stav','Scéna','Možnosti náhľadu'],
+  de:['Zifferblatt-Editor','Zifferblattvorschau','Layout','Hilfe und Status','Szene','Vorschauoptionen'],
+  fr:['Éditeur de cadran','Aperçu du cadran','Disposition','Aide et état','Scène','Options d’aperçu'],
+  es:['Editor de esfera','Vista previa de la esfera','Diseño','Ayuda y estado','Escena','Opciones de vista previa'],
+  it:['Editor del quadrante','Anteprima quadrante','Layout','Guida e stato','Scena','Opzioni anteprima'],
+  pt:['Editor do mostrador','Pré-visualização do mostrador','Disposição','Ajuda e estado','Cena','Opções de pré-visualização'],
+  nl:['Wijzerplaateditor','Wijzerplaatvoorbeeld','Indeling','Hulp en status','Scène','Voorbeeldopties'],
+  pl:['Edytor tarczy','Podgląd tarczy','Układ','Pomoc i stan','Scena','Opcje podglądu'],
+  da:['Urskiveeditor','Forhåndsvisning af urskiven','Layout','Hjælp og status','Scene','Visningsmuligheder'],
+  sv:['Urtavleredigerare','Förhandsvisning av urtavlan','Layout','Hjälp och status','Scen','Visningsalternativ'],
+  no:['Urskiveredigering','Forhåndsvisning av urskiven','Oppsett','Hjelp og status','Scene','Visningsvalg'],
+  fi:['Kellotaulun muokkaus','Kellotaulun esikatselu','Asettelu','Ohje ja tila','Näkymä','Esikatselun asetukset'],
+  hu:['Számlapszerkesztő','Számlap előnézete','Elrendezés','Súgó és állapot','Jelenet','Előnézeti beállítások'],
+  ro:['Editor de cadran','Previzualizare cadran','Aspect','Ajutor și stare','Scenă','Opțiuni de previzualizare'],
+  tr:['Saat yüzü düzenleyicisi','Saat yüzü önizlemesi','Düzen','Yardım ve durum','Sahne','Önizleme seçenekleri']
+};
+[FONT_LABELS, EDITOR_LABELS, require('./font-picker-words')].forEach(function(table) {
+  Object.keys(table).forEach(function(language) {
+    table.en.forEach(function(key,index) {
+      MESSAGES[language][key]=table[language][index];
+      LITERALS[key]=key;
+    });
   });
 });

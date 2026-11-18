@@ -34,19 +34,55 @@ function helpers(){
  const $=selector=>document.querySelector(selector),visible=element=>!!element&&element.getClientRects().length>0;
  const pause=()=>new Promise(resolve=>setTimeout(resolve,150));
  const setting=key=>$('[data-setting="'+key+'"]');
- const change=async(selector,value)=>{const element=typeof selector==='string'?$(selector):selector;if(!element)throw Error('Missing '+selector);element.value=String(value);element.dispatchEvent(new Event('change',{bubbles:true}));await pause();};
+ const change=async(selector,value)=>{const element=typeof selector==='string'?$(selector):selector;if(!visible(element)||element.disabled)throw Error('Unavailable '+selector);element.value=String(value);element.dispatchEvent(new Event('change',{bubbles:true}));await pause();};
  const choose=async(key,value)=>change(setting(key).querySelector('select'),value);
  const toggle=async key=>{const input=setting(key).querySelector('input');input.click();await pause();};
- const open=async id=>{if(!visible($('.dynamic-category[data-screen="'+id+'"]'))){$('#dynamic-back').click();await pause();}$('.dynamic-category[data-screen="'+id+'"]').click();await pause();if(!visible($('#dynamic-screen-'+id)))throw Error('Category did not open '+id);};
+ const click=async selector=>{
+  const element=$(selector);
+  if(!visible(element)||element.disabled)throw Error('Unavailable control '+selector);
+  element.scrollIntoView({block:'nearest'});
+  element.click();
+  await pause();
+ };
+ const open=async id=>{
+  const panel='#dynamic-screen-'+id;
+  if(visible($(panel)))return;
+  const route='button[data-screen="'+id+'"]';
+  if(!visible($(route)))await click('.dynamic-back');
+  if(!visible($(panel)))await click(route);
+  if(!visible($(panel)))throw Error('Screen did not open '+id);
+ };
  const check=(value,message)=>{if(!value)throw Error(message);};
- const save=async()=>{check(!$('.dynamic-primary-save').disabled,'Save unavailable');$('.dynamic-primary-save').click();await new Promise(resolve=>setTimeout(resolve,350));};
- return {$,visible,pause,setting,change,choose,toggle,open,check,save};
+ const save=async()=>{await click('.dynamic-primary-save');await new Promise(resolve=>setTimeout(resolve,250));};
+ return {$,visible,pause,setting,change,choose,toggle,click,open,check,save};
 }
 const reports=[];
+async function verifyTimeline(evaluate,platform){
+ const assets=require('../src/pkjs/settings-preview-all');
+ const frame=(platform==='gabbro'?assets.round:assets).frames['timeline-24-light'];
+ await evaluate('('+async function(frame){
+  const {$,change,check,open}=testHelpers();
+  await open('fonts');
+  const source=new Image();
+  source.src=frame.src;
+  await source.decode();
+  await change('#dynamic-preview-scene','timeline');
+  const reference=document.createElement('canvas');
+  reference.width=source.naturalWidth;reference.height=source.naturalHeight;
+  const expected=reference.getContext('2d');
+  expected.drawImage(source,0,0);
+  const actual=$('#dynamic-preview-canvas').getContext('2d');
+  for(const {x,y,width,height} of frame.preserve){
+   const rect=[x,y,width,height];
+   const pixels=actual.getImageData(...rect).data;
+   check(expected.getImageData(...rect).data.every((channel,i)=>pixels[i]===channel),'Custom preview preserves all OS-owned Timeline pixels');
+  }
+ }.toString()+')('+JSON.stringify(frame)+')');
+}
 async function run(name,options,check){
  global.Pebble={getActiveWatchInfo:()=>options.platform?({platform:options.platform}):null};
  const state=require('../src/common/settings-state');
- const settings=Object.assign(state.read({getItem:()=>null}),{READING_LAYOUT:2,SCREEN_SPLIT:true},options.settings);
+ const settings=Object.assign(state.read({getItem:()=>null}),options.settings);
  const metadata={slots:[{label:'Temperature',value:'5°C',status:'ready'},{label:'Rain',value:'100%',status:'ready'},{label:'Phone',value:'78%',status:'ready'},{label:'Humidity',value:'68%',status:'ready'}],sources:{music:{state:'playing'},activities:{state:'ready'}},activityProviders:[{uuid:'50e9ef12-a5ab-4369-a3b5-3447bfba5151',name:'Timer',available:true}],save:{state:'saved',applied:true,pending:false}};
  const packet=require('../src/common/settings-config')(settings,options.language||'en',metadata,24);
  const html=fs.readFileSync(path.join(root,'config.html'),'utf8');
@@ -56,11 +92,15 @@ async function run(name,options,check){
  await send('Emulation.setDeviceMetricsOverride',{width:options.width||390,height:844,deviceScaleFactor:1,mobile:true},sessionId);
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:options.dark?'dark':'light'}]},sessionId);
  const evaluate=expression=>send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},sessionId).then(r=>{if(r.exceptionDetails)throw Error(name+': '+JSON.stringify(r.exceptionDetails));return r.result.value;});
- const screenshot=async label=>{await wait(150);const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true},sessionId);fs.writeFileSync(path.join(out,name+'-'+label+'.png'),Buffer.from(shot.data,'base64'));};
+ const screenshot=async label=>{
+  await wait(150);
+  const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);
+  fs.writeFileSync(path.join(out,name+'-'+label+'.png'),Buffer.from(shot.data,'base64'));
+ };
  try{
-  for(let attempt=0;attempt<35;attempt++){if(await evaluate('!!document.querySelector(".dynamic-category")'))break;await wait(100);}
+  for(let attempt=0;attempt<35;attempt++){if(await evaluate('!!document.querySelector(".dynamic-editor-tab")'))break;await wait(100);}
   await wait(350);assert.deepEqual(await evaluate('__errors'),[],name+' startup errors');
-  await screenshot('overview');
+  await screenshot('initial');
   const result=await check({evaluate,screenshot,sessionId});
   assert.deepEqual(await evaluate('__errors'),[],name+' browser errors');
   assert.equal(await evaluate('document.documentElement.scrollWidth>window.innerWidth'),false,name+' horizontal overflow');
@@ -70,48 +110,168 @@ async function run(name,options,check){
 (async()=>{
  for(const platform of ['emery','gabbro'])await run(platform,{platform},async({evaluate,screenshot})=>{
   const result=await evaluate('('+async function(){
-   const {$,visible,setting,open,change,choose,toggle,save,check}=testHelpers();
-   check(document.querySelectorAll('.dynamic-category').length===4,'Four categories');check(!visible($('.section')),'Overview must hide categories');
+   const {$,visible,setting,open,change,choose,save,pause,check}=testHelpers();
+   check(visible($('#dynamic-screen-fonts')),'Fresh install opens the font editor');
+   const scene=$('#dynamic-preview-scene');
+   check(visible($('.dynamic-preview-card'))&&visible(scene)&&scene.tagName==='SELECT','Preview and sample scene visible on arrival');
+   check((scene.labels.length||scene.getAttribute('aria-label'))&&visible($('.dynamic-preview-card canvas[role=img]')),'Preview controls and watch image have accessible roles');
+   await change(scene,'timer');
+   check(scene.value==='timer'&&!visible($('.dynamic-save-buttons')),'Exploring preview scenes keeps the draft clean');
+   await choose('TEXT_SIZE',1);
+   const small=$('#dynamic-preview-canvas').toDataURL();
+   await choose('TEXT_SIZE',3);
+   check($('#dynamic-preview-canvas').toDataURL()!==small,'Changing explicit text size redraws the preview');
+   check(visible($('#dynamic-screen-fonts'))&&scene.value==='timer','Changing text size keeps the active editor and scene');
+   check(visible($('.dynamic-save-buttons')),'Changing text size exposes draft actions');
+   const tabs=[...document.querySelectorAll('.dynamic-editor-tab')];
+   check(tabs.length===3&&tabs.every(tab=>tab.getAttribute('role')==='tab'&&tab.closest('[role=tablist]')),'Three accessible editor tabs');
+   const selected=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
+   check(selected&&selected.dataset.screen==='fonts'&&selected.tabIndex===0,'Fonts is the selected keyboard tab');
+   selected.focus();
+   selected.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
+   await pause();
+   const next=tabs[(tabs.indexOf(selected)+1)%tabs.length];
+   check(document.activeElement===next&&next.getAttribute('aria-selected')==='true','Arrow selects and focuses the next editor tab');
+   check(visible(document.getElementById(next.getAttribute('aria-controls'))),'Editor tab names its visible panel');
    await open('layout');await choose('READING_LAYOUT',1);
    await open('colours');check(visible(setting('BACKGROUND_COLOR'))&&!visible(setting('NIGHT_BACKGROUND_COLOR')),'Only day palette');
    await change('#dynamic-edit-palette-select','night');check(!visible(setting('BACKGROUND_COLOR'))&&visible(setting('NIGHT_BACKGROUND_COLOR')),'Only night palette');
    $('[data-preset="light"]').click();await new Promise(resolve=>setTimeout(resolve,100));
    await save();check(__saved.settings.READING_LAYOUT===1,'Cross-category layout saved');check(__saved.settings.NIGHT_BACKGROUND_COLOR===0xffffff,'Night preset saved');check(__saved.settings.MANUAL_APPEARANCE===0&&__saved.settings.APPEARANCE_MODE===2,'Editing palette must not switch appearance');
-   return {categories:4,save:true,paletteIsolation:true};
+   return {fontEditor:true,keyboardTabs:true,save:true,paletteIsolation:true};
   }.toString()+')()');
-  await screenshot('colours');return result;
+  await screenshot('colours');
+  await verifyTimeline(evaluate,platform);
+  return {...result,textSizePreview:true,timelinePixels:true};
  });
- await run('fonts',{platform:'emery'},async({evaluate,screenshot})=>{
+ await run('fonts',{platform:'emery'},async({evaluate,screenshot,sessionId})=>{
   const fixture=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
-  const result=await evaluate('('+async function(sample){
-   const {$,open,change,save,pause,check}=testHelpers();
-   await open('colours');
-   const panel=$('[data-font-panel]');
-   const action=name=>[...panel.querySelectorAll('button')].find(node=>node.textContent===name);
-   const whole=$('[data-font-role="FONT_WATCHFACE"]'),clock=$('[data-font-role="FONT_CLOCK"]');
-   panel.querySelectorAll('details').forEach(detail=>{detail.open=true;});
-   const fileInput=panel.querySelector('input[type=file]');
-   function loadFile(bytes){
+  await send('Emulation.setTouchEmulationEnabled',{enabled:true},sessionId);
+  const touch=await evaluate('('+function(){
+   const button=document.querySelector('[data-font-role="FONT_WATCHFACE"]');
+   const {left,top,width,height}=button.getBoundingClientRect();
+   const point={x:left+width/2,y:top+height/2};
+   if(point.y>innerHeight||!button.contains(document.elementFromPoint(point.x,point.y)))throw Error('First font action is out of reach on arrival');
+   return point;
+  }.toString()+')()');
+  await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch]},sessionId);
+  await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]},sessionId);
+  await wait(200);
+  assert.ok(await evaluate('testHelpers().visible(document.querySelector("[data-font-picker]"))'),'Tapping the whole-face row opens its picker');
+  await screenshot('picker');
+  await evaluate('('+async function(sample){
+   const {$,click,check,visible,pause}=testHelpers();
+   const file=$('[data-font-panel] input[type=file]');
+   async function loadFile(bytes){
     const files=new DataTransfer();
     files.items.add(new File([bytes],'Font.ttf',{type:'font/ttf'}));
-    fileInput.files=files.files;fileInput.dispatchEvent(new Event('change',{bubbles:true}));
+    file.files=files.files;
+    file.dispatchEvent(new Event('change',{bubbles:true}));
+    await pause();
    }
-   loadFile(new Uint8Array(24));await pause();
-   check(panel.querySelector('[role=status]').textContent==='Could not import font','Invalid fonts report failure');
-   loadFile(Uint8Array.from(atob(sample),letter=>letter.charCodeAt(0)));await pause();
-   const chosen=Number(whole.value);
-   check(chosen>3&&__fontAssets[chosen],'Imported font enters the local library');
-   await change(clock,2);await save();
-   check(__saved.settings.FONT_WATCHFACE===chosen&&__saved.settings.FONT_CLOCK===2,'Whole-face and override save together');
-   action('Reset fonts').click();await pause();await save();
-   check(Object.keys(__saved.settings).filter(key=>key.startsWith('FONT_')).every(key=>!__saved.settings[key]),'Reset clears all roles');
-   return {fontImport:true,independentOverride:true,reset:true};
+   check(visible($('button[data-font-import]')),'The import action is reachable inside the role picker');
+   check(!visible($('[data-setting="TEXT_SIZE"]')),'Role picker hides editor text size');
+   await loadFile(new Uint8Array(24));
+   check($('[data-font-status]').textContent==='Could not import font','Invalid import stays actionable');
+   check(visible($('[data-font-picker]'))&&!visible($('.dynamic-save-buttons')),'A failed import leaves the prior selection intact');
+   await loadFile(Uint8Array.from(atob(sample),letter=>letter.charCodeAt(0)));
+   const chosen=Number($('button[data-font-role="FONT_WATCHFACE"]').dataset.fontId);
+   check(chosen>3&&__fontAssets[chosen]&&!visible($('[data-font-picker]')),'An import selects the new face and returns to the editor');
+   check(visible($('[data-setting="TEXT_SIZE"]')),'The main font editor restores text size');
+   await click('details[data-font-overrides] summary');
+   await click('button[data-font-role="FONT_CLOCK"]');
+   await click('button[data-font-choice="2"]');
+   await click('button[data-font-role="FONT_DATE"]');
+   check(!visible($('button[data-font-choice="2"]')),'The date excludes clock-only built-ins');
+   await click('button[data-font-choice="1"]');
+   await click('button[data-font-role="FONT_DATE"]');
+   await click('button[data-font-choice="0"]');
+   check(visible($('.dynamic-save-buttons'))&&Number($('button[data-font-role="FONT_DATE"]').dataset.fontId)===0,'Inheritance restores the whole-face choice');
+   await click('button[data-font-role="FONT_CLOCK"]');
+   await click('button[data-font-back]');
+   check(Number($('button[data-font-role="FONT_CLOCK"]').dataset.fontId)===2,'Back leaves the clock override intact');
+   await testHelpers().save();
+   check(__saved.settings.FONT_WATCHFACE===chosen&&__saved.settings.FONT_CLOCK===2&&__saved.settings.FONT_DATE===0,'The global font and override save together');
+   check(!visible($('.dynamic-save-buttons')),'Clean draft releases the action bar');
   }.toString()+')('+JSON.stringify(fixture)+')');
-  await screenshot('fonts');return result;
+  await screenshot('saved-fonts');
+  await verifyTimeline(evaluate,'emery');
+  await evaluate('('+async function(){
+   const {$,click,save,check}=testHelpers();
+   await click('button[data-font-reset]');
+   await save();
+   check(Object.keys(__saved.settings).filter(key=>key.startsWith('FONT_')).every(key=>!__saved.settings[key]),'Reset clears all font roles');
+   check(!$('[data-font-status]').textContent.includes('ready to save'),'Reset clears obsolete import feedback');
+  }.toString()+')()');
+  return {touchPicker:true,invalidImport:true,fontImport:true,independentOverride:true,inherit:true,reset:true};
  });
- await run('navigation-and-activities',{platform:'emery'},async({evaluate,screenshot})=>{
+ await run('catalog',{platform:'gabbro'},async({evaluate,screenshot})=>{
+  const sample=fs.readFileSync(path.join(root,'resources/fonts/RobotoCondensed-Bold.ttf')).toString('base64');
+  await evaluate('('+async function(sample){
+   const {$,click,check,pause,visible}=testHelpers();
+   const commit='1'.repeat(40),tree='2'.repeat(40),ofl='3'.repeat(40);
+   const api='https://api.github.com/repos/google/fonts/';
+   const raw='https://raw.githubusercontent.com/google/fonts/'+commit+'/ofl/roboto/';
+   const metadata='name: "Roboto"\nfonts {\n filename: "Roboto-Bold.ttf"\n style: "normal"\n weight: 700\n}';
+   const replies=new Map([
+    [api+'commits/main',JSON.stringify({sha:commit,commit:{tree:{sha:tree}}})],
+    [api+'git/trees/'+tree,JSON.stringify({sha:tree,tree:[{type:'tree',path:'ofl',sha:ofl}]})],
+    [api+'git/trees/'+ofl,JSON.stringify({sha:ofl,tree:[{type:'tree',path:'roboto',sha:'4'.repeat(40)}]})],
+    [raw+'METADATA.pb',metadata],
+    [raw+'Roboto-Bold.ttf',Uint8Array.from(atob(sample),c=>c.charCodeAt(0))]
+   ]);
+   let online=false;
+   window.fetch=async url=>{
+    if(!online||!replies.has(url))return new Response(null,{status:503});
+    if(url.endsWith('.ttf')&&window.holdTestDownload)await new Promise(resolve=>{window.finishTestDownload=resolve;});
+    return new Response(replies.get(url));
+   };
+   await click('details[data-font-overrides] summary');
+   await click('button[data-font-role="FONT_ACTIVITIES"]');
+   await click('button[data-font-google]');
+   check($('[data-font-status]').textContent==='Could not load Google Fonts','Offline catalog reports a recoverable error');
+   check(!visible($('.dynamic-save-buttons')),'A catalog failure leaves the draft clean');
+   await click('button[data-font-back]');
+   await click('button[data-font-role="FONT_ACTIVITIES"]');
+   online=true;
+   await click('button[data-font-google]');
+   const search=$('[data-font-search]');
+   search.value='missing';
+   search.dispatchEvent(new Event('input',{bubbles:true}));
+   await pause();
+   check(!visible($('[data-font-family]'))&&$('[data-font-status]').textContent==='No matching fonts','Empty search announces no matching families');
+   search.value='roboto';
+   search.dispatchEvent(new Event('input',{bubbles:true}));
+   await click('button[data-font-family="roboto"]');
+   check(visible($('[data-font-style]'))&&$('[data-font-style]').selectedOptions[0].textContent==='700 · Bold','The selected family exposes its available weight and style');
+  }.toString()+')('+JSON.stringify(sample)+')');
+  await screenshot('style');
+  await evaluate('('+async function(){
+   const {$,click,open,save,pause,visible,check}=testHelpers();
+   window.holdTestDownload=true;
+   await click('button[data-font-download]');
+   await open('colours');
+   const focus=document.activeElement;
+   window.holdTestDownload=false;
+   window.finishTestDownload();
+   await pause();
+   check(document.activeElement===focus&&!visible($('.dynamic-save-buttons')),'Leaving a pending font download preserves the current editor and clean draft');
+   await open('fonts');
+   check(Number($('[data-font-role="FONT_ACTIVITIES"]').dataset.fontId)===0,'An abandoned download cannot change the role');
+   await click('button[data-font-role="FONT_ACTIVITIES"]');
+   await click('button[data-font-google]');
+   await click('button[data-font-family="roboto"]');
+   await click('button[data-font-download]');
+   const role=$('[data-font-role="FONT_ACTIVITIES"]'),id=Number(role.dataset.fontId);
+   check(id>3&&__fontAssets[id]&&document.activeElement===role,'Downloading returns to the original role with its font');
+   await save();
+   check(__saved.settings.FONT_ACTIVITIES===id&&__saved.settings.FONT_WATCHFACE===0,'Download updates the selected role only');
+  }.toString()+')()');
+  return {offlineRetry:true,emptySearch:true,abandonedDownload:true,catalogDownload:true,target:'activities'};
+ });
+ await run('navigation-and-activities',{platform:'emery',settings:{READING_LAYOUT:2,SCREEN_SPLIT:true}},async({evaluate,screenshot})=>{
   const result=await evaluate('('+async function(){
-   const {$,visible,pause,setting,open,choose,toggle,change,save,check}=testHelpers();
+   const {$,visible,pause,setting,open,choose,toggle,change,save,click,check}=testHelpers();
    const colourKeys=['BACKGROUND_COLOR','TEXT_COLOR','ACCENT_COLOR','LOWER_BACKGROUND_COLOR','LOWER_TEXT_COLOR'];
    await open('layout');check(!visible($('#dynamic-reading-page')),'Unused preview page hidden');
    $('#dynamic-preview-expand').click();await pause();check(visible($('#dynamic-preview-controls')),'Expanded preview');
@@ -122,6 +282,7 @@ async function run(name,options,check){
    await change('#dynamic-edit-palette-select','night');check(!visible(setting('NIGHT_LOWER_BACKGROUND_COLOR')),'Solid hides night details');
    check(colourKeys.every(key=>!visible(setting(key))),'Inactive day palette hidden');
    await change('#dynamic-appearance-choice-select','quiet');
+   await open('activities');await click('.dynamic-back');check(visible($('#dynamic-screen-colours')),'Back restores the previous editor tab');
    await open('activities');check(!visible($('.dynamic-preview-card')),'No irrelevant activity preview');
    check(!visible($('.dynamic-activity-handle'))&&!visible($('.dynamic-activity-move')),'Normal list is compact');
    const first=$('.dynamic-activity-row').getAttribute('data-provider');
@@ -169,7 +330,7 @@ async function run(name,options,check){
   const result=await evaluate('('+async function(){
    const {$,visible,open,choose,change,save,check}=testHelpers();
    await open('colours');const legacy=$('#dynamic-appearance-choice-select [value="legacy"]');check(legacy&&legacy.disabled&&legacy.selected,'Legacy mode retained and explained');
-   await open('more');await choose('TEXT_SIZE',3);await save();
+   await open('fonts');await choose('TEXT_SIZE',3);await save();
    check(__saved.settings.APPEARANCE_MODE===0&&__saved.settings.MANUAL_APPEARANCE===1,'Unrelated save preserves legacy fallback');
    check(__saved.settings.BACKGROUND_COLOR===0x123456&&__saved.settings.NIGHT_TEXT_COLOR===0xabcdef,'Untouched raw RGB values preserved');
    await open('colours');await change('#dynamic-edit-palette-select','day');
@@ -192,8 +353,8 @@ async function run(name,options,check){
  for(const language of ['cs','de','fr','tr'])await run('narrow-'+language,{platform:language==='de'?null:'gabbro',width:320,language,dark:true},async({evaluate,screenshot,sessionId})=>{
   await evaluate('('+async function(){
    const {$,visible,pause,open,check}=testHelpers();
-   check(document.documentElement.scrollWidth<=innerWidth,'Narrow overview overflow');
-   for(const id of ['layout','colours','activities','more']){await open(id);check(document.documentElement.scrollWidth<=innerWidth,'Narrow '+id+' overflow');}
+   check(document.documentElement.scrollWidth<=innerWidth,'Narrow Fonts landing overflow');
+   for(const id of ['fonts','colours','layout','activities','more']){await open(id);check(document.documentElement.scrollWidth<=innerWidth,'Narrow '+id+' overflow');}
    await open('layout');$('#dynamic-preview-expand').click();await pause();
    check(document.documentElement.scrollWidth<=innerWidth,'Expanded narrow preview overflow');
    if($('#dynamic-preview-watch'))check(visible($('#dynamic-preview-watch')),'Unknown watch selector');
@@ -201,12 +362,22 @@ async function run(name,options,check){
   await evaluate('testHelpers().open("colours")');await screenshot('colours');
   await evaluate('testHelpers().open("activities")');await screenshot('activities');
   await evaluate('('+async function(){
-   const {check,pause,open}=testHelpers();const style=document.createElement('style');style.textContent='#main-form,#main-form input,#main-form select,#main-form button,#main-form label,#main-form .label,#main-form strong,#main-form small,#main-form p,#main-form summary,#main-form h3{font-size:32px!important}';document.head.appendChild(style);await pause();
-   for(const id of ['layout','colours','activities','more']){await open(id);check(document.documentElement.scrollWidth<=innerWidth,'Large text '+id+' overflow');}
+   const {check,pause,open,click}=testHelpers();const style=document.createElement('style');style.textContent='#main-form,#main-form input,#main-form select,#main-form button,#main-form label,#main-form .label,#main-form strong,#main-form small,#main-form p,#main-form summary,#main-form h3{font-size:32px!important}';document.head.appendChild(style);await pause();
+   for(const id of ['fonts','colours','layout','activities','more']){await open(id);check(document.documentElement.scrollWidth<=innerWidth,'Large text '+id+' overflow');}
+   await open('fonts');
+   for(const tab of document.querySelectorAll('.dynamic-editor-tab')){
+    const node=tab.firstChild;
+    for(const match of node.textContent.matchAll(/\S+/g)){
+     const word=document.createRange();word.setStart(node,match.index);word.setEnd(node,match.index+match[0].length);
+     check(word.getClientRects().length===1,'Large text splits a word in the '+tab.textContent+' tab');
+    }
+   }
+   await click('button[data-font-role="FONT_WATCHFACE"]');
+   check(document.documentElement.scrollWidth<=innerWidth,'Large text font picker overflow');
   }.toString()+')()');await screenshot('large-text');
   await send('Emulation.setDeviceMetricsOverride',{width:320,height:360,deviceScaleFactor:1,mobile:true},sessionId);await wait(200);
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".component-submit")).position'), 'static','Short viewport keeps footer in flow');
-  return {width:320,dark:true,language,categories:4,largeText:true,shortViewport:true};
+  return {width:320,dark:true,language,editorTabs:3,secondaryScreens:2,largeText:true,shortViewport:true};
  });
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({result:'PASS',scope:'Actual generated configuration HTML in Chromium with a simulated Pebble bridge; no real phone or watch claim.',checks:reports},null,2)+'\n');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{await send('Browser.close').catch(()=>{});browser.kill();fs.closeSync(log);});

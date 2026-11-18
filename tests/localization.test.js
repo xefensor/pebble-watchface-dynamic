@@ -36,7 +36,7 @@ for(const language of languages)test(language+' translates every active control 
   assert.ok(english.length>25);
   translated.forEach((value,index)=>{
     assert.ok(value.length>0,english[index]);
-    const sharedWord=english[index]==='Dynamic'||['es','pt','ro'].includes(language)&&english[index]==='Manual'||language==='fr'&&['Complications','Animations','Notifications'].includes(english[index]);
+    const sharedWord=english[index]==='Dynamic'||english[index]==='Layout'&&['de','it','da','sv'].includes(language)||['es','pt','ro'].includes(language)&&english[index]==='Manual'||language==='fr'&&['Complications','Animations','Notifications'].includes(english[index]);
     if(language!=='en'&&!sharedWord)assert.notEqual(value,english[index],english[index]);
     assert.doesNotMatch(value,/Halftone|halftone/);
   });
@@ -303,7 +303,7 @@ test('settings cleanup removes obsolete copy and translates the shared priority 
   const active=visible(config).join('\n');
   assert.doesNotMatch(active,/Clock mark|last-reported|Music & notifications|Both shrink above music/);
   assert.deepEqual(config.filter(item=>item.type==='section').map(item=>item.items[0].defaultValue),
-    ['Layout & complications','Colours','Activities','More & help']);
+    ['Fonts','Layout','Colours','Activities','Help & status']);
   for(const language of languages) {
     const strings=localization.settingsStrings(language);
     for(const key of ['content','previewBanner','animationsHelp','activitiesHelp','notificationDetails','notificationDisabledHelp','activityPluginsOffHelp']) {

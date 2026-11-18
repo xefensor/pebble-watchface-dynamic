@@ -59,7 +59,8 @@ function install(options, createFont) {
   const cached = new Map(), requested = new Set();
   const library = new Map((options.library || []).map(font => [font.id,font.name]));
   let catalog, selectedFamily, familyRequest = 0;
-  const pickers = [];
+  let editing = null, session = 0, busy = false;
+  const rows = [];
 
   function make(tag, value) {
     const node = document.createElement(tag);
@@ -100,81 +101,201 @@ function install(options, createFont) {
       const font = result && result.ok && parseAsset(result.asset);
       if (font) {
         cached.set(id, font);
+        if (id === choice(0)) drawSpecimen();
         update();
       }
     });
   }
-  function refresh() {
-    reset.disabled = !fields.some(field => Number(field.get()));
-    pickers.forEach((picker, index) => {
-      const current = Number(fields[index].get());
-      const items = [option(0,t(index ? 'Use whole-watchface font' : builtIn[0])), option(1,t(builtIn[1]))];
-      if (index === 1) items.push(option(2,t(builtIn[2])),option(3,t(builtIn[3])));
-      for (const [id, name] of library) items.push(option(id,name));
-      if (current > 3 && !library.has(current)) items.push(option(current,t('Font saved on watch')));
-      picker.replaceChildren(...items);
-      picker.value = current;
-      previewLoad(choice(index));
-    });
+  function fontName(role, id) {
+    if (!id && role) return t('Use whole-watchface font');
+    return id <= 3 ? t(builtIn[id]) : library.get(id) || t('Font saved on watch');
   }
-  const heading = make('h3','Fonts');
-  host.replaceChildren(heading);
-  const global = select(host,names[0]);
-  const overrides = make('details');
+  function mark(node, attribute) {
+    node.setAttribute(attribute,'');
+    return node;
+  }
+
+  const overview = make('div');
+  overview.className = 'dynamic-font-list';
+  host.replaceChildren(overview);
+  const overrides = mark(make('details'),'data-font-overrides');
   overrides.className = 'dynamic-details';
   overrides.append(make('summary','Font overrides'));
-  host.append(overrides);
-  pickers.push(global,...names.slice(1).map(name => select(overrides,name)));
-  pickers.forEach((picker, index) => {
-    picker.dataset.fontRole = assets.fields[index];
-    picker.addEventListener('change', () => {
-      fields[index].set(Number(picker.value));
-      previewLoad(choice(index));
-      reset.disabled = !fields.some(field => Number(field.get()));
-      update();
-    });
-  });
+  function roleRow(parent, role) {
+    const row = button(parent);
+    row.className = 'dynamic-font-row';
+    row.dataset.fontRole = assets.fields[role];
+    row.setAttribute('aria-controls','dynamic-font-picker');
+    const value = make('span');
+    value.className = 'dynamic-font-value';
+    const arrow = make('span');
+    arrow.setAttribute('aria-hidden','true');
+    arrow.className = 'dynamic-font-arrow';
+    arrow.textContent = '›';
+    row.append(make('strong',names[role]),value,arrow);
+    row.addEventListener('click',() => openPicker(role));
+    rows.push({row,value});
+  }
+  roleRow(overview,0);
+  const specimen = make('canvas');
+  specimen.className = 'dynamic-font-specimen';
+  specimen.width = 172;
+  specimen.height = 48;
+  specimen.setAttribute('aria-hidden','true');
+  rows[0].row.append(specimen);
+  overview.append(overrides);
+  names.slice(1).forEach((name,index) => roleRow(overrides,index+1));
   if (fields.slice(1).some(field => Number(field.get()))) overrides.open = true;
+  const reset = mark(button(overview,'Reset fonts'),'data-font-reset');
+  reset.addEventListener('click',() => {
+    fields.forEach(field => field.set(0));
+    refresh();
+    if (options.onRole) options.onRole(0);
+    update();
+  });
 
-  const sources = make('details');
-  sources.className = 'dynamic-details';
-  sources.append(make('summary','Get more fonts'));
-  const destination = select(sources,'Apply to');
-  names.forEach((name,index) => destination.append(option(index,t(name))));
-  const status = make('p');
-  status.setAttribute('role','status');
+  const picker = mark(make('section'),'data-font-picker');
+  picker.id = 'dynamic-font-picker';
+  picker.className = 'dynamic-font-picker';
+  picker.setAttribute('aria-labelledby','dynamic-font-picker-title');
+  picker.hidden = true;
+  host.append(picker);
+  const back = mark(button(picker,'Back to fonts'),'data-font-back');
+  back.addEventListener('click',() => dismiss());
+  const title = make('h3');
+  title.id = 'dynamic-font-picker-title';
+  title.tabIndex = -1;
+  picker.append(title);
+  const choices = make('div');
+  choices.className = 'dynamic-font-options';
+  picker.append(choices);
   const actions = make('div');
-  actions.className = 'dynamic-presets';
-  sources.append(actions);
-  const importButton = button(actions,'Import font');
+  actions.className = 'dynamic-font-sources';
+  picker.append(actions);
+  const browse = mark(button(actions,'Browse Google Fonts'),'data-font-google');
+  const importButton = mark(button(actions,'Import font'),'data-font-import');
   const fileInput = make('input');
   fileInput.type = 'file';
   fileInput.accept = '.ttf,.otf,font/ttf,font/otf';
   fileInput.hidden = true;
-  sources.append(fileInput);
-  const browse = button(actions,'Browse Google Fonts');
-  const defaults = make('div');
-  defaults.className = 'dynamic-presets';
-  const reset = button(defaults,'Reset fonts');
-  reset.addEventListener('click',() => {
-    fields.forEach(field => field.set(0));
-    refresh();
-    update();
-  });
+  actions.append(fileInput);
   const browsePanel = make('div');
+  browsePanel.id = 'dynamic-google-fonts';
   browsePanel.hidden = true;
-  sources.append(browsePanel,status);
-  host.append(sources,defaults);
-  const search = make('input');
-  search.type = 'search';
-  search.placeholder = t('Search Google Fonts');
+  browse.setAttribute('aria-controls',browsePanel.id);
+  browse.setAttribute('aria-expanded','false');
+  const status = mark(make('p'),'data-font-status');
+  status.setAttribute('role','status');
+  picker.append(browsePanel,status);
   const searchLabel = make('label','Search Google Fonts');
+  const search = mark(make('input'),'data-font-search');
+  search.type = 'search';
   searchLabel.append(search);
   browsePanel.append(searchLabel);
-  const familyPicker = select(browsePanel,'Font family');
-  const stylePicker = select(browsePanel,'Style');
-  const download = button(browsePanel,'Add font');
+  const families = make('div');
+  families.className = 'dynamic-font-results';
+  families.setAttribute('role','group');
+  families.setAttribute('aria-label',t('Font family'));
+  browsePanel.append(families);
+  const more = button(browsePanel,'More results');
+  more.hidden = true;
+  const styles = make('div');
+  styles.hidden = true;
+  browsePanel.append(styles);
+  const stylePicker = mark(select(styles,'Style'),'data-font-style');
+  const download = mark(button(styles,'Add font'),'data-font-download');
   download.disabled = true;
+
+  function drawSpecimen() {
+    const ctx = specimen.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0,0,specimen.width,specimen.height);
+    ctx.fillStyle = window.getComputedStyle(specimen).color;
+    ctx.textAlign = 'left';
+    preview(ctx,0,'12:34   Aa',34,true,2,36,specimen.width-4);
+  }
+  function refresh() {
+    reset.hidden = !fields.some(field => Number(field.get()));
+    rows.forEach(({row,value}, role) => {
+      const id = Number(fields[role].get()) || 0;
+      value.textContent = fontName(role,id);
+      row.dataset.fontId = String(id);
+      previewLoad(choice(role));
+    });
+    drawSpecimen();
+    if (editing !== null) showChoices();
+  }
+  function showChoices() {
+    choices.replaceChildren();
+    function add(id) {
+      const btn = button(choices);
+      btn.className = 'dynamic-font-option';
+      btn.dataset.fontChoice = String(id);
+      const current = id === Number(fields[editing].get());
+      btn.setAttribute('aria-pressed',String(current));
+      btn.textContent = fontName(editing,id);
+      if (current) {
+        const check = make('span');
+        check.textContent = '✓';
+        check.setAttribute('aria-hidden','true');
+        btn.append(check);
+      }
+      btn.addEventListener('click',() => choose(id));
+    }
+    choices.append(make('h4','Built-in fonts'));
+    (editing === 1 ? [0,1,2,3] : [0,1]).forEach(add);
+    const current = Number(fields[editing].get());
+    if (library.size || current > 3) choices.append(make('h4','Saved fonts'));
+    for (const id of library.keys()) add(id);
+    if (current > 3 && !library.has(current)) add(current);
+  }
+  function openPicker(role) {
+    ++session;
+    editing = role;
+    setBusy(false);
+    title.textContent = t(names[role]);
+    showChoices();
+    overview.hidden = true;
+    picker.hidden = false;
+    if (options.onPickerChange) options.onPickerChange(true);
+    status.textContent = '';
+    browsePanel.hidden = true;
+    browse.setAttribute('aria-expanded','false');
+    browse.disabled = false;
+    importButton.disabled = false;
+    if (options.onRole) options.onRole(role);
+    title.focus();
+  }
+  function dismiss(restoreFocus = true) {
+    if (editing === null) return false;
+    const role = editing;
+    editing = null;
+    ++session;
+    ++familyRequest;
+    picker.hidden = true;
+    overview.hidden = false;
+    if (options.onPickerChange) options.onPickerChange(false);
+    if (restoreFocus) rows[role].row.focus({preventScroll:true});
+    return true;
+  }
+  function choose(id) {
+    if (editing === null) return;
+    const role = editing;
+    fields[role].set(id);
+    dismiss();
+    refresh();
+    if (options.onRole) options.onRole(role);
+    update();
+  }
+  function setBusy(value) {
+    busy = value;
+    picker.setAttribute('aria-busy',String(value));
+    for (const group of [choices,actions,browsePanel]) group.inert = value;
+  }
+  if (window.matchMedia) {
+    const theme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (theme.addEventListener) theme.addEventListener('change', drawSpecimen);
+  }
 
   function formatBytes(bytes) {
     let text = '';
@@ -183,7 +304,8 @@ function install(options, createFont) {
     }
     return btoa(text);
   }
-  async function addFont(bytes,name,weight,target) {
+  async function addFont(bytes,name,weight,request) {
+    if (request !== session) return;
     if (bytes.length < 12 || bytes.length > MAX_INPUT) throw Error('Font size');
     const signature = new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(0);
     if (signature !== 0x00010000 && signature !== 0x4f54544f && signature !== 0x74727565) {
@@ -197,23 +319,20 @@ function install(options, createFont) {
     if (!saved || !saved.ok) throw Error('Phone storage');
     cached.set(asset.id,parseAsset(asset));
     library.set(asset.id,asset.name);
-    fields[target].set(asset.id);
-    if (target) overrides.open = true;
-    refresh();
-    update();
-    status.textContent = t('Font ready to save');
+    if (request === session) choose(asset.id);
   }
   async function importNative() {
     let grant;
-    const target = Number(destination.value);
+    const request = session;
     status.textContent = '';
-    importButton.disabled = true;
+    setBusy(true);
     try {
       [grant] = await Pebble.showOpenFilePicker({types:[{accept:{'font/ttf':['.ttf'],'font/otf':['.otf']}}]});
-      if (!grant) return;
+      if (!grant || request !== session) return;
       let bytes;
       for (let offset = 0; !bytes || offset < bytes.length;) {
         const result = await message({type:'font_file',id:grant.id,offset});
+        if (request !== session) return;
         if (!result || !result.ok || !Number.isInteger(result.size) || result.size > MAX_INPUT ||
             result.offset !== offset || !Array.isArray(result.bytes) || !result.bytes.length) throw Error('Font file');
         if (!bytes) bytes = new Uint8Array(result.size);
@@ -221,11 +340,11 @@ function install(options, createFont) {
         bytes.set(result.bytes, offset);
         offset += result.bytes.length;
       }
-      await addFont(bytes,null,0,target);
+      await addFont(bytes,null,0,request);
     } catch (error) {
-      if (error.name !== 'AbortError') status.textContent = t('Could not import font');
+      if (request === session && error.name !== 'AbortError') status.textContent = t('Could not import font');
     } finally {
-      importButton.disabled = false;
+      if (request === session) setBusy(false);
       if (grant && Pebble.fileSystem && Pebble.fileSystem.revoke) {
         try { await Pebble.fileSystem.revoke(grant.id); } catch (ignored) {}
       }
@@ -239,17 +358,17 @@ function install(options, createFont) {
     }
   });
   fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0], target = Number(destination.value);
-    if (!file) return;
+    const file = fileInput.files[0], request = session;
+    if (!file || editing === null || busy) return;
     status.textContent = '';
-    importButton.disabled = true;
+    setBusy(true);
     try {
       if (file.size > MAX_INPUT || !/\.(ttf|otf)$/i.test(file.name)) throw Error('Font type or size');
-      await addFont(new Uint8Array(await file.arrayBuffer()),null,0,target);
+      await addFont(new Uint8Array(await file.arrayBuffer()),null,0,request);
     } catch (ignored) {
-      status.textContent = t('Could not import font');
+      if (request === session) status.textContent = t('Could not import font');
     } finally {
-      importButton.disabled = false;
+      if (request === session) setBusy(false);
       fileInput.value = '';
     }
   });
@@ -272,53 +391,95 @@ function install(options, createFont) {
     if (!Array.isArray(data.tree) || data.truncated || !/^[a-f0-9]{40}$/.test(data.sha)) throw Error('Font catalog');
     return data;
   }
+  const batchSize = 12;
+  let results = [], shown = 0;
+  function showMore() {
+    const end = Math.min(shown + batchSize,results.length);
+    for (const entry of results.slice(shown,end)) {
+      const btn = button(families);
+      btn.dataset.fontFamily = entry.slug;
+      btn.textContent = entry.label;
+      btn.setAttribute('aria-pressed','false');
+      btn.addEventListener('click',() => selectFamily(entry,btn));
+    }
+    shown = end;
+    more.hidden = shown >= results.length;
+  }
+  more.addEventListener('click',() => {
+    const first = shown;
+    showMore();
+    const next = families.querySelectorAll('button[data-font-family]')[first];
+    if (next) next.focus();
+  });
   function catalogResults() {
     ++familyRequest;
     selectedFamily = null;
+    styles.hidden = true;
     stylePicker.replaceChildren();
     download.disabled = true;
     const term = search.value.toLowerCase().replace(/[^a-z0-9]/g,'');
-    const found = (catalog || []).filter(family => family.slug.includes(term));
-    familyPicker.replaceChildren(option('',t('Choose a family')),...found.map((font,index) => option(index,font.label)));
-    familyPicker.disabled = !found.length;
-    return found;
+    results = (catalog || []).filter(family => family.slug.includes(term));
+    families.replaceChildren();
+    shown = 0;
+    showMore();
+    if (catalog) status.textContent = results.length ? '' : t('No matching fonts');
   }
-  let visibleFamilies=[];
+  async function loadCatalog() {
+    const tip = JSON.parse(new TextDecoder().decode(await fetchFile(repository+'commits/main')));
+    const revision = tip.sha, rootId = tip.commit?.tree?.sha;
+    if (!/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(rootId)) throw Error('Font catalog revision');
+    const root = await tree(rootId);
+    const groups = root.tree.filter(entry => entry.type === 'tree' && ['ofl','apache','ufl'].includes(entry.path) &&
+        /^[a-f0-9]{40}$/.test(entry.sha));
+    const folders = await Promise.all(groups.map(async group => {
+      const list = await tree(group.sha);
+      return list.tree.filter(entry => entry.type === 'tree' && /^[a-z0-9]+$/.test(entry.path)).map(entry => ({
+        slug:entry.path, label:entry.path[0].toUpperCase()+entry.path.slice(1), path:group.path+'/'+entry.path, revision,
+      }));
+    }));
+    const sorted = folders.flat().sort((a,b) => a.slug.localeCompare(b.slug));
+    if (!sorted.length) throw Error('Empty font catalog');
+    return sorted;
+  }
+  let catalogRequest = null;
   browse.addEventListener('click', async () => {
-    browsePanel.hidden = false;
+    const opening = browsePanel.hidden;
+    browsePanel.hidden = !opening;
+    browse.setAttribute('aria-expanded',String(opening));
+    if (!opening) {
+      ++familyRequest;
+      status.textContent = '';
+      return;
+    }
+    const request = session;
+    search.value = '';
+    catalogResults();
+    search.focus();
     if (catalog) return;
-    browse.disabled = true;
     status.textContent = t('Loading Google Fonts…');
     try {
-      const tip = JSON.parse(new TextDecoder().decode(await fetchFile(repository+'commits/main')));
-      const revision = tip.sha, rootId = tip.commit?.tree?.sha;
-      if (!/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(rootId)) throw Error('Font catalog revision');
-      const root = await tree(rootId);
-      const groups = root.tree.filter(entry => entry.type === 'tree' && ['ofl','apache','ufl'].includes(entry.path) &&
-          /^[a-f0-9]{40}$/.test(entry.sha));
-      const families = await Promise.all(groups.map(async group => {
-        const list = await tree(group.sha);
-        return list.tree.filter(entry => entry.type === 'tree' && /^[a-z0-9]+$/.test(entry.path)).map(entry => ({
-          slug:entry.path, label:entry.path[0].toUpperCase()+entry.path.slice(1), path:group.path+'/'+entry.path, revision,
-        }));
-      }));
-      catalog = families.flat().sort((a,b) => a.slug.localeCompare(b.slug));
-      if (!catalog.length) throw Error('Empty font catalog');
-      visibleFamilies = catalogResults();
-      status.textContent = '';
+      if (!catalogRequest) catalogRequest = loadCatalog().finally(() => {catalogRequest = null;});
+      catalog = await catalogRequest;
+      if (request === session && !browsePanel.hidden) catalogResults();
     } catch (ignored) {
-      status.textContent = t('Could not load Google Fonts');
-    } finally {
-      browse.disabled = false;
+      if (request === session && !browsePanel.hidden) {
+        browsePanel.hidden = true;
+        browse.setAttribute('aria-expanded','false');
+        status.textContent = t('Could not load Google Fonts');
+        browse.focus();
+      }
     }
   });
-  search.addEventListener('input',() => {visibleFamilies = catalogResults();});
-  familyPicker.addEventListener('change', async () => {
-    const request = ++familyRequest, entry = familyPicker.value === '' ? null : visibleFamilies[Number(familyPicker.value)];
+  search.addEventListener('input',catalogResults);
+  async function selectFamily(entry,btn) {
+    const request = ++familyRequest;
     selectedFamily = null;
+    styles.hidden = true;
     stylePicker.replaceChildren();
     download.disabled = true;
-    if (!entry) { status.textContent = ''; return; }
+    for (const other of families.querySelectorAll('button[data-font-family]')) {
+      other.setAttribute('aria-pressed',String(other === btn));
+    }
     status.textContent = t('Loading Google Fonts…');
     const url = rawBase + entry.revision + '/' + entry.path + '/';
     try {
@@ -326,28 +487,41 @@ function install(options, createFont) {
       if (request !== familyRequest) return;
       if (!detail.name || !detail.variants.length) throw Error('Missing font metadata');
       selectedFamily = {url,name:detail.name,variants:detail.variants};
-      stylePicker.replaceChildren(...detail.variants.map((variant,index) => option(index,variant.label)));
+      btn.textContent = entry.label = detail.name;
+      stylePicker.replaceChildren(...detail.variants.map((variant,index) => {
+        const weight = styleName(variant.weight,'normal');
+        const label = weight === String(variant.weight) ? weight : t(variant.weight+' · '+weight);
+        return option(index,variant.label.endsWith(' Italic') ? label+' · '+t('Italic') : label);
+      }));
       const regular = detail.variants.findIndex(variant => variant.label === 'Regular');
       if (regular >= 0) stylePicker.value = regular;
+      // Keep style and Add adjacent to the selected family, including when
+      // the user has loaded several pages of results.
+      btn.after(styles);
+      styles.hidden = false;
       download.disabled = false;
-      status.textContent = detail.name;
+      status.textContent = '';
     } catch (ignored) {
       if (request === familyRequest) status.textContent = t('Could not load Google Fonts');
     }
-  });
+  }
   download.addEventListener('click', async () => {
     const family = selectedFamily, variant = family && family.variants[Number(stylePicker.value)];
-    if (!variant) return;
-    const target = Number(destination.value);
+    if (busy || !variant) return;
+    const request = session;
+    setBusy(true);
     download.disabled = true;
     status.textContent = t('Loading Google Fonts…');
     try {
       const bytes = new Uint8Array(await fetchFile(family.url+encodeURIComponent(variant.file)));
-      await addFont(bytes,family.name+' '+variant.label,variant.variable ? variant.weight : 0,target);
+      if (request === session) await addFont(bytes,family.name+' '+variant.label,variant.variable ? variant.weight : 0,request);
     } catch (ignored) {
-      status.textContent = t('Could not add Google Font');
+      if (request === session) status.textContent = t('Could not add Google Font');
     } finally {
-      download.disabled = !selectedFamily;
+      if (request === session) {
+        setBusy(false);
+        download.disabled = !selectedFamily;
+      }
     }
   });
   refresh();
@@ -404,7 +578,10 @@ function install(options, createFont) {
     ctx.restore();
     return {ascent,descent};
   }
-  return {refresh,preview,custom:() => fields.some(field => Number(field.get()))};
+  function clearStatus() {
+    if (!busy && status.textContent !== t('Loading Google Fonts…')) status.textContent = '';
+  }
+  return {refresh,preview,dismiss,clearStatus,custom:() => fields.some(field => Number(field.get()))};
 }
 
 module.exports = {install,catalogDetails};

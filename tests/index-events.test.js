@@ -36,9 +36,11 @@ function fixture(settings = {}, locales = {}) {
     require: name => {
       imports.push(name);
       if (name === 'message_keys') return keys;
+      if (name === './settings-editor-style') return require('../src/pkjs/settings-editor-style');
       if (name === 'pebble-xoce-ui/settings-style') return require('pebble-xoce-ui/settings-style');
       if (name === '../common/activity-navigation') return require('../src/common/activity-navigation');
       if (name === '../common/settings-state') return require('../src/common/settings-state');
+      if (name === '../common/font-assets') return require('../src/common/font-assets');
       if (name === '../common/settings-config') return require('../src/common/settings-config');
       if (name === './display-controller') return require('../src/pkjs/display-controller');
       if (name === './config') return require('../src/pkjs/config');
@@ -307,6 +309,33 @@ test('disabled plugin status is explicit and locale lookup falls back to the pho
   assert.equal(f.options.getSettings().language,'cs');
   const english=fixture({}, {watch:'ja-JP',phone:'ko-KR'});english.status.available=false;english.handlers.showConfiguration();
   assert.match(item(english,'complications-status').defaultValue,/Enable plugins in Pebble/);
+});
+
+test('legacy settings can assign stored fonts and retain a watch-only choice',()=>{
+  const savedFont=43000021,watchFont=42000022;
+  const library=JSON.stringify([{id:savedFont,name:'Atlas <Bold>'}]);
+  const f=fixture({[keys.FONT_CLOCK]:{value:3},FONT_DATE:watchFont},
+    {watch:'cs',storage:{'dynamic-font-library-v1':library}});
+  f.handlers.showConfiguration();
+  assert.equal(f.urls.length,1);
+  const global=named(f,'FONT_WATCHFACE'), clock=named(f,'FONT_CLOCK'), date=named(f,'FONT_DATE');
+  assert.equal(global.type,'select');
+  assert.equal(global.serializeValueAs,'integer');
+  assert.deepEqual(Array.from(global.options,item=>item.value),[0,1,savedFont]);
+  assert.equal(global.options.at(-1).label,'Atlas %3CBold>');
+  assert.deepEqual(Array.from(clock.options,item=>item.value),[0,1,2,3,savedFont]);
+  assert.equal(clock.defaultValue,3);
+  assert.equal(date.options[0].label,'Použít písmo ciferníku');
+  assert.equal(date.defaultValue,watchFont);
+  assert.equal(date.options.at(-1).value,watchFont);
+  assert.equal(date.options.at(-1).label,'Písmo uložené v hodinkách');
+  f.handlers.webviewclosed({response:JSON.stringify({
+    FONT_WATCHFACE:{value:savedFont},FONT_ACTIVITIES:{value:1}
+  })});
+  f.handlers.showConfiguration();
+  assert.equal(named(f,'FONT_WATCHFACE').defaultValue,savedFont);
+  assert.equal(named(f,'FONT_ACTIVITIES').defaultValue,1);
+  assert.equal(named(f,'FONT_DATE').defaultValue,watchFont);
 });
 
 test('settings delivery retries busy transport, then reconfigures once',()=>{
@@ -593,11 +622,11 @@ test('unknown system-format remains explicit metadata instead of inventing a wat
   assert.equal(require('../src/pkjs/settings-preview').systemFormat,undefined,'shared sample assets are not mutated');
   assert.deepEqual(f.settings(),{CLOCK_FORMAT:0});
 });
-test('settings group layout, palettes, activities and help into four categories',()=>{
+test('settings group editor controls and link to activities and help',()=>{
   const f=fixture();f.handlers.showConfiguration();
   const sections=f.clay.config.filter(x=>x.type==='section');
-  assert.equal(sections.length,4);
-  assert.deepEqual(sections.map(x=>x.items[0].defaultValue),['Layout & complications','Colours','Activities','More & help']);
+  assert.equal(sections.length,5);
+  assert.deepEqual(sections.map(x=>x.items[0].defaultValue),['Fonts','Layout','Colours','Activities','Help & status']);
 });
 
 

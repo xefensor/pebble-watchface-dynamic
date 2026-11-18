@@ -1,27 +1,33 @@
 'use strict';
 
-// One Clay form owns the draft; the page hook presents four category screens.
+// One Clay form owns the draft; the editor and its secondary screens share it.
 module.exports = [
   {"type":"heading","defaultValue":"Dynamic"},
-  {"type":"text","id":"dynamic-overview","defaultValue":"Settings"},
-  {"type":"text","id":"dynamic-preview","defaultValue":"Layout & colour preview"},
+  {"type":"text","id":"dynamic-preview","defaultValue":"Watch preview"},
   {type:'section',items:[
-    {"type":"heading","defaultValue":"Layout & complications"},
-    {"type":"select","messageKey":"READING_LAYOUT","defaultValue":0,"label":"Reading layout","serializeValueAs":"integer","options":[{"label":"Columns","value":0},{"label":"Stacked rows","value":1},{"label":"Four when idle","value":2}],"description":"Four readings in a compact grid when idle; the selected pair stays visible with an activity or Timeline Peek."},
-    {"type":"toggle","messageKey":"HIDE_READING_TITLES","defaultValue":false,"label":"Hide reading titles","description":"Units, required qualifiers and unavailable states stay visible."},
-    {"type":"toggle","messageKey":"SHAKE_READINGS","defaultValue":false,"label":"Shake to switch readings","description":"Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake."},
-    {"type":"text","id":"dynamic-readings","defaultValue":"Your two readings"},
-    {"type":"text","id":"dynamic-reading-help","defaultValue":"Choose slots 1 and 2 in Pebble → Settings → Complications."},
-  ]},
-  {type:'section',items:[
-    {"type":"heading","defaultValue":"Colours"},
-    {"type":"text","id":"dynamic-appearance-choice","defaultValue":"Watch appearance"},
+    {"type":"heading","defaultValue":"Fonts"},
     {"type":"text","id":"dynamic-fonts","defaultValue":"Fonts"},
     {"type":"input","messageKey":"FONT_WATCHFACE","label":"Whole watchface","defaultValue":0,"serializeValueAs":"integer"},
     {"type":"input","messageKey":"FONT_CLOCK","label":"Clock","defaultValue":0,"serializeValueAs":"integer"},
     {"type":"input","messageKey":"FONT_DATE","label":"Date","defaultValue":0,"serializeValueAs":"integer"},
     {"type":"input","messageKey":"FONT_READINGS","label":"Readings","defaultValue":0,"serializeValueAs":"integer"},
     {"type":"input","messageKey":"FONT_ACTIVITIES","label":"Activities","defaultValue":0,"serializeValueAs":"integer"},
+    {"type":"select","messageKey":"TEXT_SIZE","defaultValue":0,"label":"Text size","serializeValueAs":"integer","options":[{"label":"Follow Pebble","value":0},{"label":"Small","value":1},{"label":"Medium","value":2},{"label":"Large","value":3}]},
+  ]},
+  {type:'section',items:[
+    {"type":"heading","defaultValue":"Layout"},
+    {"type":"select","messageKey":"READING_LAYOUT","defaultValue":0,"label":"Reading layout","serializeValueAs":"integer","options":[{"label":"Columns","value":0},{"label":"Stacked rows","value":1},{"label":"Four when idle","value":2}],"description":"Four readings in a compact grid when idle; the selected pair stays visible with an activity or Timeline Peek."},
+    {"type":"toggle","messageKey":"HIDE_READING_TITLES","defaultValue":false,"label":"Hide reading titles","description":"Units, required qualifiers and unavailable states stay visible."},
+    {"type":"toggle","messageKey":"SHAKE_READINGS","defaultValue":false,"label":"Shake to switch readings","description":"Cycle Pebble slots 1–2, 3–4 and 5. The page stays selected until the next shake."},
+    {"type":"select","messageKey":"CLOCK_FORMAT","defaultValue":0,"label":"Time format","serializeValueAs":"integer","options":[{"label":"Follow Pebble","value":0},{"label":"12-hour time","value":12},{"label":"24-hour time","value":24}]},
+    {"type":"toggle","messageKey":"ANIMATIONS","defaultValue":true,"label":"Animations","description":"Short transitions when activities change."},
+    {"type":"toggle","messageKey":"SHOW_STATUS","defaultValue":true,"label":"Status indicators","description":"Low watch or phone battery and lost connection."},
+    {"type":"text","id":"dynamic-readings","defaultValue":"Your two readings"},
+    {"type":"text","id":"dynamic-reading-help","defaultValue":"Choose slots 1 and 2 in Pebble → Settings → Complications."},
+  ]},
+  {type:'section',items:[
+    {"type":"heading","defaultValue":"Colours"},
+    {"type":"text","id":"dynamic-appearance-choice","defaultValue":"Watch appearance"},
     {"type":"text","id":"dynamic-appearance-unavailable","defaultValue":"Follow Pebble appearance is unavailable on this build. It uses your last Light or Dark choice."},
     {"type":"text","id":"dynamic-edit-palette","defaultValue":"Editing palette"},
     {"type":"toggle","messageKey":"SCREEN_SPLIT","defaultValue":false,"label":"Split clock and details"},
@@ -58,11 +64,7 @@ module.exports = [
     {"type":"text","id":"dynamic-notification-help","defaultValue":"New notifications use the same activity priority and primary/secondary layouts. Allow notification access in Pebble. Pebble’s system notifications remain separate."},
   ]},
   {type:'section',items:[
-    {"type":"heading","defaultValue":"More & help"},
-    {"type":"select","messageKey":"CLOCK_FORMAT","defaultValue":0,"label":"Time format","serializeValueAs":"integer","options":[{"label":"Follow Pebble","value":0},{"label":"12-hour time","value":12},{"label":"24-hour time","value":24}]},
-    {"type":"select","messageKey":"TEXT_SIZE","defaultValue":0,"label":"Text size","serializeValueAs":"integer","options":[{"label":"Follow Pebble","value":0},{"label":"Small","value":1},{"label":"Medium","value":2},{"label":"Large","value":3}]},
-    {"type":"toggle","messageKey":"ANIMATIONS","defaultValue":true,"label":"Animations","description":"Short transitions when activities change."},
-    {"type":"toggle","messageKey":"SHOW_STATUS","defaultValue":true,"label":"Status indicators","description":"Low watch or phone battery and lost connection."},
+    {"type":"heading","defaultValue":"Help & status"},
     {"type":"text","defaultValue":"Language follows your watch."},
     {"type":"text","id":"dynamic-activity-help","defaultValue":"Activity setup"},
     {"type":"heading","defaultValue":"What is an activity?","id":"dynamic-activity-help-0"},

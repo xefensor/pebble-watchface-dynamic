@@ -6,6 +6,7 @@ const path = require('node:path');
 const {execFileSync} = require('node:child_process');
 const vm = require('node:vm');
 const settingsStyle = require('pebble-xoce-ui/settings-style');
+const editorStyle = require('../src/pkjs/settings-editor-style')();
 const custom = require('../src/pkjs/settings-page');
 
 function clayHtml() {
@@ -19,9 +20,10 @@ function clayHtml() {
     'import sys, zipfile; sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read("js/index.js"))',
     archive], {encoding:'utf8'});
   vm.runInNewContext(source, box);
-  const clay = new box.module.exports([], custom, {autoHandleEvents:false, userData:{settingsStyle}});
+  const clay = new box.module.exports([], custom, {autoHandleEvents:false, userData:{settingsStyle,editorStyle}});
   // Dynamic creates Clay after ready, so the public metadata needs seeding too.
   clay.meta.userData.settingsStyle = settingsStyle;
+  clay.meta.userData.editorStyle = editorStyle;
   return decodeURIComponent(clay.generateUrl().split(',').slice(1).join(','));
 }
 
@@ -39,6 +41,7 @@ function runSerializedHook(html, existingStyle) {
   assert.ok(script, 'Clay metadata and hook script are present');
   vm.runInNewContext(script[1], box);
   assert.equal(box.window.clayMeta.userData.settingsStyle, settingsStyle);
+  assert.equal(box.window.clayMeta.userData.editorStyle, editorStyle);
   // AFTER_BUILD is intentionally not dispatched: this checks the presentation
   // handoff, not form/bridge behaviour already covered by the controller tests.
   box.window.customFn.call({meta:box.window.clayMeta, EVENTS:{AFTER_BUILD:'built'}, on(){}});
@@ -49,7 +52,7 @@ test('offline legacy Clay transfers the common CSS without a lexical import', ()
   const styles = runSerializedHook(clayHtml());
   assert.equal(styles.filter(style => style.id === 'xoce-settings-style').length, 1);
   assert.equal(styles.find(style => style.id === 'xoce-settings-style').textContent, settingsStyle);
-  assert.ok(styles.some(style => style.id === 'dynamic-settings-style'));
+  assert.ok(styles.find(style => style.id === 'dynamic-settings-style').textContent.endsWith(editorStyle));
 });
 
 test('bundled loading and built Clay share one identical base stylesheet', () => {
@@ -59,4 +62,5 @@ test('bundled loading and built Clay share one identical base stylesheet', () =>
   assert.equal(embedded[1], settingsStyle);
   const styles = runSerializedHook(html, embedded[1]);
   assert.equal(styles.filter(style => style.id === 'xoce-settings-style').length, 1);
+  assert.ok(styles.find(style => style.id === 'dynamic-settings-style').textContent.endsWith(editorStyle));
 });

@@ -13,10 +13,12 @@ function settingsPage() {
   if(!clay) {
     var Clay=require('@rebble/clay');
     var settingsStyle=require('pebble-xoce-ui/settings-style');
+    var editorStyle=require('./settings-editor-style')();
     clayConfig=require('./config');
-    clay=new Clay(clayConfig,require('./settings-page'),{autoHandleEvents:false,userData:{settingsStyle:settingsStyle}});
+    clay=new Clay(clayConfig,require('./settings-page'),{autoHandleEvents:false,userData:{settingsStyle:settingsStyle,editorStyle:editorStyle}});
     // Lazy creation follows ready; Clay otherwise copies userData only on ready.
     clay.meta.userData.settingsStyle=settingsStyle;
+    clay.meta.userData.editorStyle=editorStyle;
   }
   return clay;
 }
@@ -280,6 +282,9 @@ Pebble.addEventListener('showConfiguration', function() {
   var dynamic = context.status();
   var metadata = settingsMetadata(status, dynamic);
   metadata.language = language;
+  var nativeSettings = settingsState.read(localStorage);
+  var fontAssets = require('../common/font-assets');
+  var savedFonts = fontAssets.library(localStorage);
   function t(key, params) { return localization.t(key, language, params); }
   function visit(items) {
     items.forEach(function(item) {
@@ -294,7 +299,27 @@ Pebble.addEventListener('showConfiguration', function() {
         item.defaultValue = previous;
       }
       if (item.messageKey === 'NOTIFICATION_APPS' && typeof previous === 'string') { item.defaultValue = previous; }
-      if (['TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].indexOf(item.messageKey)>=0) { var nativeSettings=settingsState.read(localStorage);if(nativeSettings)item.defaultValue=nativeSettings[item.messageKey]; }
+      if (nativeSettings && ['TEXT_SIZE','APPEARANCE_MODE','MANUAL_APPEARANCE'].indexOf(item.messageKey)>=0) item.defaultValue=nativeSettings[item.messageKey];
+      if (fontAssets.fields.indexOf(item.messageKey)>=0) {
+        // Clay's data-URL page has no file/catalog bridge. Its native selects
+        // can still assign any font already in the phone's library.
+        var selected = nativeSettings ? nativeSettings[item.messageKey] : 0;
+        item.type = 'select';
+        item.defaultValue = selected;
+        item.options = [
+          {value:0,label:t(item.messageKey==='FONT_WATCHFACE'?'Dynamic Default':'Use whole-watchface font')},
+          {value:1,label:'Pebble Gothic'}
+        ];
+        if (item.messageKey==='FONT_CLOCK') item.options.push({value:2,label:'Pebble Bitham'},{value:3,label:'Pebble LECO'});
+        // Clay interpolates this configuration into an inline script using
+        // String.replace. Restore these characters as option text in the page.
+        savedFonts.forEach(function(font){
+          item.options.push({value:font.id,label:font.name.replace(/[%<$]/g,encodeURIComponent)});
+        });
+        if (selected>3 && !savedFonts.some(function(font){return font.id===selected;})) {
+          item.options.push({value:selected,label:t('Font saved on watch')});
+        }
+      }
       if (item.messageKey === 'CLOCK_FORMAT') { item.defaultValue = clockFormat(saved); }
       if (item.messageKey === 'NOTIFICATION_VIBRATION' && [0,1,2].indexOf(previous) >= 0) { item.defaultValue = previous; }
       if (item.id === 'dynamic-settings-data') { item.defaultValue = escapeHtml(JSON.stringify(metadata)); return; }

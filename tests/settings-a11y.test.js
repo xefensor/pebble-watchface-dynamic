@@ -40,15 +40,6 @@ test('watch Retry needs a delivery API and saved unapplied native preferences',(
  assert.equal(retry(null,{state:'pending'}),false);assert.equal(retry({}, {state:'pending'}),false);
  assert.equal(retry(bridge,{state:'pending',applied:false}),true);assert.equal(retry(bridge,{state:'failed',error:true}),true);
 });
-test('preview selection connects one active tab with its named panel',()=>{
- const doc={},tabs={children:['idle','music','timer'].map(name=>Object.assign(node(doc),{id:'preview-tab-'+name}))},panel=Object.assign(node(doc),{id:'preview-panel'});
- helper('selectPreviewTab')(tabs,panel,tabs.children[1]);
- assert.equal(panel.attributes['aria-labelledby'],'preview-tab-music');
- assert.deepEqual(tabs.children.map(tab=>tab.tabIndex),[-1,0,-1]);
- assert.deepEqual(tabs.children.map(tab=>tab.attributes['aria-selected']),['false','true','false']);
- assert.ok(tabs.children.every(tab=>tab.attributes['aria-controls']==='preview-panel'));
- assert.match(hook,/stage\.setAttribute\('role','tabpanel'\)/);assert.match(hook,/canvas\.setAttribute\('role','img'\)/);
-});
 test('a64-colour picker has one Tab stop and opens at the selected colour',()=>{
  const positions=Array.from({length:64},(_,i)=>[(i%8)*20,Math.floor(i/8)*20]),p=palette(positions,35);
  assert.ok(p.boxes.every(box=>box.tabIndex===-1));p.opener.focus();assert.equal(p.opener.key('Enter'),true);
